@@ -1,0 +1,1876 @@
+// Centralized university mock data
+// All content lives here so admin/CMS-ready edits happen in one place.
+
+export type Department = {
+  slug: string;
+  name: string;
+  shortName: string;
+  category: string;
+  icon: string; // lucide icon name
+  description: string;
+  longDescription: string;
+  cover: string; // gradient class
+  coverImage: string; // unsplash url
+  facultyCount: number;
+  studentCount: number;
+  placementRate: number;
+  programsCount: number;
+  researchLabs: number;
+  color: "navy" | "gold" | "emerald" | "crimson" | "violet" | "amber" | "teal" | "rose";
+  vision: string;
+  mission: string;
+  highlights: { title: string; description: string; icon: string }[];
+  programs: Program[];
+  faculty: FacultyMember[];
+  researchAreas: string[];
+  researchStats: { publications: number; patents: number; projects: number; centers: number };
+  labs: Lab[];
+  events: DepartmentEvent[];
+  alumni: Alumni[];
+  achievements: { title: string; description: string; icon: string }[];
+  flagshipEvents: { name: string; description: string }[];
+  contact: { address: string; phone: string; email: string; hod: string };
+};
+
+export type Program = {
+  id: string;
+  name: string;
+  duration: string;
+  eligibility: string;
+  accreditation: string;
+  description: string;
+  image: string;
+  level: "UG" | "PG" | "Doctoral";
+};
+
+export type FacultyMember = {
+  id: string;
+  name: string;
+  designation: string;
+  qualification: string;
+  researchInterests: string[];
+  publications: number;
+  image: string;
+  role: "HOD" | "Coordinator" | "Director" | "Professor";
+};
+
+export type Lab = {
+  name: string;
+  description: string;
+  equipment: string[];
+  capacity: number;
+  image: string;
+};
+
+export type DepartmentEvent = {
+  title: string;
+  date: string;
+  venue: string;
+  description: string;
+};
+
+export type Alumni = {
+  name: string;
+  company: string;
+  position: string;
+  testimonial: string;
+  image: string;
+  year: string;
+};
+
+export const departments: Department[] = [
+  {
+    slug: "computer-science",
+    name: "Computer Science & Engineering",
+    shortName: "CSE",
+    category: "School of Engineering",
+    icon: "Cpu",
+    description:
+      "A globally recognised program blending theory, systems, and software craftsmanship with industry-aligned capstones.",
+    longDescription:
+      "The Department of Computer Science & Engineering at BAC is a top-ranked research and teaching unit, internationally recognised for its work in distributed systems, programming languages, and human-centred computing. Students engage with a curriculum co-designed with industry partners, participate in flagship hackathons, and ship production software before they graduate. Our graduates lead engineering teams at the world's most respected technology companies and have founded venture-backed startups across three continents.",
+    cover: "from-navy via-navy-light to-navy-dark",
+    coverImage:
+      "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1600&q=80",
+    facultyCount: 48,
+    studentCount: 2400,
+    placementRate: 98,
+    programsCount: 12,
+    researchLabs: 9,
+    color: "navy",
+    vision:
+      "To be the world's most respected computer science department for human-centred, systems-driven, and impact-focused computing education.",
+    mission:
+      "To educate engineers who build reliable, secure, and humane software systems; to advance the science of computing through curiosity-driven research; and to translate discoveries into products, policy, and pedagogy that uplift society.",
+    highlights: [
+      {
+        title: "Industry-Aligned Curriculum",
+        description:
+          "Courses co-designed with Google, Microsoft, and AWS engineering leaders. Every student completes two production-grade capstones with industry mentors.",
+        icon: "Building2",
+      },
+      {
+        title: "Research Excellence",
+        description:
+          "60+ publications annually in tier-1 venues such as SIGCOMM, SOSP, ICSE, and NeurIPS, with grants from leading research councils.",
+        icon: "FlaskConical",
+      },
+      {
+        title: "Global Opportunities",
+        description:
+          "Semester exchange with Stanford, NUS, TU Delft, and ETH Zurich. 35% of undergraduates complete an international internship.",
+        icon: "Globe2",
+      },
+      {
+        title: "Innovation & Entrepreneurship",
+        description:
+          "In-residence venture studio, dedicated seed fund, and 40+ student-led startups launched in the past three years.",
+        icon: "Rocket",
+      },
+    ],
+    programs: [
+      {
+        id: "btech-cse",
+        name: "B.Tech Computer Science & Engineering",
+        duration: "4 Years (8 Semesters)",
+        eligibility: "10+2 with Physics, Chemistry, Mathematics; 75% aggregate",
+        accreditation: "NBA Tier-1, ABET Substantial Equivalence",
+        description:
+          "A flagship four-year program covering algorithms, systems, AI, networks, and software engineering with two industry capstones.",
+        image:
+          "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&w=1200&q=80",
+        level: "UG",
+      },
+      {
+        id: "bca-ai-ml",
+        name: "BCA in AI & Machine Learning",
+        duration: "3 Years (6 Semesters)",
+        eligibility: "10+2 in any stream with Mathematics; 60% aggregate",
+        accreditation: "UGC Recognised, AICTE Approved",
+        description:
+          "An application-focused undergraduate program in applied machine learning, deep learning, and intelligent systems.",
+        image:
+          "https://images.unsplash.com/photo-1555949963-ff9fe0c870eb?auto=format&fit=crop&w=1200&q=80",
+        level: "UG",
+      },
+      {
+        id: "mtech-cse",
+        name: "M.Tech Computer Science (Research)",
+        duration: "2 Years (4 Semesters)",
+        eligibility: "B.E./B.Tech in CS/IT with 60%; valid GATE score",
+        accreditation: "NBA Accredited",
+        description:
+          "A research-intensive master's with specialisations in systems, AI, security, and theoretical computer science.",
+        image:
+          "https://images.unsplash.com/photo-1581090700227-1e37b190418e?auto=format&fit=crop&w=1200&q=80",
+        level: "PG",
+      },
+      {
+        id: "phd-cse",
+        name: "Ph.D. in Computer Science",
+        duration: "3-5 Years",
+        eligibility: "Master's in CS/IT; research proposal & interview",
+        accreditation: "UGC Recognised",
+        description:
+          "A doctoral program producing researchers who publish in tier-1 venues and join top academia and industry labs.",
+        image:
+          "https://images.unsplash.com/photo-1532153955177-f59af40d647b?auto=format&fit=crop&w=1200&q=80",
+        level: "Doctoral",
+      },
+    ],
+    faculty: [
+      {
+        id: "f1",
+        name: "Dr. Anand Krishnan",
+        designation: "Professor & Head of Department",
+        qualification: "Ph.D., Carnegie Mellon University",
+        researchInterests: ["Distributed Systems", "Edge Computing", "Cloud-Native Architecture"],
+        publications: 142,
+        image: "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=600&q=80",
+        role: "HOD",
+      },
+      {
+        id: "f2",
+        name: "Dr. Priya Sharma",
+        designation: "Professor & Program Coordinator",
+        qualification: "Ph.D., University of California, Berkeley",
+        researchInterests: ["Machine Learning", "Natural Language Processing", "AI Safety"],
+        publications: 98,
+        image: "https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?auto=format&fit=crop&w=600&q=80",
+        role: "Coordinator",
+      },
+      {
+        id: "f3",
+        name: "Dr. Marcus Chen",
+        designation: "Research Director, Systems Lab",
+        qualification: "Ph.D., MIT",
+        researchInterests: ["Operating Systems", "Compilers", "Formal Verification"],
+        publications: 117,
+        image: "https://images.unsplash.com/photo-1556157382-97eda2d62296?auto=format&fit=crop&w=600&q=80",
+        role: "Director",
+      },
+      {
+        id: "f4",
+        name: "Dr. Elena Rodríguez",
+        designation: "Associate Professor",
+        qualification: "Ph.D., ETH Zurich",
+        researchInterests: ["Computer Vision", "Robotics Perception", "Autonomous Systems"],
+        publications: 76,
+        image: "https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=600&q=80",
+        role: "Professor",
+      },
+    ],
+    researchAreas: ["AI", "ML", "Data Science", "Cyber Security", "Cloud Computing", "IoT"],
+    researchStats: { publications: 432, patents: 38, projects: 56, centers: 9 },
+    labs: [
+      {
+        name: "AI Research Lab",
+        description:
+          "A 400 sqm research facility dedicated to fundamental and applied AI, equipped with the latest GPU clusters and robotics testbeds.",
+        equipment: ["NVIDIA H100 Cluster", "Franka Emika Robots", "Vicon Motion Capture", "Hololens 2"],
+        capacity: 60,
+        image: "https://images.unsplash.com/photo-1581092918056-0c4c3acd3789?auto=format&fit=crop&w=1200&q=80",
+      },
+      {
+        name: "Networking & Systems Lab",
+        description:
+          "Testbeds for software-defined networking, edge computing, and large-scale distributed systems research.",
+        equipment: ["SDN Switches", "Edge Nodes", "Optical Testbed", "Network Emulators"],
+        capacity: 40,
+        image: "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=1200&q=80",
+      },
+      {
+        name: "Cyber Security Lab",
+        description:
+          "An air-gapped facility for offensive and defensive security research, digital forensics, and zero-trust architectures.",
+        equipment: ["Forensic Workstations", "IoT Test Rack", "Threat Intel Platform", "Isolated VLANs"],
+        capacity: 30,
+        image: "https://images.unsplash.com/photo-1510511459019-5dda7724fd87?auto=format&fit=crop&w=1200&q=80",
+      },
+      {
+        name: "Data Science Innovation Center",
+        description:
+          "A cross-disciplinary centre for data-intensive research in collaboration with industry partners and government agencies.",
+        equipment: ["Petabyte Storage", "Spark Cluster", "BI Tooling", "Visualisation Walls"],
+        capacity: 80,
+        image: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=1200&q=80",
+      },
+    ],
+    events: [
+      {
+        title: "CodeSprint 2026 — National Hackathon",
+        date: "March 14-16, 2026",
+        venue: "Innovation Hub, Block A",
+        description: "48-hour national hackathon with 200+ teams competing for ₹15,00,000 in prizes.",
+      },
+      {
+        title: "Open Source Week",
+        date: "April 5-11, 2026",
+        venue: "CSE Department",
+        description: "A week of talks, mentorship, and contribution sprints with maintainers from Linux, Kubernetes, and Rust.",
+      },
+    ],
+    alumni: [
+      {
+        name: "Arjun Mehta",
+        company: "Google",
+        position: "Staff Software Engineer",
+        testimonial:
+          "BAC gave me the rigor of a top research lab and the pragmatism of a Silicon Valley startup. I shipped my first production system as a sophomore.",
+        image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=400&q=80",
+        year: "2019",
+      },
+      {
+        name: "Sara Williams",
+        company: "Anthropic",
+        position: "Research Scientist",
+        testimonial:
+          "The faculty mentorship and access to compute resources at BAC rival what I have seen at Stanford and CMU.",
+        image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=400&q=80",
+        year: "2020",
+      },
+      {
+        name: "Vikram Reddy",
+        company: "Founder, Nimbus AI",
+        position: "CEO & Co-founder",
+        testimonial:
+          "The in-residence venture studio turned my final-year project into a Series A startup. The network effect is real.",
+        image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80",
+        year: "2018",
+      },
+    ],
+    achievements: [
+      { title: "ACM ICPC World Finals", description: "Top 20 placement, three years in a row (2023-2025).", icon: "Trophy" },
+      { title: "Smart India Hackathon", description: "Grand winner 2024 and 2025 across two problem statements.", icon: "Award" },
+      { title: "Student Startup — Nimbus AI", description: "Raised $12M Series A led by Sequoia Capital.", icon: "Rocket" },
+      { title: "International Recognition", description: "Two students named in Forbes 30 Under 30 Asia (2025).", icon: "Globe2" },
+    ],
+    flagshipEvents: [
+      { name: "Hackathon", description: "CodeSprint — 48-hour national hackathon with industry judges." },
+      { name: "Open Source Week", description: "A week of contribution sprints with global maintainers." },
+    ],
+    contact: {
+      address: "Block A, BAC Global Campus, Knowledge City, 560100",
+      phone: "+91 80 4567 8901",
+      email: "cse@bac.edu",
+      hod: "Dr. Anand Krishnan",
+    },
+  },
+  {
+    slug: "artificial-intelligence-data-science",
+    name: "Artificial Intelligence & Data Science",
+    shortName: "AI & DS",
+    category: "School of Computing",
+    icon: "BrainCircuit",
+    description:
+      "An interdisciplinary powerhouse shaping the next generation of AI researchers, ML engineers, and data leaders.",
+    longDescription:
+      "The Department of Artificial Intelligence & Data Science is BAC's flagship response to the most consequential technology shift of our era. We bring together computer science, statistics, neuroscience, and ethics to train graduates who can build, deploy, and govern AI systems at scale. The department hosts four research centres, three industry-sponsored labs, and a vibrant community of 1,800 students working on real-world AI problems with partners including Google DeepMind, Microsoft Research, and the Alan Turing Institute.",
+    cover: "from-violet-600 via-navy to-navy-dark",
+    coverImage:
+      "https://images.unsplash.com/photo-1677442136019-21780ecad995?auto=format&fit=crop&w=1600&q=80",
+    facultyCount: 36,
+    studentCount: 1800,
+    placementRate: 97,
+    programsCount: 8,
+    researchLabs: 7,
+    color: "violet",
+    vision:
+      "To be among the world's top five AI departments, recognised for responsible, high-impact research that improves lives.",
+    mission:
+      "To train AI practitioners and researchers who can design intelligent systems responsibly, govern their societal impact, and advance the frontiers of machine intelligence.",
+    highlights: [
+      {
+        title: "Industry-Oriented Curriculum",
+        description:
+          "Co-designed with Google DeepMind, Microsoft Research, and AWS. Every student completes a year-long applied AI capstone with an industry sponsor.",
+        icon: "Building2",
+      },
+      {
+        title: "Research Excellence",
+        description:
+          "50+ NeurIPS, ICML, ICLR, and CVPR publications in the last three years, with multiple best-paper nominations.",
+        icon: "FlaskConical",
+      },
+      {
+        title: "Global Opportunities",
+        description:
+          "Exchange programs with MIT CSAIL, Stanford AI Lab, and Oxford. Funded summer fellowships at Turing Institute.",
+        icon: "Globe2",
+      },
+      {
+        title: "Innovation & Entrepreneurship",
+        description:
+          "AI-focused venture studio with 12 active student startups, three of which have raised seed rounds in 2025.",
+        icon: "Rocket",
+      },
+    ],
+    programs: [
+      {
+        id: "bsc-ai",
+        name: "B.Sc Artificial Intelligence",
+        duration: "3 Years (6 Semesters)",
+        eligibility: "10+2 with Mathematics; 70% aggregate",
+        accreditation: "UGC Recognised, AICTE Approved",
+        description:
+          "A foundational program in AI, ML, statistics, and ethics, preparing graduates for industry or graduate research.",
+        image:
+          "https://images.unsplash.com/photo-1620712943543-bcc4688e7485?auto=format&fit=crop&w=1200&q=80",
+        level: "UG",
+      },
+      {
+        id: "bsc-data-science",
+        name: "B.Sc Data Science",
+        duration: "3 Years (6 Semesters)",
+        eligibility: "10+2 with Mathematics/Statistics; 65% aggregate",
+        accreditation: "UGC Recognised",
+        description:
+          "A program in statistical inference, data engineering, and business analytics with industry certifications.",
+        image:
+          "https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=1200&q=80",
+        level: "UG",
+      },
+      {
+        id: "btech-ai",
+        name: "B.Tech Artificial Intelligence",
+        duration: "4 Years (8 Semesters)",
+        eligibility: "10+2 with Physics, Chemistry, Mathematics; 75% aggregate",
+        accreditation: "NBA Tier-1, ABET Equivalence",
+        description:
+          "A four-year engineering degree in AI systems, deep learning, robotics, and human-AI interaction.",
+        image:
+          "https://images.unsplash.com/photo-1485827404703-89b55fcc595e?auto=format&fit=crop&w=1200&q=80",
+        level: "UG",
+      },
+      {
+        id: "msc-ai",
+        name: "M.Sc Artificial Intelligence",
+        duration: "2 Years (4 Semesters)",
+        eligibility: "Bachelor's in CS/Math/Stats with 60%",
+        accreditation: "UGC Recognised",
+        description:
+          "A research-track master's with thesis, preparing graduates for Ph.D. programs or applied research roles.",
+        image:
+          "https://images.unsplash.com/photo-1507238691740-187a5b1d37ac?auto=format&fit=crop&w=1200&q=80",
+        level: "PG",
+      },
+    ],
+    faculty: [
+      {
+        id: "ai-1",
+        name: "Dr. Sophia Laurent",
+        designation: "Professor & Head of Department",
+        qualification: "Ph.D., Stanford University",
+        researchInterests: ["Deep Learning", "Generative Models", "AI Alignment"],
+        publications: 156,
+        image: "https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=600&q=80",
+        role: "HOD",
+      },
+      {
+        id: "ai-2",
+        name: "Dr. Rajesh Kumar",
+        designation: "Professor & Program Coordinator",
+        qualification: "Ph.D., University of Toronto",
+        researchInterests: ["Reinforcement Learning", "Robotics", "Multi-Agent Systems"],
+        publications: 102,
+        image: "https://images.unsplash.com/photo-1568602471122-7832951cc4c5?auto=format&fit=crop&w=600&q=80",
+        role: "Coordinator",
+      },
+      {
+        id: "ai-3",
+        name: "Dr. Mei Tanaka",
+        designation: "Research Director, NLP Lab",
+        qualification: "Ph.D., University of Edinburgh",
+        researchInterests: ["Natural Language Processing", "Large Language Models", "Multilingual NLP"],
+        publications: 88,
+        image: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=600&q=80",
+        role: "Director",
+      },
+    ],
+    researchAreas: ["Deep Learning", "NLP", "Computer Vision", "Reinforcement Learning", "AI Ethics", "Federated Learning"],
+    researchStats: { publications: 286, patents: 24, projects: 41, centers: 7 },
+    labs: [
+      {
+        name: "Deep Learning Lab",
+        description: "GPU-rich research facility for training large neural networks with responsible-AI tooling.",
+        equipment: ["NVIDIA H100 Cluster", "TPU v5 Pods", "WandB Platform", "Interpretability Suite"],
+        capacity: 50,
+        image: "https://images.unsplash.com/photo-1591453089816-0fbb971b2346?auto=format&fit=crop&w=1200&q=80",
+      },
+      {
+        name: "NLP & LLM Lab",
+        description: "Specialised lab for language model research, evaluation, and deployment pipelines.",
+        equipment: ["Inference Cluster", "HumanEval Harness", "Red-Team Sandbox", "Eval Framework"],
+        capacity: 30,
+        image: "https://images.unsplash.com/photo-1639762681485-074b7f938ba0?auto=format&fit=crop&w=1200&q=80",
+      },
+      {
+        name: "Robotics & Perception Lab",
+        description: "Real-world robot learning lab with manipulation, locomotion, and perception testbeds.",
+        equipment: ["Franka Arms", "Boston Dynamics Spot", "UR5e", "Vicon System"],
+        capacity: 25,
+        image: "https://images.unsplash.com/photo-1531746790731-6c087fecd65a?auto=format&fit=crop&w=1200&q=80",
+      },
+    ],
+    events: [
+      { title: "AI Summit 2026", date: "Feb 21-23, 2026", venue: "Auditorium 1", description: "International summit with 40+ speakers from DeepMind, OpenAI, and academia." },
+      { title: "DataFest 2026", date: "April 18, 2026", venue: "AI Department", description: "24-hour data hackathon with industry datasets and ₹10,00,000 in prizes." },
+      { title: "Research Day", date: "May 9, 2026", venue: "AI Department", description: "Showcase of 80+ student and faculty research projects with industry judges." },
+    ],
+    alumni: [
+      {
+        name: "Aisha Patel",
+        company: "OpenAI",
+        position: "Research Engineer",
+        testimonial: "The access to compute, mentorship, and a global peer network at BAC was transformative.",
+        image: "https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?auto=format&fit=crop&w=400&q=80",
+        year: "2021",
+      },
+      {
+        name: "Daniel Kim",
+        company: "Microsoft Research",
+        position: "Senior Researcher",
+        testimonial: "I came in as a curious undergraduate and left as a published researcher with three NeurIPS papers.",
+        image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=400&q=80",
+        year: "2020",
+      },
+    ],
+    achievements: [
+      { title: "NeurIPS Best Paper", description: "Honourable mention for faculty research on alignment (2024).", icon: "Trophy" },
+      { title: "Kaggle Grandmasters", description: "Four students achieved Kaggle Grandmaster status in 2025.", icon: "Award" },
+      { title: "AI for Good", description: "Student project deployed in 12 hospitals for diabetic retinopathy screening.", icon: "HeartHandshake" },
+    ],
+    flagshipEvents: [
+      { name: "AI Summit", description: "International AI conference with 40+ speakers." },
+      { name: "DataFest", description: "24-hour data hackathon with industry datasets." },
+      { name: "CodeSprint", description: "48-hour AI-focused national hackathon." },
+      { name: "Research Day", description: "Annual showcase of 80+ research projects." },
+    ],
+    contact: {
+      address: "Block B, BAC Global Campus, Knowledge City, 560100",
+      phone: "+91 80 4567 8902",
+      email: "aids@bac.edu",
+      hod: "Dr. Sophia Laurent",
+    },
+  },
+  {
+    slug: "commerce-management",
+    name: "Commerce & Management",
+    shortName: "COM",
+    category: "School of Business",
+    icon: "Briefcase",
+    description:
+      "A future-focused business school educating founders, finance leaders, and operators for the global economy.",
+    longDescription:
+      "The Department of Commerce & Management at BAC blends classical business education with modern entrepreneurship, finance, and analytics. We are accredited by AACSB and EQUIS, placing us in the top 1% of business schools worldwide. Our pedagogy combines Harvard-style case methodology, live consulting projects, and a global semester exchange with partner schools including Wharton, LBS, and INSEAD. Graduates lead at McKinsey, Goldman Sachs, Amazon, and have founded over 60 venture-backed startups.",
+    cover: "from-amber-600 via-gold-dark to-navy",
+    coverImage:
+      "https://images.unsplash.com/photo-1554224155-6726b3ff858f?auto=format&fit=crop&w=1600&q=80",
+    facultyCount: 42,
+    studentCount: 2100,
+    placementRate: 96,
+    programsCount: 9,
+    researchLabs: 5,
+    color: "gold",
+    vision: "To be Asia's most respected business school for entrepreneurship, finance, and responsible leadership.",
+    mission: "To develop leaders who create economic and social value through rigorous thought, ethical action, and global perspective.",
+    highlights: [
+      { title: "Industry-Oriented Curriculum", description: "Harvard case method, live consulting projects, CFA and CMA integration.", icon: "Building2" },
+      { title: "Research Excellence", description: "30+ publications in Journal of Finance, Academy of Management Journal, and JFE.", icon: "FlaskConical" },
+      { title: "Global Opportunities", description: "Semester exchange with Wharton, LBS, INSEAD, NUS Business School.", icon: "Globe2" },
+      { title: "Innovation & Entrepreneurship", description: "In-residence startup studio with 60+ venture-backed alumni startups.", icon: "Rocket" },
+    ],
+    programs: [
+      {
+        id: "bcom",
+        name: "B.Com (Hons.)",
+        duration: "3 Years (6 Semesters)",
+        eligibility: "10+2 in Commerce/Science; 65% aggregate",
+        accreditation: "UGC Recognised, AACSB Aligned",
+        description: "An honours program in accounting, finance, and business law with CFA Level-1 integration.",
+        image: "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=1200&q=80",
+        level: "UG",
+      },
+      {
+        id: "bba",
+        name: "Bachelor of Business Administration",
+        duration: "3 Years (6 Semesters)",
+        eligibility: "10+2 in any stream; 60% aggregate",
+        accreditation: "UGC Recognised",
+        description: "A management foundation with specialisations in marketing, finance, and entrepreneurship.",
+        image: "https://images.unsplash.com/photo-1556761175-5973dc0f32e7?auto=format&fit=crop&w=1200&q=80",
+        level: "UG",
+      },
+      {
+        id: "mba",
+        name: "Master of Business Administration",
+        duration: "2 Years (4 Semesters)",
+        eligibility: "Bachelor's with 50%; valid CAT/GMAT score",
+        accreditation: "AACSB, EQUIS, AMBA Triple Crown",
+        description: "A globally ranked MBA with concentrations in finance, strategy, analytics, and entrepreneurship.",
+        image: "https://images.unsplash.com/photo-1521737711867-e3b97375f902?auto=format&fit=crop&w=1200&q=80",
+        level: "PG",
+      },
+      {
+        id: "exec-mba",
+        name: "Executive MBA",
+        duration: "15 Months (Modular)",
+        eligibility: "Bachelor's + 7 years work experience",
+        accreditation: "AACSB Accredited",
+        description: "A modular executive program for senior leaders with global immersions.",
+        image: "https://images.unsplash.com/photo-1517048676732-d65bc937f952?auto=format&fit=crop&w=1200&q=80",
+        level: "PG",
+      },
+    ],
+    faculty: [
+      {
+        id: "com-1",
+        name: "Dr. Olivia Bennett",
+        designation: "Professor & Dean of Business",
+        qualification: "Ph.D., Harvard Business School",
+        researchInterests: ["Corporate Finance", "M&A", "Private Equity"],
+        publications: 78,
+        image: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=600&q=80",
+        role: "HOD",
+      },
+      {
+        id: "com-2",
+        name: "Dr. Vikram Iyer",
+        designation: "Professor & Program Coordinator",
+        qualification: "Ph.D., Wharton School",
+        researchInterests: ["Strategy", "Innovation", "Emerging Markets"],
+        publications: 64,
+        image: "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=600&q=80",
+        role: "Coordinator",
+      },
+    ],
+    researchAreas: ["Corporate Finance", "Strategy", "Entrepreneurship", "Marketing Analytics", "Behavioural Economics"],
+    researchStats: { publications: 184, patents: 2, projects: 28, centers: 5 },
+    labs: [
+      {
+        name: "Trading & Finance Lab",
+        description: "Bloomberg-equipped trading floor with real-time market data and simulation terminals.",
+        equipment: ["Bloomberg Terminals", "Reuters Eikon", "Simulation Software", "Market Data Feed"],
+        capacity: 50,
+        image: "https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?auto=format&fit=crop&w=1200&q=80",
+      },
+      {
+        name: "Consumer Insights Lab",
+        description: "Eye-tracking, biometric, and survey research facility for marketing and behaviour research.",
+        equipment: ["Eye-Tracker", "Biometric Sensors", "Focus Group Rooms", "Survey Tools"],
+        capacity: 20,
+        image: "https://images.unsplash.com/photo-1556761175-b413da4baf72?auto=format&fit=crop&w=1200&q=80",
+      },
+    ],
+    events: [
+      { title: "Startup Expo 2026", date: "March 7, 2026", venue: "Business School Atrium", description: "Annual showcase of 40+ student-led ventures with 30+ investors in attendance." },
+      { title: "Finance Summit", date: "April 22, 2026", venue: "Auditorium 2", description: "Industry summit with leaders from Goldman Sachs, Blackstone, and Bain Capital." },
+    ],
+    alumni: [
+      {
+        name: "Maya Singh",
+        company: "Goldman Sachs",
+        position: "Vice President, Investment Banking",
+        testimonial: "The case-method rigor and global network at BAC accelerated my career by at least five years.",
+        image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=400&q=80",
+        year: "2017",
+      },
+      {
+        name: "Rohan Gupta",
+        company: "Founder, FinEdge",
+        position: "CEO & Founder",
+        testimonial: "I pitched my startup at the BAC Startup Expo 2018. Three rounds of funding later, we are now 200+ people.",
+        image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80",
+        year: "2018",
+      },
+    ],
+    achievements: [
+      { title: "CFA Institute Affiliation", description: "Recognised as a CFA Program Partner with curriculum alignment.", icon: "Award" },
+      { title: "Triple Crown Accreditation", description: "AACSB, EQUIS, AMBA — top 1% of business schools worldwide.", icon: "Crown" },
+      { title: "Forbes 30 Under 30", description: "Five commerce alumni named in Forbes 30 Under 30 Asia (2024).", icon: "Trophy" },
+    ],
+    flagshipEvents: [
+      { name: "Startup Expo", description: "Annual showcase of student ventures with investors." },
+      { name: "Finance Summit", description: "Industry summit with global finance leaders." },
+    ],
+    contact: {
+      address: "Block C, BAC Global Campus, Knowledge City, 560100",
+      phone: "+91 80 4567 8903",
+      email: "commerce@bac.edu",
+      hod: "Dr. Olivia Bennett",
+    },
+  },
+  {
+    slug: "biotechnology",
+    name: "Biotechnology",
+    shortName: "BT",
+    category: "School of Life Sciences",
+    icon: "Dna",
+    description:
+      "An interdisciplinary life-sciences department driving research in genomics, synthetic biology, and bioinformatics.",
+    longDescription:
+      "The Department of Biotechnology at BAC integrates biology, engineering, and data science to address the grand challenges of human health, agriculture, and sustainability. We are home to a BSL-3 facility, a genomics core, and a synthetic biology foundry. Faculty research is published in Nature, Cell, and Science, with active collaborations with the Broad Institute, Max Planck, and the Wellcome Sanger Institute. Our graduates join leading biotech companies, top medical schools, and doctoral programs worldwide.",
+    cover: "from-emerald-600 via-teal-700 to-navy",
+    coverImage:
+      "https://images.unsplash.com/photo-1530026405186-ed1f139313f8?auto=format&fit=crop&w=1600&q=80",
+    facultyCount: 32,
+    studentCount: 1200,
+    placementRate: 94,
+    programsCount: 6,
+    researchLabs: 6,
+    color: "emerald",
+    vision: "To lead Asia in translational biotechnology research that improves human and planetary health.",
+    mission: "To train biotechnologists who can move discoveries from bench to bedside, farm, and ecosystem responsibly.",
+    highlights: [
+      { title: "Industry-Oriented Curriculum", description: "Co-designed with Biocon, Genentech, and Illumina with industry residencies.", icon: "Building2" },
+      { title: "Research Excellence", description: "20+ Nature/Cell/Science publications in the last three years.", icon: "FlaskConical" },
+      { title: "Global Opportunities", description: "Exchange and internships with Broad Institute, Wellcome Sanger, Max Planck.", icon: "Globe2" },
+      { title: "Innovation & Entrepreneurship", description: "Biotech venture studio with 8 active student startups in diagnostics and therapeutics.", icon: "Rocket" },
+    ],
+    programs: [
+      {
+        id: "bsc-bt",
+        name: "B.Sc Biotechnology",
+        duration: "3 Years (6 Semesters)",
+        eligibility: "10+2 with Physics, Chemistry, Biology; 65%",
+        accreditation: "UGC Recognised",
+        description: "A foundational program in molecular biology, genetics, and bioinformatics.",
+        image: "https://images.unsplash.com/photo-1582719471384-894fbb16e074?auto=format&fit=crop&w=1200&q=80",
+        level: "UG",
+      },
+      {
+        id: "mtech-bt",
+        name: "M.Tech Biotechnology",
+        duration: "2 Years (4 Semesters)",
+        eligibility: "B.E./B.Tech/B.Sc in Biotech with 60%",
+        accreditation: "NBA Accredited",
+        description: "An engineering master's with specialisations in bioprocess, synthetic biology, and bioinformatics.",
+        image: "https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?auto=format&fit=crop&w=1200&q=80",
+        level: "PG",
+      },
+      {
+        id: "phd-bt",
+        name: "Ph.D. Biotechnology",
+        duration: "3-5 Years",
+        eligibility: "Master's in Biotech/Life Sciences",
+        accreditation: "UGC Recognised",
+        description: "A doctoral program with tracks in genomics, synthetic biology, and translational medicine.",
+        image: "https://images.unsplash.com/photo-1576086213369-97a306d36557?auto=format&fit=crop&w=1200&q=80",
+        level: "Doctoral",
+      },
+    ],
+    faculty: [
+      {
+        id: "bt-1",
+        name: "Dr. Kavya Nair",
+        designation: "Professor & Head of Department",
+        qualification: "Ph.D., MIT",
+        researchInterests: ["Synthetic Biology", "Genetic Circuits", "Metabolic Engineering"],
+        publications: 94,
+        image: "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&w=600&q=80",
+        role: "HOD",
+      },
+    ],
+    researchAreas: ["Genomics", "Synthetic Biology", "Bioinformatics", "Tissue Engineering", "CRISPR", "Bioprocess"],
+    researchStats: { publications: 156, patents: 22, projects: 31, centers: 6 },
+    labs: [
+      {
+        name: "Genomics Core Facility",
+        description: "Illumina NovaSeq-equipped facility for whole-genome and single-cell sequencing research.",
+        equipment: ["NovaSeq 6000", "10x Chromium", "qPCR Systems", "Bioanalyzers"],
+        capacity: 25,
+        image: "https://images.unsplash.com/photo-1582719471137-c3967ffb1c42?auto=format&fit=crop&w=1200&q=80",
+      },
+      {
+        name: "Synthetic Biology Foundry",
+        description: "Automated DNA assembly and strain engineering facility for synthetic biology research.",
+        equipment: ["Echo Liquid Handler", "Cell Sorters", "Fermenters", "Plate Readers"],
+        capacity: 20,
+        image: "https://images.unsplash.com/photo-1581093458791-9d2e9e0c50ad?auto=format&fit=crop&w=1200&q=80",
+      },
+    ],
+    events: [
+      { title: "Bio Research Symposium 2026", date: "March 28, 2026", venue: "Life Sciences Auditorium", description: "Annual research symposium with international keynote speakers." },
+    ],
+    alumni: [
+      {
+        name: "Dr. Ananya Rao",
+        company: "Genentech",
+        position: "Senior Scientist",
+        testimonial: "BAC gave me early access to a BSL-3 facility as an undergraduate — that hands-on rigor shaped my career.",
+        image: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=400&q=80",
+        year: "2018",
+      },
+    ],
+    achievements: [
+      { title: "Nature Publication", description: "Faculty paper on engineered T-cells featured in Nature (2024).", icon: "Award" },
+      { title: "BioNexus Startup", description: "Student-led diagnostics startup raised $8M Series A.", icon: "Rocket" },
+    ],
+    flagshipEvents: [{ name: "Bio Research Symposium", description: "Annual research symposium with global speakers." }],
+    contact: {
+      address: "Block D, BAC Global Campus, Knowledge City, 560100",
+      phone: "+91 80 4567 8904",
+      email: "biotech@bac.edu",
+      hod: "Dr. Kavya Nair",
+    },
+  },
+  {
+    slug: "psychology",
+    name: "Psychology",
+    shortName: "PSY",
+    category: "School of Behavioural Sciences",
+    icon: "Brain",
+    description:
+      "A research-led department bridging clinical, cognitive, and organisational psychology for the modern world.",
+    longDescription:
+      "The Department of Psychology at BAC is a research-intensive unit that prepares graduates for clinical practice, organisational consulting, and academic research. We are accredited by the British Psychological Society and the American Psychological Association. Faculty research is published in top journals including Nature Human Behaviour, Psychological Science, and the Journal of Personality and Social Psychology. Our community clinic serves 2,000+ clients annually while providing supervised training to graduate students.",
+    cover: "from-rose-500 via-violet-600 to-navy",
+    coverImage:
+      "https://images.unsplash.com/photo-1576086213369-97a306d36557?auto=format&fit=crop&w=1600&q=80",
+    facultyCount: 28,
+    studentCount: 980,
+    placementRate: 92,
+    programsCount: 5,
+    researchLabs: 4,
+    color: "rose",
+    vision: "To be Asia's leading psychology department for clinical, cognitive, and organisational research.",
+    mission: "To advance the science of mind and behaviour and translate discoveries into ethical clinical and organisational practice.",
+    highlights: [
+      { title: "Industry-Oriented Curriculum", description: "APA-aligned curriculum with supervised clinical practicum.", icon: "Building2" },
+      { title: "Research Excellence", description: "30+ publications in top psychology journals annually.", icon: "FlaskConical" },
+      { title: "Global Opportunities", description: "Exchange with UCL, Stanford, University of Melbourne.", icon: "Globe2" },
+      { title: "Innovation & Entrepreneurship", description: "Mental-health venture studio with 5 student-led startups.", icon: "Rocket" },
+    ],
+    programs: [
+      {
+        id: "ba-psy",
+        name: "B.A. (Hons.) Psychology",
+        duration: "3 Years (6 Semesters)",
+        eligibility: "10+2 in any stream; 65%",
+        accreditation: "UGC Recognised, BPS Aligned",
+        description: "A foundational honours program in psychology with research methods and practicum.",
+        image: "https://images.unsplash.com/photo-1576086213369-97a306d36557?auto=format&fit=crop&w=1200&q=80",
+        level: "UG",
+      },
+      {
+        id: "ma-psy",
+        name: "M.A. Clinical Psychology",
+        duration: "2 Years (4 Semesters)",
+        eligibility: "Bachelor's in Psychology with 60%",
+        accreditation: "UGC Recognised, APA Aligned",
+        description: "A clinical master's with supervised practicum at the community clinic.",
+        image: "https://images.unsplash.com/photo-1573497620053-ea5300f94f21?auto=format&fit=crop&w=1200&q=80",
+        level: "PG",
+      },
+      {
+        id: "phd-psy",
+        name: "Ph.D. Psychology",
+        duration: "3-5 Years",
+        eligibility: "Master's in Psychology",
+        accreditation: "UGC Recognised",
+        description: "Doctoral program with tracks in clinical, cognitive, and organisational psychology.",
+        image: "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?auto=format&fit=crop&w=1200&q=80",
+        level: "Doctoral",
+      },
+    ],
+    faculty: [
+      {
+        id: "psy-1",
+        name: "Dr. Clara Mensah",
+        designation: "Professor & Head of Department",
+        qualification: "Ph.D., University of Cambridge",
+        researchInterests: ["Cognitive Neuroscience", "Attention", "Decision Making"],
+        publications: 86,
+        image: "https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?auto=format&fit=crop&w=600&q=80",
+        role: "HOD",
+      },
+    ],
+    researchAreas: ["Clinical Psychology", "Cognitive Neuroscience", "Organisational Behaviour", "Social Psychology", "Developmental"],
+    researchStats: { publications: 112, patents: 1, projects: 18, centers: 4 },
+    labs: [
+      {
+        name: "Cognitive Neuroscience Lab",
+        description: "EEG, eye-tracking, and behavioural testing facility for cognitive research.",
+        equipment: ["128-channel EEG", "Eye-Tracker", "Behavioural Booths", "Analysis Cluster"],
+        capacity: 25,
+        image: "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?auto=format&fit=crop&w=1200&q=80",
+      },
+    ],
+    events: [
+      { title: "Mind Matters Conference", date: "April 12, 2026", venue: "Behavioural Sciences Auditorium", description: "Annual psychology research conference with clinical workshops." },
+    ],
+    alumni: [
+      {
+        name: "Dr. Nisha Verma",
+        company: "NIMHANS",
+        position: "Clinical Psychologist",
+        testimonial: "The supervised practicum at the BAC community clinic was the foundation of my clinical career.",
+        image: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=400&q=80",
+        year: "2019",
+      },
+    ],
+    achievements: [
+      { title: "BPS Accreditation", description: "First Asian department accredited by the British Psychological Society.", icon: "Award" },
+      { title: "Community Clinic", description: "2,000+ clients served annually through student-staffed clinic.", icon: "HeartHandshake" },
+    ],
+    flagshipEvents: [{ name: "Mind Matters Conference", description: "Annual research conference with clinical workshops." }],
+    contact: {
+      address: "Block E, BAC Global Campus, Knowledge City, 560100",
+      phone: "+91 80 4567 8905",
+      email: "psychology@bac.edu",
+      hod: "Dr. Clara Mensah",
+    },
+  },
+  {
+    slug: "visual-communication",
+    name: "Visual Communication",
+    shortName: "VISCOM",
+    category: "School of Design & Media",
+    icon: "Palette",
+    description:
+      "A creative department shaping designers, filmmakers, and digital storytellers for the global creative economy.",
+    longDescription:
+      "The Department of Visual Communication at BAC is a creative powerhouse preparing students for careers in design, film, animation, and digital media. We blend studio practice with critical theory and emerging technology including motion capture, AR/VR, and generative AI. Our alumni lead at Pentagram, IDEO, Pixar, and have founded studios that have shaped the visual identity of major global brands. The department hosts a 4K broadcast studio, motion capture stage, and a digital fabrication lab.",
+    cover: "from-rose-500 via-amber-500 to-gold",
+    coverImage:
+      "https://images.unsplash.com/photo-1561070791-2526d30994b5?auto=format&fit=crop&w=1600&q=80",
+    facultyCount: 24,
+    studentCount: 780,
+    placementRate: 95,
+    programsCount: 4,
+    researchLabs: 3,
+    color: "amber",
+    vision: "To be Asia's leading creative school for design, film, and digital storytelling.",
+    mission: "To nurture creative practitioners who combine craft, technology, and critical thinking to shape culture responsibly.",
+    highlights: [
+      { title: "Industry-Oriented Curriculum", description: "Studio model with Pentagram, IDEO, and Pixar residencies.", icon: "Building2" },
+      { title: "Research Excellence", description: "Conference presentations at CHI, DIS, and C&C with creative-practice PhDs.", icon: "FlaskConical" },
+      { title: "Global Opportunities", description: "Exchange with RCA London, Parsons New York, RISD.", icon: "Globe2" },
+      { title: "Innovation & Entrepreneurship", description: "Studio incubator for student-led design studios and production houses.", icon: "Rocket" },
+    ],
+    programs: [
+      {
+        id: "ba-viscom",
+        name: "B.A. Visual Communication",
+        duration: "3 Years (6 Semesters)",
+        eligibility: "10+2 in any stream; portfolio preferred",
+        accreditation: "UGC Recognised",
+        description: "A studio-based program in graphic design, film, photography, and digital media.",
+        image: "https://images.unsplash.com/photo-1561070791-2526d30994b5?auto=format&fit=crop&w=1200&q=80",
+        level: "UG",
+      },
+      {
+        id: "ma-design",
+        name: "M.A. Interaction Design",
+        duration: "2 Years (4 Semesters)",
+        eligibility: "Bachelor's in Design/related field; portfolio",
+        accreditation: "UGC Recognised",
+        description: "A master's in interaction, UX, and service design with industry residencies.",
+        image: "https://images.unsplash.com/photo-1545235617-9465d2a55698?auto=format&fit=crop&w=1200&q=80",
+        level: "PG",
+      },
+    ],
+    faculty: [
+      {
+        id: "viscom-1",
+        name: "Prof. Luca Moretti",
+        designation: "Professor & Head of Department",
+        qualification: "MFA, Royal College of Art",
+        researchInterests: ["Brand Systems", "Design Theory", "Generative Design"],
+        publications: 42,
+        image: "https://images.unsplash.com/photo-1568602471122-7832951cc4c5?auto=format&fit=crop&w=600&q=80",
+        role: "HOD",
+      },
+    ],
+    researchAreas: ["Interaction Design", "Visual Studies", "Film & Media", "Generative Design", "Design Pedagogy"],
+    researchStats: { publications: 68, patents: 4, projects: 22, centers: 3 },
+    labs: [
+      {
+        name: "Motion Capture & Film Studio",
+        description: "4K broadcast studio with motion capture stage for film, animation, and immersive media.",
+        equipment: ["Vicon MX System", "RED Camera", " Lighting Grid", "Sound Stage"],
+        capacity: 40,
+        image: "https://images.unsplash.com/photo-1492724441997-5dc865305da7?auto=format&fit=crop&w=1200&q=80",
+      },
+    ],
+    events: [
+      { title: "Frame by Frame — Student Film Festival", date: "May 2, 2026", venue: "Design Auditorium", description: "Annual student film festival with industry jury and screenings." },
+    ],
+    alumni: [
+      {
+        name: "Ethan Park",
+        company: "Pixar",
+        position: "Story Artist",
+        testimonial: "The studio culture at BAC mirrors the best creative studios I have worked in globally.",
+        image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=400&q=80",
+        year: "2019",
+      },
+    ],
+    achievements: [
+      { title: "D&AD Pencil", description: "Two student projects awarded D&AD New Blood Pencils (2025).", icon: "Award" },
+      { title: "Cannes Young Lions", description: "Student team shortlisted at Cannes Young Lions (2024).", icon: "Trophy" },
+    ],
+    flagshipEvents: [{ name: "Frame by Frame", description: "Annual student film festival with industry jury." }],
+    contact: {
+      address: "Block F, BAC Global Campus, Knowledge City, 560100",
+      phone: "+91 80 4567 8906",
+      email: "viscom@bac.edu",
+      hod: "Prof. Luca Moretti",
+    },
+  },
+  {
+    slug: "business-administration",
+    name: "Business Administration",
+    shortName: "MBA",
+    category: "School of Business",
+    icon: "GraduationCap",
+    description:
+      "A globally ranked MBA program preparing leaders for top management consulting, finance, and product roles.",
+    longDescription:
+      "The Department of Business Administration delivers the flagship BAC MBA, ranked among the top 50 programs globally by the Financial Times. We combine Harvard-style case methodology, live consulting engagements, global immersions across three continents, and a 100% placement rate at top firms including McKinsey, BCG, Bain, Goldman Sachs, Amazon, and Microsoft. The department also offers specialised master's programs in finance, analytics, and operations.",
+    cover: "from-navy via-navy-light to-gold",
+    coverImage:
+      "https://images.unsplash.com/photo-1521737711867-e3b97375f902?auto=format&fit=crop&w=1600&q=80",
+    facultyCount: 38,
+    studentCount: 1100,
+    placementRate: 100,
+    programsCount: 6,
+    researchLabs: 4,
+    color: "navy",
+    vision: "To be among the world's top 25 MBA programs for leadership, finance, and entrepreneurship.",
+    mission: "To develop principled, globally minded leaders who create outsized economic and social value.",
+    highlights: [
+      { title: "Industry-Aligned Curriculum", description: "Harvard case method, live consulting, CFA integration.", icon: "Building2" },
+      { title: "Research Excellence", description: "Faculty publish in JFE, AMJ, SMJ, and Management Science.", icon: "FlaskConical" },
+      { title: "Global Opportunities", description: "Immersions at Wharton, LBS, INSEAD, CEIBS, and Stanford GSB.", icon: "Globe2" },
+      { title: "Innovation & Entrepreneurship", description: "MBA venture studio with 35+ alumni startups.", icon: "Rocket" },
+    ],
+    programs: [
+      {
+        id: "mba-ft",
+        name: "MBA (Full-Time)",
+        duration: "2 Years (4 Semesters)",
+        eligibility: "Bachelor's + 50%; CAT/GMAT",
+        accreditation: "AACSB, EQUIS, AMBA",
+        description: "Flagship full-time MBA with global immersions and live consulting engagements.",
+        image: "https://images.unsplash.com/photo-1521737711867-e3b97375f902?auto=format&fit=crop&w=1200&q=80",
+        level: "PG",
+      },
+      {
+        id: "mba-ex",
+        name: "Executive MBA",
+        duration: "15 Months Modular",
+        eligibility: "Bachelor's + 7 years work experience",
+        accreditation: "AACSB Accredited",
+        description: "Modular executive program with global immersions for senior leaders.",
+        image: "https://images.unsplash.com/photo-1517048676732-d65bc937f952?auto=format&fit=crop&w=1200&q=80",
+        level: "PG",
+      },
+      {
+        id: "mba-analytics",
+        name: "MBA in Business Analytics",
+        duration: "2 Years (4 Semesters)",
+        eligibility: "Bachelor's + 50%; CAT/GMAT",
+        accreditation: "AACSB Accredited",
+        description: "MBA with a specialisation in data-driven decision making and analytics.",
+        image: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=1200&q=80",
+        level: "PG",
+      },
+    ],
+    faculty: [
+      {
+        id: "mba-1",
+        name: "Dr. Olivia Bennett",
+        designation: "Dean & Professor",
+        qualification: "Ph.D., Harvard Business School",
+        researchInterests: ["Corporate Finance", "M&A"],
+        publications: 78,
+        image: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=600&q=80",
+        role: "HOD",
+      },
+    ],
+    researchAreas: ["Strategy", "Finance", "Operations", "Marketing", "Leadership"],
+    researchStats: { publications: 142, patents: 1, projects: 19, centers: 4 },
+    labs: [
+      {
+        name: "Case Method Studio",
+        description: "Harvard-style case classroom with broadcast-quality A/V for hybrid instruction.",
+        equipment: ["Broadcast AV", "Case Library", "Hybrid Pods", "Recording Suite"],
+        capacity: 80,
+        image: "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&w=1200&q=80",
+      },
+    ],
+    events: [
+      { title: "Leadership Summit 2026", date: "January 18, 2026", venue: "MBA Auditorium", description: "Annual leadership summit with global CEOs and board chairs." },
+    ],
+    alumni: [
+      {
+        name: "Aarav Kapoor",
+        company: "McKinsey & Company",
+        position: "Engagement Manager",
+        testimonial: "The BAC MBA gave me the analytical toolkit and the global network to lead at McKinsey.",
+        image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80",
+        year: "2019",
+      },
+    ],
+    achievements: [
+      { title: "FT Global MBA Ranking", description: "Ranked #47 globally by the Financial Times (2025).", icon: "Trophy" },
+      { title: "Triple Crown", description: "AACSB, EQUIS, AMBA accreditation — top 1% globally.", icon: "Crown" },
+    ],
+    flagshipEvents: [{ name: "Leadership Summit", description: "Annual summit with global CEOs and board chairs." }],
+    contact: {
+      address: "Block G, BAC Global Campus, Knowledge City, 560100",
+      phone: "+91 80 4567 8907",
+      email: "mba@bac.edu",
+      hod: "Dr. Olivia Bennett",
+    },
+  },
+  {
+    slug: "cyber-security",
+    name: "Cyber Security",
+    shortName: "CYSEC",
+    category: "School of Computing",
+    icon: "ShieldCheck",
+    description:
+      "A specialised department training the next generation of security researchers, ethical hackers, and CISOs.",
+    longDescription:
+      "The Department of Cyber Security at BAC is a focused, interdisciplinary unit addressing the world's most pressing security challenges. With an air-gapped research lab, a cyber-range for offensive and defensive exercises, and partnerships with CISA, NCA, and leading CERTs, our students graduate ready to defend critical infrastructure. Faculty publish at IEEE S&P, USENIX Security, and ACM CCS, and the department is recognised by the NSA and NCSC as a Centre of Academic Excellence.",
+    cover: "from-navy-dark via-navy to-emerald-700",
+    coverImage:
+      "https://images.unsplash.com/photo-1510511459019-5dda7724fd87?auto=format&fit=crop&w=1600&q=80",
+    facultyCount: 22,
+    studentCount: 860,
+    placementRate: 99,
+    programsCount: 4,
+    researchLabs: 3,
+    color: "teal",
+    vision: "To be Asia's leading cyber security department for research, education, and national-capability building.",
+    mission: "To train security professionals who defend critical infrastructure, advance security science, and shape policy.",
+    highlights: [
+      { title: "Industry-Aligned Curriculum", description: "Co-designed with Microsoft, CrowdStrike, and Mandiant.", icon: "Building2" },
+      { title: "Research Excellence", description: "Publications at IEEE S&P, USENIX Security, and ACM CCS.", icon: "FlaskConical" },
+      { title: "Global Opportunities", description: "Exchange with CMU CyLab, Oxford, and TU Delft.", icon: "Globe2" },
+      { title: "Innovation & Entrepreneurship", description: "Security-focused venture studio with 6 active startups.", icon: "Rocket" },
+    ],
+    programs: [
+      {
+        id: "btech-cysec",
+        name: "B.Tech Cyber Security",
+        duration: "4 Years (8 Semesters)",
+        eligibility: "10+2 with PCM; 75%",
+        accreditation: "NBA Tier-1",
+        description: "A four-year engineering degree in offensive and defensive security, forensics, and policy.",
+        image: "https://images.unsplash.com/photo-1510511459019-5dda7724fd87?auto=format&fit=crop&w=1200&q=80",
+        level: "UG",
+      },
+      {
+        id: "mtech-cysec",
+        name: "M.Tech Cyber Security",
+        duration: "2 Years (4 Semesters)",
+        eligibility: "B.E./B.Tech with 60%",
+        accreditation: "NBA Accredited",
+        description: "A research master's with specialisations in offensive security, forensics, and zero-trust architecture.",
+        image: "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&w=1200&q=80",
+        level: "PG",
+      },
+    ],
+    faculty: [
+      {
+        id: "cysec-1",
+        name: "Dr. Marcus Chen",
+        designation: "Professor & Head of Department",
+        qualification: "Ph.D., MIT",
+        researchInterests: ["Network Security", "Formal Methods", "Zero-Trust"],
+        publications: 64,
+        image: "https://images.unsplash.com/photo-1556157382-97eda2d62296?auto=format&fit=crop&w=600&q=80",
+        role: "HOD",
+      },
+    ],
+    researchAreas: ["Ethical Hacking", "Digital Forensics", "Cloud Security", "Zero-Trust", "Threat Intel"],
+    researchStats: { publications: 98, patents: 12, projects: 24, centers: 3 },
+    labs: [
+      {
+        name: "Cyber Range",
+        description: "Air-gapped offensive and defensive security research facility with simulated enterprise infrastructure.",
+        equipment: ["Isolated VLANs", "SIEM Stack", "Threat Intel Platform", "Forensic Workstations"],
+        capacity: 30,
+        image: "https://images.unsplash.com/photo-1510511459019-5dda7724fd87?auto=format&fit=crop&w=1200&q=80",
+      },
+    ],
+    events: [
+      { title: "Capture The Flag National Championship", date: "February 7, 2026", venue: "Cyber Range", description: "National CTF championship with 100+ teams and ₹10,00,000 in prizes." },
+    ],
+    alumni: [
+      {
+        name: "Karim Aziz",
+        company: "CrowdStrike",
+        position: "Principal Security Engineer",
+        testimonial: "The cyber-range access at BAC was instrumental in building the offensive skills I use every day.",
+        image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80",
+        year: "2020",
+      },
+    ],
+    achievements: [
+      { title: "NSA CAE Recognition", description: "Designated Centre of Academic Excellence in Cyber Defense.", icon: "ShieldCheck" },
+      { title: "DEF CON CTF", description: "Student team qualified for DEF CON CTF finals (2024).", icon: "Trophy" },
+    ],
+    flagshipEvents: [{ name: "CTF National Championship", description: "National CTF with 100+ teams and ₹10,00,000 in prizes." }],
+    contact: {
+      address: "Block H, BAC Global Campus, Knowledge City, 560100",
+      phone: "+91 80 4567 8908",
+      email: "cybersecurity@bac.edu",
+      hod: "Dr. Marcus Chen",
+    },
+  },
+  {
+    slug: "mathematics",
+    name: "Mathematics",
+    shortName: "MATH",
+    category: "School of Basic Sciences",
+    icon: "BrainCircuit",
+    description: "A premier department offering courses in pure and applied mathematics, statistics, and computing.",
+    longDescription: "The Department of Mathematics at BAC is dedicated to providing students with a deep understanding of mathematical concepts and their applications in solving complex real-world problems in finance, computing, and physical sciences. We offer undergraduate, postgraduate, and doctoral programs that combine rigorous theoretical learning with computational projects.",
+    cover: "from-violet-600 via-purple-700 to-navy",
+    coverImage: "https://images.unsplash.com/photo-1509228468518-180dd4864904?auto=format&fit=crop&w=1600&q=80",
+    facultyCount: 18,
+    studentCount: 450,
+    placementRate: 92,
+    programsCount: 4,
+    color: "violet",
+    vision: "To be a center of mathematical excellence, recognized for research that impacts data science and computing.",
+    mission: "To impart sound mathematical education, foster research in pure and applied mathematics, and prepare students for analytical roles.",
+    highlights: [
+      { title: "Rigorous Curriculum", description: "Comprehensive courses covering algebraic structures, topology, statistics, and mathematical modeling.", icon: "Building2" },
+      { title: "Computational Lab", description: "Well-equipped computing lab with MATLAB, Mathematica, and R for data analysis.", icon: "Cpu" }
+    ],
+    programs: [
+      {
+        id: "bsc-math",
+        name: "B.Sc (Hons.) Mathematics",
+        duration: "3 Years (6 Semesters)",
+        eligibility: "10+2 with Mathematics; 65% aggregate",
+        accreditation: "UGC Recognised",
+        description: "An undergraduate program in mathematical structures, analysis, and computation.",
+        image: "https://images.unsplash.com/photo-1509228468518-180dd4864904?auto=format&fit=crop&w=1200&q=80",
+        level: "UG"
+      },
+      {
+        id: "msc-math",
+        name: "M.Sc Mathematics",
+        duration: "2 Years (4 Semesters)",
+        eligibility: "Bachelor's in Mathematics with 55%",
+        accreditation: "UGC Recognised",
+        description: "A postgraduate program featuring advanced courses in functional analysis, topology, and statistics.",
+        image: "https://images.unsplash.com/photo-1509228468518-180dd4864904?auto=format&fit=crop&w=1200&q=80",
+        level: "PG"
+      }
+    ],
+    faculty: [
+      {
+        id: "math-1",
+        name: "Dr. Ramesh Rao",
+        designation: "Professor & HOD",
+        qualification: "Ph.D., IIT Madras",
+        researchInterests: ["Functional Analysis", "Numerical Methods"],
+        publications: 54,
+        image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=600&q=80",
+        role: "HOD"
+      }
+    ],
+    researchAreas: ["Functional Analysis", "Fluid Dynamics", "Cryptography", "Stochastic Processes"],
+    researchStats: { publications: 88, patents: 2, projects: 8, centers: 1 },
+    labs: [
+      {
+        name: "Advanced Computing Lab",
+        description: "High-performance computer lab dedicated to mathematical modeling and simulations.",
+        equipment: ["MATLAB Suite", "R Studio Terminal", "Mathematica"],
+        capacity: 40,
+        image: "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1200&q=80"
+      }
+    ],
+    events: [
+      { title: "National Mathematics Day", date: "December 22, 2026", venue: "Seminar Hall 1", description: "Expert lectures and exhibitions celebrating Ramanujan's legacy." }
+    ],
+    alumni: [
+      {
+        name: "Vikram Sharma",
+        company: "J.P. Morgan",
+        position: "Quantitative Analyst",
+        testimonial: "The analytical foundations built during my B.Sc at BAC were crucial for my career in finance.",
+        image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80",
+        year: "2021"
+      }
+    ],
+    achievements: [
+      { title: "Best Researcher Award", description: "HOD awarded the prestigious National Math Award (2025).", icon: "Trophy" }
+    ],
+    flagshipEvents: [{ name: "Math Olympiad", description: "Inter-college mathematics contest with national participation." }],
+    researchLabs: 4,
+    contact: {
+      address: "Block K, BAC Campus, Bangalore, 560100",
+      phone: "+91 80 4567 8911",
+      email: "math@bac.edu",
+      hod: "Dr. Ramesh Rao"
+    }
+  },
+  {
+    slug: "physics",
+    name: "Physics",
+    shortName: "PHY",
+    category: "School of Basic Sciences",
+    icon: "Cpu",
+    description: "Unraveling the mysteries of the universe through foundational and experimental physics.",
+    longDescription: "The Department of Physics at BAC offers state-of-the-art laboratory facilities and research centers in condensed matter physics, optics, and astrophysics. Our curriculum prepares students for global academic and research positions.",
+    cover: "from-amber-500 via-orange-600 to-navy",
+    coverImage: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=1600&q=80",
+    facultyCount: 16,
+    studentCount: 380,
+    placementRate: 89,
+    programsCount: 3,
+    color: "amber",
+    vision: "To achieve global recognition in physical sciences through pathbreaking research and training.",
+    mission: "To provide quality physics education and create research opportunities in solid state physics, optics, and electronics.",
+    highlights: [
+      { title: "Modern Physics Labs", description: "Advanced labs for optics, thermodynamics, and electronics with specialized kits.", icon: "Building2" }
+    ],
+    programs: [
+      {
+        id: "bsc-phys",
+        name: "B.Sc (Hons.) Physics",
+        duration: "3 Years (6 Semesters)",
+        eligibility: "10+2 with Physics and Mathematics; 65% aggregate",
+        accreditation: "UGC Recognised",
+        description: "An undergraduate degree in experimental and theoretical physics, electronics, and quantum mechanics.",
+        image: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=1200&q=80",
+        level: "UG"
+      }
+    ],
+    faculty: [
+      {
+        id: "phys-1",
+        name: "Dr. Satish Kumar",
+        designation: "Professor & HOD",
+        qualification: "Ph.D., IISc Bangalore",
+        researchInterests: ["Optoelectronics", "Material Science"],
+        publications: 62,
+        image: "https://images.unsplash.com/photo-1556157382-97eda2d62296?auto=format&fit=crop&w=600&q=80",
+        role: "HOD"
+      }
+    ],
+    researchAreas: ["Nanotechnology", "Optics", "Astrophysics", "Condensed Matter"],
+    researchStats: { publications: 76, patents: 3, projects: 12, centers: 2 },
+    labs: [
+      {
+        name: "Optics & Photonics Lab",
+        description: "Advanced lab for laser, polarization, and optical fiber experiments.",
+        equipment: ["He-Ne Lasers", "Optical Fibers", "Interferometers"],
+        capacity: 30,
+        image: "https://images.unsplash.com/photo-1581092921461-eab62e97a780?auto=format&fit=crop&w=1200&q=80"
+      }
+    ],
+    events: [
+      { title: "National Science Day", date: "February 28, 2026", venue: "Physics Theater", description: "A day of live experiments, working model showcases, and lectures." }
+    ],
+    alumni: [
+      {
+        name: "Sneha Nair",
+        company: "ISRO",
+        position: "Scientist / Engineer",
+        testimonial: "The project work in Solid State Physics at BAC helped me clear the ISRO entrance interview.",
+        image: "https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=400&q=80",
+        year: "2020"
+      }
+    ],
+    achievements: [
+      { title: "ISRO Collaboration", description: "Joint project approved for satellite data analysis.", icon: "Trophy" }
+    ],
+    flagshipEvents: [{ name: "Physik Fest", description: "Physics model building and quiz contest." }],
+    researchLabs: 4,
+    contact: {
+      address: "Block L, BAC Campus, Bangalore, 560100",
+      phone: "+91 80 4567 8912",
+      email: "physics@bac.edu",
+      hod: "Dr. Satish Kumar"
+    }
+  },
+  {
+    slug: "chemistry",
+    name: "Chemistry",
+    shortName: "CHEM",
+    category: "School of Basic Sciences",
+    icon: "Dna",
+    description: "Driving research in molecular science, green chemistry, and synthesis.",
+    longDescription: "The Department of Chemistry at BAC provides a highly interactive and research-rich environment. Our modern labs support work in organic synthesis, analytical chemistry, and polymer research.",
+    cover: "from-emerald-600 via-teal-700 to-navy",
+    coverImage: "https://images.unsplash.com/photo-1603126857599-f6e157fa2fe6?auto=format&fit=crop&w=1600&q=80",
+    facultyCount: 15,
+    studentCount: 360,
+    placementRate: 91,
+    programsCount: 3,
+    color: "emerald",
+    vision: "To be recognized globally for chemical research and green energy solutions.",
+    mission: "To offer rigorous training in physical, organic, and analytical chemistry, with an emphasis on sustainable processes.",
+    highlights: [
+      { title: "Green Synthesis Lab", description: "Equipped with advanced tools to research biodegradable polymers.", icon: "Building2" }
+    ],
+    programs: [
+      {
+        id: "bsc-chem",
+        name: "B.Sc (Hons.) Chemistry",
+        duration: "3 Years (6 Semesters)",
+        eligibility: "10+2 with Chemistry; 65% aggregate",
+        accreditation: "UGC Recognised",
+        description: "An undergraduate degree covering organic, inorganic, and physical chemistry, and chromatography.",
+        image: "https://images.unsplash.com/photo-1603126857599-f6e157fa2fe6?auto=format&fit=crop&w=1200&q=80",
+        level: "UG"
+      }
+    ],
+    faculty: [
+      {
+        id: "chem-1",
+        name: "Dr. Anita Nair",
+        designation: "Professor & HOD",
+        qualification: "Ph.D., IISc Bangalore",
+        researchInterests: ["Polymer Chemistry", "Catalysis"],
+        publications: 58,
+        image: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=600&q=80",
+        role: "HOD"
+      }
+    ],
+    researchAreas: ["Organic Synthesis", "Nanochemistry", "Polymer Chemistry", "Environmental Chemistry"],
+    researchStats: { publications: 82, patents: 4, projects: 10, centers: 1 },
+    labs: [
+      {
+        name: "Organic Chemistry Lab",
+        description: "Modern organic synthesis and chromatography laboratory.",
+        equipment: ["Rotary Evaporators", "Spectrophotometer", "Centrifuges"],
+        capacity: 35,
+        image: "https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?auto=format&fit=crop&w=1200&q=80"
+      }
+    ],
+    events: [
+      { title: "ChemCar Show", date: "March 12, 2026", venue: "Campus Grounds", description: "Demonstrations of chemical reaction powered model cars." }
+    ],
+    alumni: [
+      {
+        name: "Rajesh Varma",
+        company: "Biocon",
+        position: "Lead Associate",
+        testimonial: "The analytical chemistry labs at BAC gave me practical training on HPLC systems that helped me secure a job instantly.",
+        image: "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=400&q=80",
+        year: "2021"
+      }
+    ],
+    achievements: [
+      { title: "Patent Filed", description: "A novel biodegradable polymer patent successfully filed by researchers.", icon: "Trophy" }
+    ],
+    flagshipEvents: [{ name: "ChemFest", description: "Exhibitions and chemistry quizzes." }],
+    researchLabs: 4,
+    contact: {
+      address: "Block M, BAC Campus, Bangalore, 560100",
+      phone: "+91 80 4567 8913",
+      email: "chemistry@bac.edu",
+      hod: "Dr. Anita Nair"
+    }
+  },
+  {
+    slug: "english",
+    name: "English",
+    shortName: "ENG",
+    category: "School of Humanities",
+    icon: "Palette",
+    description: "Fostering analytical thinking, creative writing, and literature studies.",
+    longDescription: "The Department of English at BAC provides a vibrant setting for the study of global literatures, creative writing, and linguistics. We nurture critical analysis, public speaking, and writing craftsmanship.",
+    cover: "from-rose-500 via-pink-600 to-navy",
+    coverImage: "https://images.unsplash.com/photo-1457369804613-52c61a468e7d?auto=format&fit=crop&w=1600&q=80",
+    facultyCount: 12,
+    studentCount: 300,
+    placementRate: 88,
+    programsCount: 2,
+    color: "rose",
+    vision: "To be a center of literary scholarship, nurturing creative voices that shape contemporary literature.",
+    mission: "To build strong communication and critical skills through deep engagements with literature and creative writing workshops.",
+    highlights: [
+      { title: "Writing Studio", description: "Dedicated workshop space for creative writing, editing, and journal publishing.", icon: "Building2" }
+    ],
+    programs: [
+      {
+        id: "ba-eng",
+        name: "B.A. (Hons.) English",
+        duration: "3 Years (6 Semesters)",
+        eligibility: "10+2 with English; 60% aggregate",
+        accreditation: "UGC Recognised",
+        description: "An undergraduate degree in English literature, literary criticism, and creative writing.",
+        image: "https://images.unsplash.com/photo-1457369804613-52c61a468e7d?auto=format&fit=crop&w=1200&q=80",
+        level: "UG"
+      }
+    ],
+    faculty: [
+      {
+        id: "eng-1",
+        name: "Prof. Clara D'Souza",
+        designation: "Professor & HOD",
+        qualification: "Ph.D., JNU New Delhi",
+        researchInterests: ["Postcolonial Literature", "Creative Writing"],
+        publications: 28,
+        image: "https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=600&q=80",
+        role: "HOD"
+      }
+    ],
+    researchAreas: ["Postcolonial Studies", "Gender Studies", "Creative Writing", "Cultural Studies"],
+    researchStats: { publications: 38, patents: 0, projects: 4, centers: 1 },
+    labs: [
+      {
+        name: "Language & Media Lab",
+        description: "Interactive lab for public speaking, creative editing, and digital media project production.",
+        equipment: ["Recording Booths", "Editing Desks", "Broadcasting Tools"],
+        capacity: 30,
+        image: "https://images.unsplash.com/photo-1523580494863-6f3031224c94?auto=format&fit=crop&w=1200&q=80"
+      }
+    ],
+    events: [
+      { title: "BAC Literary Fest", date: "April 10, 2026", venue: "College Grounds", description: "Author panel discussions, book readings, and creative writing slams." }
+    ],
+    alumni: [
+      {
+        name: "Priyanka Roy",
+        company: "Penguin Random House",
+        position: "Editorial Associate",
+        testimonial: "The creative writing workshops at BAC helped me refine my voice and gave me real industry skills.",
+        image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=400&q=80",
+        year: "2021"
+      }
+    ],
+    achievements: [
+      { title: "Anthology Published", description: "Department successfully released the annual student creative anthology.", icon: "Trophy" }
+    ],
+    flagshipEvents: [{ name: "LitFest", description: "Book reading sessions and poetry slams." }],
+    researchLabs: 4,
+    contact: {
+      address: "Block E, BAC Campus, Bangalore, 560100",
+      phone: "+91 80 4567 8914",
+      email: "english@bac.edu",
+      hod: "Prof. Clara D'Souza"
+    }
+  },
+];
+
+// Specialisation tracks (referenced from the prompt)
+export const specializations = [
+  {
+    department: "Artificial Intelligence",
+    tracks: ["Deep Learning", "Natural Language Processing", "Robotics", "Computer Vision"],
+  },
+  {
+    department: "Data Science",
+    tracks: ["Big Data", "Business Intelligence", "Predictive Analytics"],
+  },
+  {
+    department: "Cyber Security",
+    tracks: ["Ethical Hacking", "Digital Forensics", "Cloud Security"],
+  },
+];
+
+// Site-wide statistics (used on homepage hero + about section)
+export const heroStats = [
+  { label: "Students", value: 20000, suffix: "+" },
+  { label: "Faculty Members", value: 500, suffix: "+" },
+  { label: "Programs", value: 200, suffix: "+" },
+  { label: "Placement Rate", value: 95, suffix: "%" },
+];
+
+export const whyChooseStats = [
+  { label: "Years of Excellence", value: 42, suffix: "", icon: "Trophy" },
+  { label: "Students Enrolled", value: 20000, suffix: "+", icon: "Users" },
+  { label: "Faculty Members", value: 500, suffix: "+", icon: "GraduationCap" },
+  { label: "Placement Rate", value: 95, suffix: "%", icon: "TrendingUp" },
+  { label: "Research Publications", value: 1200, suffix: "+", icon: "FlaskConical" }
+];
+
+export const aboutStats = [
+  { label: "Years of Excellence", value: 42, suffix: "" },
+  { label: "Global Partners", value: 65, suffix: "+" },
+  { label: "Research Centers", value: 28, suffix: "" },
+  { label: "Alumni Worldwide", value: 85000, suffix: "+" },
+];
+
+export const aboutHighlights = [
+  {
+    title: "Academic Excellence",
+    description:
+      "200+ programs across 8 schools, accredited by AACSB, EQUIS, ABET, and the British Psychological Society.",
+    icon: "GraduationCap",
+  },
+  {
+    title: "Research Leadership",
+    description:
+      "₹450 Cr+ in active research grants with 1,200+ publications in tier-1 venues annually.",
+    icon: "FlaskConical",
+  },
+  {
+    title: "Global Exposure",
+    description:
+      "Semester exchange with 65+ partner universities including Stanford, MIT, Oxford, NUS, and ETH Zurich.",
+    icon: "Globe2",
+  },
+  {
+    title: "Career Development",
+    description:
+      "95% placement rate with 1,200+ recruiters and a dedicated career studio for every student.",
+    icon: "Briefcase",
+  },
+];
+
+export const aboutAwards = [
+  { name: "QS World University Rankings 2026", rank: "#201-250 Worldwide", icon: "Trophy" },
+  { name: "Times Higher Education 2025", rank: "Top 300 Global", icon: "Award" },
+  { name: "AACSB Accreditation", rank: "Business School", icon: "BadgeCheck" },
+  { name: "EQUIS Accreditation", rank: "Triple Crown", icon: "Crown" },
+  { name: "ABET Substantial Equivalence", rank: "Engineering Programs", icon: "ShieldCheck" },
+  { name: "NAAC A++ Grade", rank: "3.62 / 4.0 CGPA", icon: "Star" },
+];
+
+export const recruiters = [
+  "Google", "Microsoft", "Amazon", "IBM", "Infosys", "TCS", "Accenture",
+  "Apple", "Meta", "Goldman Sachs", "McKinsey", "BCG", "Deloitte", "Adobe",
+  "Oracle", "Cisco", "Salesforce", "Nvidia", "Intel", "Tesla", "OpenAI", "Anthropic",
+];
+
+export const researchAreas = [
+  { name: "Artificial Intelligence", icon: "BrainCircuit", description: "From foundation models to robotics and AI alignment." },
+  { name: "Machine Learning", icon: "Network", description: "Theory, systems, and applications of statistical learning." },
+  { name: "Data Science", icon: "BarChart3", description: "Statistical inference, data engineering, and analytics." },
+  { name: "Cyber Security", icon: "ShieldCheck", description: "Offensive, defensive, and policy research." },
+  { name: "Cloud Computing", icon: "Cloud", description: "Distributed systems, edge computing, and serverless." },
+  { name: "Internet of Things", icon: "Cpu", description: "Embedded systems, sensor networks, and edge AI." },
+];
+
+export const researchStats = [
+  { label: "Publications", value: 1200, suffix: "+" },
+  { label: "Active Patents", value: 184, suffix: "" },
+  { label: "Research Projects", value: 320, suffix: "+" },
+  { label: "Research Centers", value: 28, suffix: "" },
+];
+
+export const placementStats = [
+  { label: "Placement Rate", value: 95, suffix: "%" },
+  { label: "Highest Package", value: 64, prefix: "₹", suffix: " LPA" },
+  { label: "Average Package", value: 12, prefix: "₹", suffix: " LPA" },
+  { label: "Internship Conversion", value: 78, suffix: "%" },
+];
+
+export const studentLife = [
+  { title: "150+ Student Clubs", description: "From robotics and AI to debate, music, and social impact.", icon: "Users" },
+  { title: "32 Sports Teams", description: "State, national, and international competitive programs.", icon: "Trophy" },
+  { title: "Cultural Festivals", description: "Rangmanch, BAC Utsav, and the International Film Series.", icon: "Music" },
+  { title: "Wellness & Counseling", description: "24/7 mental health support and a 12-bed wellness centre.", icon: "HeartHandshake" },
+  { title: "Hostels & Dining", description: "Premium residences with global cuisine dining halls.", icon: "Home" },
+  { title: "Innovation Hub", description: "24/7 makerspace with prototyping equipment and mentorship.", icon: "Lightbulb" },
+];
+
+// EVENTS PAGE DATA
+export const eventsHeroStats = [
+  { label: "Events Annually", value: 200, suffix: "+" },
+  { label: "Participants", value: 15000, suffix: "+" },
+  { label: "Competitions", value: 100, suffix: "+" },
+  { label: "Industry Speakers", value: 50, suffix: "+" },
+];
+
+export type UniversityEvent = {
+  id: string;
+  title: string;
+  category: "Workshops" | "Hackathons" | "Seminars" | "Guest Lectures" | "Cultural" | "Sports" | "Placements";
+  image: string;
+  date: string;
+  dateISO: string;
+  venue: string;
+  participants: number;
+  prizePool: string;
+  description: string;
+  speakers?: { name: string; company: string; topic: string }[];
+};
+
+export const universityEvents: UniversityEvent[] = [
+  {
+    id: "e1",
+    title: "AI Summit 2026",
+    category: "Seminars",
+    image: "https://images.unsplash.com/photo-1591115765373-5207764f72e7?auto=format&fit=crop&w=1200&q=80",
+    date: "Feb 21-23, 2026",
+    dateISO: "2026-02-21",
+    venue: "Main Auditorium",
+    participants: 2500,
+    prizePool: "—",
+    description: "Three-day international summit on AI research, deployment, and policy with 40+ global speakers.",
+    speakers: [
+      { name: "Dr. Kai Chen", company: "DeepMind", topic: "Frontiers of Foundation Models" },
+      { name: "Dr. Maya Iyer", company: "OpenAI", topic: "Alignment and Safety" },
+    ],
+  },
+  {
+    id: "e2",
+    title: "CodeSprint 2026 — National Hackathon",
+    category: "Hackathons",
+    image: "https://images.unsplash.com/photo-1505373877841-8d25f7d46678?auto=format&fit=crop&w=1200&q=80",
+    date: "March 14-16, 2026",
+    dateISO: "2026-03-14",
+    venue: "Innovation Hub",
+    participants: 1200,
+    prizePool: "₹15,00,000",
+    description: "48-hour national hackathon with 200+ teams competing across AI, fintech, climate, and health tracks.",
+  },
+  {
+    id: "e3",
+    title: "Cloud & DevOps Workshop Series",
+    category: "Workshops",
+    image: "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&w=1200&q=80",
+    date: "January 24, 2026",
+    dateISO: "2026-01-24",
+    venue: "CSE Lab 4",
+    participants: 200,
+    prizePool: "—",
+    description: "Hands-on workshop on AWS, Kubernetes, and CI/CD pipelines with certification vouchers.",
+  },
+  {
+    id: "e4",
+    title: "Leadership Summit with Global CEOs",
+    category: "Guest Lectures",
+    image: "https://images.unsplash.com/photo-1556761175-5973dc0f32e7?auto=format&fit=crop&w=1200&q=80",
+    date: "January 18, 2026",
+    dateISO: "2026-01-18",
+    venue: "MBA Auditorium",
+    participants: 800,
+    prizePool: "—",
+    description: "Annual leadership summit featuring fireside chats with global CEOs and board chairs.",
+    speakers: [
+      { name: "Indra Nooyi", company: "Former CEO, PepsiCo", topic: "Leadership in Turbulent Times" },
+      { name: "Satya Nadella", company: "CEO, Microsoft", topic: "The AI Platform Shift" },
+    ],
+  },
+  {
+    id: "e5",
+    title: "Rangmanch — Cultural Festival",
+    category: "Cultural",
+    image: "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=1200&q=80",
+    date: "April 5-8, 2026",
+    dateISO: "2026-04-05",
+    venue: "Open Air Theatre",
+    participants: 8000,
+    prizePool: "₹5,00,000",
+    description: "Four-day cultural festival with music, dance, theatre, and a headline concert.",
+  },
+  {
+    id: "e6",
+    title: "Inter-University Sports Championship",
+    category: "Sports",
+    image: "https://images.unsplash.com/photo-1517649763962-0c623066013b?auto=format&fit=crop&w=1200&q=80",
+    date: "February 10-14, 2026",
+    dateISO: "2026-02-10",
+    venue: "Sports Complex",
+    participants: 1500,
+    prizePool: "₹3,00,000",
+    description: "Five-day multi-sport championship across 12 disciplines with 40+ universities.",
+  },
+  {
+    id: "e7",
+    title: "Placement Readiness Bootcamp",
+    category: "Placements",
+    image: "https://images.unsplash.com/photo-1521791136064-7986c2920216?auto=format&fit=crop&w=1200&q=80",
+    date: "January 5-9, 2026",
+    dateISO: "2026-01-05",
+    venue: "Career Studio",
+    participants: 600,
+    prizePool: "—",
+    description: "Intensive placement bootcamp with mock interviews, resume reviews, and case practice.",
+  },
+  {
+    id: "e8",
+    title: "Bio Research Symposium",
+    category: "Seminars",
+    image: "https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?auto=format&fit=crop&w=1200&q=80",
+    date: "March 28, 2026",
+    dateISO: "2026-03-28",
+    venue: "Life Sciences Auditorium",
+    participants: 500,
+    prizePool: "—",
+    description: "Annual biotech research symposium with international keynote speakers.",
+  },
+  {
+    id: "e9",
+    title: "Startup Expo 2026",
+    category: "Placements",
+    image: "https://images.unsplash.com/photo-1556761175-b413da4baf72?auto=format&fit=crop&w=1200&q=80",
+    date: "March 7, 2026",
+    dateISO: "2026-03-07",
+    venue: "Business School Atrium",
+    participants: 1200,
+    prizePool: "₹25,00,000 seed fund",
+    description: "Annual showcase of 40+ student-led ventures with 30+ investors in attendance.",
+  },
+  {
+    id: "e10",
+    title: "Frame by Frame — Student Film Festival",
+    category: "Cultural",
+    image: "https://images.unsplash.com/photo-1485846234645-a62644f84728?auto=format&fit=crop&w=1200&q=80",
+    date: "May 2, 2026",
+    dateISO: "2026-05-02",
+    venue: "Design Auditorium",
+    participants: 800,
+    prizePool: "₹2,00,000",
+    description: "Annual student film festival with industry jury and premiere screenings.",
+  },
+  {
+    id: "e11",
+    title: "CTF National Championship",
+    category: "Hackathons",
+    image: "https://images.unsplash.com/photo-1510511459019-5dda7724fd87?auto=format&fit=crop&w=1200&q=80",
+    date: "February 7, 2026",
+    dateISO: "2026-02-07",
+    venue: "Cyber Range",
+    participants: 400,
+    prizePool: "₹10,00,000",
+    description: "National Capture The Flag championship with 100+ teams competing in offensive security challenges.",
+  },
+  {
+    id: "e12",
+    title: "Quantum Computing Guest Lecture",
+    category: "Guest Lectures",
+    image: "https://images.unsplash.com/photo-1635070041078-e363dbe005cb?auto=format&fit=crop&w=1200&q=80",
+    date: "January 30, 2026",
+    dateISO: "2026-01-30",
+    venue: "Lecture Hall 1",
+    participants: 300,
+    prizePool: "—",
+    description: "Distinguished lecture by Prof. John Preskill (Caltech) on the NISQ era and beyond.",
+    speakers: [
+      { name: "Prof. John Preskill", company: "Caltech", topic: "Quantum Computing in the NISQ Era" },
+    ],
+  },
+];
+
+export const eventCategories = [
+  "All Events",
+  "Workshops",
+  "Hackathons",
+  "Seminars",
+  "Guest Lectures",
+  "Cultural",
+  "Sports",
+  "Placements",
+];
+
+export const guestSpeakers = [
+  { name: "Satya Nadella", company: "Microsoft", topic: "The AI Platform Shift", date: "Jan 18, 2026", image: "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=400&q=80" },
+  { name: "Indra Nooyi", company: "PepsiCo", topic: "Leadership in Turbulent Times", date: "Jan 18, 2026", image: "https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?auto=format&fit=crop&w=400&q=80" },
+  { name: "Dr. Kai Chen", company: "DeepMind", topic: "Foundation Models", date: "Feb 21, 2026", image: "https://images.unsplash.com/photo-1556157382-97eda2d62296?auto=format&fit=crop&w=400&q=80" },
+  { name: "Prof. John Preskill", company: "Caltech", topic: "Quantum Computing", date: "Jan 30, 2026", image: "https://images.unsplash.com/photo-1568602471122-7832951cc4c5?auto=format&fit=crop&w=400&q=80" },
+];
+
+export const eventGallery = [
+  { url: "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=800&q=80", category: "Cultural", title: "Rangmanch Concert" },
+  { url: "https://images.unsplash.com/photo-1505373877841-8d25f7d46678?auto=format&fit=crop&w=800&q=80", category: "Hackathons", title: "CodeSprint 2025" },
+  { url: "https://images.unsplash.com/photo-1517649763962-0c623066013b?auto=format&fit=crop&w=800&q=80", category: "Sports", title: "Sports Championship" },
+  { url: "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&w=800&q=80", category: "Labs", title: "Cloud Workshop" },
+  { url: "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&w=800&q=80", category: "Graduation", title: "Convocation 2025" },
+  { url: "https://images.unsplash.com/photo-1556761175-b413da4baf72?auto=format&fit=crop&w=800&q=80", category: "Placement", title: "Startup Expo" },
+  { url: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=800&q=80", category: "Workshops", title: "Data Science Bootcamp" },
+  { url: "https://images.unsplash.com/photo-1485846234645-a62644f84728?auto=format&fit=crop&w=800&q=80", category: "Cultural", title: "Film Festival" },
+  { url: "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&w=800&q=80", category: "Workshops", title: "Leadership Workshop" },
+];
+
+// ERP MODULES DATA
+export const erpModules = {
+  student: [
+    { name: "Attendance", icon: "CalendarCheck", description: "Track subject-wise attendance with low-attendance alerts." },
+    { name: "Results", icon: "Award", description: "View semester-wise results, GPA, and transcript." },
+    { name: "Timetable", icon: "CalendarDays", description: "Personalised class schedule with room and faculty details." },
+    { name: "Assignments", icon: "ClipboardList", description: "Submit assignments and track deadlines in one place." },
+    { name: "Fee Payments", icon: "CreditCard", description: "Pay fees online, download receipts, view outstanding dues." },
+    { name: "Learning Portal", icon: "BookOpen", description: "Access lecture videos, slides, and course materials." },
+  ],
+  faculty: [
+    { name: "Attendance Management", icon: "CalendarCheck", description: "Mark and update attendance for assigned classes." },
+    { name: "Marks Entry", icon: "PenLine", description: "Enter and publish internal and semester marks." },
+    { name: "Student Evaluation", icon: "ClipboardCheck", description: "Comprehensive evaluation dashboard for assigned courses." },
+    { name: "Course Management", icon: "BookOpen", description: "Upload materials, create assignments, manage cohorts." },
+    { name: "Research & Grants", icon: "FlaskConical", description: "Manage research projects, grants, and publications." },
+    { name: "Mentorship", icon: "Users", description: "Track mentee progress and conduct mentor meetings." },
+  ],
+  admin: [
+    { name: "Admissions", icon: "UserPlus", description: "Manage applications, eligibility, and admission offers." },
+    { name: "Department Management", icon: "Building2", description: "Configure departments, programs, and curricula." },
+    { name: "Staff Management", icon: "Users", description: "Manage faculty and staff records, leaves, and payroll." },
+    { name: "Event Management", icon: "CalendarDays", description: "Create and manage university events and registrations." },
+    { name: "Reports & Analytics", icon: "BarChart3", description: "Institution-wide dashboards and KPI reports." },
+    { name: "Finance & Fees", icon: "TrendingUp", description: "Track fee collection, expenses, and budgets." },
+  ],
+};
+
+export const admissionsPortalFeatures = [
+  { name: "Online Application", icon: "FileText", description: "Multi-step application with autosave and document upload." },
+  { name: "Eligibility Checker", icon: "CheckCircle", description: "Instant eligibility check based on academic background." },
+  { name: "Scholarship Calculator", icon: "Calculator", description: "Estimate merit and need-based scholarships instantly." },
+  { name: "Program Comparison", icon: "GitCompare", description: "Compare up to 4 programs side by side." },
+  { name: "Application Tracking", icon: "MapPin", description: "Real-time status tracking of your application." },
+  { name: "Document Upload", icon: "Upload", description: "Secure document upload with verified checksums." },
+];

@@ -1,0 +1,13 @@
+{
+  "name": "bishop-ambrose-college-frontend",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Bishop Ambrose College Website — Frontend-only (React 19 + Vite + Tailwind CSS v4)",
+  "scripts": {
+    "dev": "npm run dev --prefix frontend",
+    "build": "npm run build --prefix frontend",
+    "preview": "npm run preview --prefix frontend",
+    "install:frontend": "npm install --prefix frontend"
+  },
+  "devDependencies": {}
+}
