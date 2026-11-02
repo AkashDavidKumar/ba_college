@@ -95,14 +95,14 @@ export function AdvertisementsCMS() {
       if (editingAd) {
         await advertisementService.updateAdvertisement(editingAd.id, dto);
         toast({
-          title: "Advertisement Updated",
-          description: `Campaign '${dto.title}' has been successfully updated.`,
+          title: "Advertisement Updated (Browser Storage)",
+          description: `Campaign '${dto.title}' updated locally. Backend persistence requires an upcoming Advertisement API.`,
         });
       } else {
         await advertisementService.createAdvertisement(dto, currentUser?.name || "Admin");
         toast({
-          title: isDraft ? "Draft Saved" : "Advertisement Published",
-          description: `Campaign '${dto.title}' has been ${isDraft ? "saved as a draft" : "published"}.`,
+          title: isDraft ? "Draft Saved (Browser Storage)" : "Advertisement Saved (Browser Storage)",
+          description: `Campaign '${dto.title}' saved locally. Backend persistence requires an upcoming Advertisement API.`,
         });
       }
       setEditingAd(null);
@@ -186,6 +186,15 @@ export function AdvertisementsCMS() {
               }
         }
       />
+
+      {/* Information Banner: Local Browser Persistence Mode */}
+      <div className="rounded-xl border border-amber-500/20 bg-amber-500/10 p-4 text-xs text-amber-800 dark:text-amber-300 flex items-start gap-3">
+        <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+        <div>
+          <span className="font-semibold">Local Preview Mode Active: </span>
+          Custom advertisement mutations are stored in client-side browser storage. Full backend database persistence across multiple administrative devices will be enabled when the dedicated Advertisement schema & endpoints are approved.
+        </div>
+      </div>
 
       {/* Sub Navigation Tabs */}
       <div className="bg-white dark:bg-slate-900 rounded-2xl p-2 border border-slate-200/80 dark:border-slate-800 shadow-xs flex items-center justify-between gap-3">

@@ -78,48 +78,12 @@ export function HeroVideoManager() {
       return;
     }
 
-    // Instant local preview before network upload finishes
-    const localUrl = URL.createObjectURL(file);
-    setBackgroundVideo(localUrl);
-
-    setIsUploadingVideo(true);
-    setUploadProgress(20);
-
-    const formData = new FormData();
-    formData.append("file", file);
-
-    try {
-      setUploadProgress(50);
-      const res = await fetch("/api/upload", {
-        method: "POST",
-        body: formData
-      });
-
-      setUploadProgress(85);
-      if (!res.ok) {
-        throw new Error("Upload failed with status " + res.status);
-      }
-
-      const result = await res.json();
-      setUploadProgress(100);
-      setBackgroundVideo(result.url);
-
-      toast({
-        title: "Video Uploaded Successfully",
-        description: `${file.name} is ready. Click "Save Changes Instantly" to apply sitewide.`,
-      });
-    } catch (err: any) {
-      console.error("Video upload error:", err);
-      toast({
-        title: "Upload Failed",
-        description: err.message || "Failed to upload video to server.",
-        variant: "destructive"
-      });
-    } finally {
-      setIsUploadingVideo(false);
-      setUploadProgress(null);
-      if (videoInputRef.current) videoInputRef.current.value = "";
-    }
+    toast({
+      title: "Direct Upload Unavailable",
+      description: "Direct binary video upload is not configured on this server. Please enter a hosted video URL (e.g. YouTube, MP4 stream, or CDN link) into the Video URL field.",
+      variant: "destructive"
+    });
+    if (videoInputRef.current) videoInputRef.current.value = "";
   };
 
   // Handle Fallback Image Upload
@@ -127,47 +91,12 @@ export function HeroVideoManager() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (!file.type.startsWith("image/")) {
-      toast({
-        title: "Invalid Image",
-        description: "Please upload a valid JPG, PNG, or WebP image.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    // Local instant preview
-    const localUrl = URL.createObjectURL(file);
-    setFallbackImage(localUrl);
-
-    setIsUploadingImage(true);
-    const formData = new FormData();
-    formData.append("file", file);
-
-    try {
-      const res = await fetch("/api/upload", {
-        method: "POST",
-        body: formData
-      });
-
-      if (!res.ok) throw new Error("Image upload failed");
-      const result = await res.json();
-      setFallbackImage(result.url);
-
-      toast({
-        title: "Fallback Image Uploaded",
-        description: "Hero fallback background image updated successfully.",
-      });
-    } catch (err: any) {
-      toast({
-        title: "Upload Failed",
-        description: "Could not upload fallback image.",
-        variant: "destructive"
-      });
-    } finally {
-      setIsUploadingImage(false);
-      if (imageInputRef.current) imageInputRef.current.value = "";
-    }
+    toast({
+      title: "Direct Upload Unavailable",
+      description: "Direct binary image upload is not configured on this server. Please enter a hosted image URL into the Fallback Image field.",
+      variant: "destructive"
+    });
+    if (imageInputRef.current) imageInputRef.current.value = "";
   };
 
   // Delete / Remove Video

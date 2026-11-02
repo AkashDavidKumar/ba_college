@@ -158,28 +158,12 @@ export function GeneralSettingsTab() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const formData = new FormData();
-    formData.append("file", file);
-
-    try {
-      const res = await fetch("/api/upload", {
-        method: "POST",
-        body: formData
-      });
-      if (!res.ok) throw new Error();
-      const data = await res.json();
-      setLogoImage(data.url);
-      toast({
-        title: "Logo Uploaded",
-        description: "Branding logo successfully saved.",
-      });
-    } catch (err) {
-      toast({
-        title: "Upload Failed",
-        description: "Failed to upload logo image.",
-        variant: "destructive"
-      });
-    }
+    toast({
+      title: "Direct Upload Unavailable",
+      description: "Direct binary file upload is not configured on this server. Please enter a hosted image URL into the Logo Image URL field.",
+      variant: "destructive"
+    });
+    e.target.value = "";
   };
 
   const addAnnouncement = () => {

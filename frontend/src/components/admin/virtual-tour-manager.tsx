@@ -178,51 +178,12 @@ export function VirtualTourManager() {
       return;
     }
 
-    // Set mediaType to mp4 immediately
-    set("mediaType", "mp4");
-
-    // Preview immediately using local object URL
-    const localUrl = URL.createObjectURL(file);
-    set("mediaUrl", localUrl);
-
-    setIsUploadingVideo(true);
-    setVideoUploadProgress(20);
-
-    const formData = new FormData();
-    formData.append("file", file);
-
-    try {
-      setVideoUploadProgress(50);
-      const res = await fetch("/api/upload", {
-        method: "POST",
-        body: formData,
-      });
-
-      setVideoUploadProgress(85);
-      if (!res.ok) {
-        throw new Error("Upload failed with status " + res.status);
-      }
-
-      const result = await res.json();
-      setVideoUploadProgress(100);
-      set("mediaUrl", result.url);
-
-      toast({
-        title: "Video Uploaded Successfully",
-        description: `${file.name} is ready. Remember to save your settings.`,
-      });
-    } catch (err: any) {
-      console.error("Video upload error:", err);
-      toast({
-        title: "Upload Failed",
-        description: err.message || "Failed to upload video to server.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsUploadingVideo(false);
-      setVideoUploadProgress(null);
-      if (videoInputRef.current) videoInputRef.current.value = "";
-    }
+    toast({
+      title: "Direct Upload Unavailable",
+      description: "Direct binary video upload is not configured on this server. Please enter a hosted video URL (e.g. YouTube embed, MP4 stream link) into the Media URL field.",
+      variant: "destructive",
+    });
+    if (videoInputRef.current) videoInputRef.current.value = "";
   };
 
   // Handle Poster / Thumbnail Image Upload
@@ -232,55 +193,12 @@ export function VirtualTourManager() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (!file.type.startsWith("image/")) {
-      toast({
-        title: "Invalid File Type",
-        description: "Please select a JPEG, PNG, or WebP image file.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    const localUrl = URL.createObjectURL(file);
-    set("posterImage", localUrl);
-
-    setIsUploadingPoster(true);
-    setPosterUploadProgress(30);
-
-    const formData = new FormData();
-    formData.append("file", file);
-
-    try {
-      setPosterUploadProgress(70);
-      const res = await fetch("/api/upload", {
-        method: "POST",
-        body: formData,
-      });
-
-      if (!res.ok) {
-        throw new Error("Upload failed with status " + res.status);
-      }
-
-      const result = await res.json();
-      setPosterUploadProgress(100);
-      set("posterImage", result.url);
-
-      toast({
-        title: "Thumbnail Uploaded",
-        description: `${file.name} set as virtual tour cover image.`,
-      });
-    } catch (err: any) {
-      console.error("Poster upload error:", err);
-      toast({
-        title: "Upload Failed",
-        description: err.message || "Failed to upload image.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsUploadingPoster(false);
-      setPosterUploadProgress(null);
-      if (posterInputRef.current) posterInputRef.current.value = "";
-    }
+    toast({
+      title: "Direct Upload Unavailable",
+      description: "Direct binary file upload is not configured on this server. Please enter a hosted thumbnail URL into the Poster Image field.",
+      variant: "destructive",
+    });
+    if (posterInputRef.current) posterInputRef.current.value = "";
   };
 
   const handleSave = async () => {

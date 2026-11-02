@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { NavState } from "../admin-nav";
 import { PageDashboard } from "../page-dashboard";
+import { apiClient, ApiError } from "@/lib/api-client";
 import {
   Image,
   Video,
@@ -80,14 +81,18 @@ export function GalleryDashboard({ nav, setNav }: GalleryDashboardProps) {
   const fetchGallery = async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/gallery");
-      const data = await res.json();
+      const data = await apiClient.get<any>("/gallery");
+      const gallery = data?.data || data;
       setGalleryData({
-        albums: data.albums || [],
-        videos: data.videos || [],
+        albums: gallery?.albums || [],
+        videos: gallery?.videos || [],
       });
-    } catch {
-      setError("Failed to load gallery.");
+    } catch (err) {
+      if (err instanceof ApiError && (err.status === 401 || err.status === 403)) {
+        setError(`Access denied: ${err.message}`);
+      } else {
+        setError("Failed to load gallery.");
+      }
     } finally {
       setLoading(false);
     }
@@ -97,17 +102,16 @@ export function GalleryDashboard({ nav, setNav }: GalleryDashboardProps) {
     setSaving(true);
     setError("");
     try {
-      const res = await fetch("/api/gallery", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(updated),
-      });
-      if (!res.ok) throw new Error();
+      await apiClient.put("/gallery", updated);
       setGalleryData(updated);
       setSuccess("Gallery saved!");
       setTimeout(() => setSuccess(""), 3000);
-    } catch {
-      setError("Failed to save gallery.");
+    } catch (err) {
+      if (err instanceof ApiError) {
+        setError(err.status === 403 ? "Forbidden: You lack gallery:update permission." : err.message);
+      } else {
+        setError("Failed to save gallery.");
+      }
     } finally {
       setSaving(false);
     }

@@ -203,40 +203,16 @@ export function DepartmentsTab() {
     setEditingDept({ ...editingDept, labs: updatedLabs });
   };
 
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, target: "dept" | "prog" | "lab") => {
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, _target: "dept" | "prog" | "lab") => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const formData = new FormData();
-    formData.append("file", file);
-
-    try {
-      const res = await fetch("/api/upload", {
-        method: "POST",
-        body: formData
-      });
-      if (!res.ok) throw new Error();
-      const data = await res.json();
-      
-      if (target === "dept") {
-        setEditingDept({ ...editingDept, coverImage: data.url });
-      } else if (target === "prog") {
-        setNewProgram({ ...newProgram, image: data.url });
-      } else if (target === "lab") {
-        setNewLab({ ...newLab, image: data.url });
-      }
-
-      toast({
-        title: "Image Uploaded",
-        description: "File successfully saved to media path.",
-      });
-    } catch (err) {
-      toast({
-        title: "Upload Failed",
-        description: "Failed to upload image file.",
-        variant: "destructive"
-      });
-    }
+    toast({
+      title: "Direct Upload Unavailable",
+      description: "Direct binary file upload is not configured on this server. Please enter a hosted image URL into the Cover Image URL field.",
+      variant: "destructive"
+    });
+    e.target.value = "";
   };
 
   return (
@@ -426,10 +402,11 @@ export function DepartmentsTab() {
                   type="text"
                   value={editingDept.coverImage}
                   onChange={(e) => setEditingDept({ ...editingDept, coverImage: e.target.value })}
+                  placeholder="https://... or /assets/department.jpg"
                   className="flex-1 px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-amber-400"
                 />
-                <label className="px-3 py-2 rounded-xl bg-slate-900 text-white hover:bg-slate-800 text-xs font-semibold cursor-pointer flex items-center gap-1">
-                  <Upload className="w-3.5 h-3.5" /> Upload File
+                <label className="px-3 py-2 rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-200 text-xs font-semibold cursor-pointer flex items-center gap-1 shadow-xs">
+                  <Upload className="w-3.5 h-3.5 text-slate-500" /> Select File
                   <input
                     type="file"
                     accept="image/*"
@@ -438,6 +415,9 @@ export function DepartmentsTab() {
                   />
                 </label>
               </div>
+              <p className="text-[11px] text-slate-500 mt-1">
+                Asset URL mode active: Enter a hosted image URL. Direct uploads require an upcoming media storage service.
+              </p>
             </div>
 
             <div>

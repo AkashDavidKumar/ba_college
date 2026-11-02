@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { NavState } from "../admin-nav";
 import { PageDashboard } from "../page-dashboard";
+import { apiClient, ApiError } from "@/lib/api-client";
 import {
   Landmark,
   FlaskConical,
@@ -72,11 +73,14 @@ export function FacilitiesDashboard({ nav, setNav }: FacilitiesDashboardProps) {
   const fetchFacilities = async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/facilities");
-      const data = await res.json();
-      setFacilities(Array.isArray(data) ? data : data.facilities || []);
-    } catch {
-      setError("Failed to load facilities.");
+      const data = await apiClient.get<any>("/facilities");
+      setFacilities(Array.isArray(data) ? data : data?.data || data?.facilities || []);
+    } catch (err) {
+      if (err instanceof ApiError && (err.status === 401 || err.status === 403)) {
+        setError(`Access denied: ${err.message}`);
+      } else {
+        setError("Failed to load facilities.");
+      }
     } finally {
       setLoading(false);
     }
@@ -91,20 +95,23 @@ export function FacilitiesDashboard({ nav, setNav }: FacilitiesDashboardProps) {
     setError("");
     try {
       const isEdit = !!editItem;
-      const method = isEdit ? "PUT" : "POST";
-      const url = isEdit ? `/api/facilities/${editItem!.id}` : "/api/facilities";
-      const res = await fetch(url, {
-        method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(isEdit ? { ...form, id: editItem!.id } : form),
-      });
-      if (!res.ok) throw new Error();
+      const url = isEdit ? `/facilities/${editItem!.id}` : "/facilities";
+      const payload = isEdit ? { ...form, id: editItem!.id } : form;
+      if (isEdit) {
+        await apiClient.put(url, payload);
+      } else {
+        await apiClient.post(url, payload);
+      }
       setSuccess(isEdit ? "Facility updated!" : "Facility added!");
       cancelEdit();
       fetchFacilities();
       setTimeout(() => setSuccess(""), 3000);
-    } catch {
-      setError("Failed to save.");
+    } catch (err) {
+      if (err instanceof ApiError) {
+        setError(err.status === 403 ? "Forbidden: You lack facilities:create/update permission." : err.message);
+      } else {
+        setError("Failed to save.");
+      }
     } finally {
       setSaving(false);
     }
@@ -113,9 +120,15 @@ export function FacilitiesDashboard({ nav, setNav }: FacilitiesDashboardProps) {
   const handleDelete = async (id: string) => {
     if (!confirm("Delete this facility?")) return;
     try {
-      await fetch(`/api/facilities/${id}`, { method: "DELETE" });
+      await apiClient.delete(`/facilities/${id}`);
       fetchFacilities();
-    } catch { setError("Delete failed."); }
+    } catch (err) {
+      if (err instanceof ApiError) {
+        setError(err.status === 403 ? "Forbidden: You lack facilities:delete permission." : err.message);
+      } else {
+        setError("Delete failed.");
+      }
+    }
   };
 
   const openEdit = (f: Facility) => {

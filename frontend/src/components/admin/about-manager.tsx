@@ -119,131 +119,27 @@ export function AboutPageManager() {
     }
   }, [data?.aboutPage]);
 
-  // Image Upload Handler
+  // Image Upload Handler — Direct binary upload is unconfigured; guides admin to use URL-based management
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validate type
-    const validTypes = [
-      "image/jpeg",
-      "image/png",
-      "image/webp",
-      "image/gif",
-      "image/svg+xml",
-    ];
-    if (!validTypes.includes(file.type)) {
-      toast({
-        title: "Invalid File Format",
-        description: "Please upload a JPEG, PNG, WEBP, GIF, or SVG image.",
-        variant: "destructive",
-      });
-      return;
-    }
+    toast({
+      title: "Direct Upload Unavailable",
+      description: "Direct binary file upload is not configured on the server. Please enter a public image URL into the Image URL field.",
+      variant: "destructive",
+    });
 
-    // Validate size (10MB)
-    if (file.size > 10 * 1024 * 1024) {
-      toast({
-        title: "File Too Large",
-        description: "Image size must be less than 10MB.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsUploading(true);
-    const formData = new FormData();
-    formData.append("image", file);
-
-    try {
-      const res = await fetch("/api/about/image", {
-        method: "POST",
-        body: formData,
-      });
-
-      if (!res.ok) {
-        const errData = await res.json();
-        throw new Error(errData.error || "Upload failed");
-      }
-
-      const resData = await res.json();
-      setImageUrl(resData.url);
-      if (!imageAltText) {
-        setImageAltText(file.name.replace(/\.[^/.]+$/, ""));
-      }
-      toast({
-        title: "Image Uploaded",
-        description: "Campus image uploaded successfully. Click Save Changes to publish.",
-      });
-    } catch (err: any) {
-      toast({
-        title: "Upload Failed",
-        description: err.message || "Failed to upload image.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsUploading(false);
-      if (fileInputRef.current) fileInputRef.current.value = "";
-    }
+    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
-  // Section Image Upload Handler
-  const handleSectionImageUpload = async (index: number, file: File) => {
-    const validTypes = [
-      "image/jpeg",
-      "image/png",
-      "image/webp",
-      "image/gif",
-      "image/svg+xml",
-    ];
-    if (!validTypes.includes(file.type)) {
-      toast({
-        title: "Invalid File Format",
-        description: "Please upload a JPEG, PNG, WEBP, GIF, or SVG image.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (file.size > 10 * 1024 * 1024) {
-      toast({
-        title: "File Too Large",
-        description: "Image size must be less than 10MB.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setUploadingSectionIndex(index);
-    const formData = new FormData();
-    formData.append("image", file);
-
-    try {
-      const res = await fetch("/api/about/image", {
-        method: "POST",
-        body: formData,
-      });
-
-      if (!res.ok) {
-        const errData = await res.json();
-        throw new Error(errData.error || "Upload failed");
-      }
-
-      const resData = await res.json();
-      handleUpdateSection(index, "image", resData.url);
-      toast({
-        title: "Section Image Uploaded",
-        description: "Image uploaded successfully. Click Save Changes to publish.",
-      });
-    } catch (err: any) {
-      toast({
-        title: "Upload Failed",
-        description: err.message || "Failed to upload image.",
-        variant: "destructive",
-      });
-    } finally {
-      setUploadingSectionIndex(null);
-    }
+  // Section Image Upload Handler — Direct binary upload is unconfigured; guides admin to use URL-based management
+  const handleSectionImageUpload = async (_index: number, _file: File) => {
+    toast({
+      title: "Direct Upload Unavailable",
+      description: "Direct binary file upload is not configured on the server. Please enter a public image URL directly.",
+      variant: "destructive",
+    });
   };
 
   // Paragraph Handlers
@@ -716,7 +612,7 @@ export function AboutPageManager() {
                   type="text"
                   value={imageUrl}
                   onChange={(e) => setImageUrl(e.target.value)}
-                  placeholder="Image URL or upload a file (e.g. /uploads/about-campus.jpg)"
+                  placeholder="Image URL (e.g. https://... or /assets/about-campus.jpg)"
                   className="flex-1 w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-amber-400"
                 />
 
@@ -730,18 +626,17 @@ export function AboutPageManager() {
 
                 <button
                   type="button"
-                  disabled={isUploading}
                   onClick={() => fileInputRef.current?.click()}
-                  className="px-4 py-2.5 bg-slate-900 hover:bg-slate-800 text-amber-300 rounded-xl text-xs font-bold cursor-pointer transition-all flex items-center justify-center gap-1.5 shadow-sm shrink-0 w-full sm:w-auto"
+                  title="Direct upload is unconfigured; click for guidance"
+                  className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold cursor-pointer transition-all flex items-center justify-center gap-1.5 shadow-xs shrink-0 w-full sm:w-auto"
                 >
-                  {isUploading ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <Upload className="w-4 h-4" />
-                  )}
-                  {isUploading ? "Uploading..." : "Upload New Image"}
+                  <Upload className="w-4 h-4 text-slate-500" />
+                  Select File
                 </button>
               </div>
+              <p className="text-[11px] text-slate-500">
+                Asset URL mode active: Enter a hosted image URL. Direct file uploads require an upcoming backend media storage service.
+              </p>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>

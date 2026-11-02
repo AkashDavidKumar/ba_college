@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { apiClient, ApiError } from "@/lib/api-client";
 import {
   FileText,
   CheckCircle,
@@ -30,20 +31,25 @@ export function AdmissionsTab() {
   const fetchApplications = async () => {
     try {
       setLoading(true);
-      const res = await fetch("/api/admissions");
-      if (res.ok) {
-        const list = await res.json();
-        setApplications(list);
-        
-        // Pre-fill admin notes map
-        const notesMap: Record<string, string> = {};
-        list.forEach((app: any) => {
-          notesMap[app.id] = app.notes || "";
-        });
-        setAdminNotes(notesMap);
-      }
-    } catch (e) {
+      const res = await apiClient.get<any>("/admissions?limit=100");
+      const list = Array.isArray(res) ? res : res?.data || [];
+      setApplications(list);
+      
+      // Pre-fill admin notes map
+      const notesMap: Record<string, string> = {};
+      list.forEach((app: any) => {
+        notesMap[app.id || app.appNumber] = app.notes || "";
+      });
+      setAdminNotes(notesMap);
+    } catch (e: any) {
       console.error("Admissions fetch error:", e);
+      if (e instanceof ApiError && (e.status === 401 || e.status === 403)) {
+        toast({
+          title: "Access Restricted",
+          description: "You lack permissions to view confidential admission applications.",
+          variant: "destructive"
+        });
+      }
     } finally {
       setLoading(false);
     }
@@ -56,17 +62,11 @@ export function AdmissionsTab() {
   const updateStatus = async (id: string, newStatus: string) => {
     setSavingId(id);
     try {
-      const res = await fetch("/api/admissions", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          id,
-          status: newStatus,
-          notes: adminNotes[id] || ""
-        })
+      await apiClient.put("/admissions", {
+        id,
+        status: newStatus,
+        notes: adminNotes[id] || ""
       });
-
-      if (!res.ok) throw new Error();
       
       toast({
         title: "Application Updated",
@@ -75,12 +75,13 @@ export function AdmissionsTab() {
 
       // Update local state reactively
       setApplications(
-        applications.map((app) => (app.id === id ? { ...app, status: newStatus, notes: adminNotes[id] } : app))
+        applications.map((app) => ((app.id === id || app.appNumber === id) ? { ...app, status: newStatus, notes: adminNotes[id] } : app))
       );
-    } catch (e) {
+    } catch (e: any) {
+      const msg = e instanceof ApiError ? e.message : "An error occurred while updating the status.";
       toast({
         title: "Update Failed",
-        description: "An error occurred while updating the status.",
+        description: msg,
         variant: "destructive"
       });
     } finally {
@@ -92,20 +93,14 @@ export function AdmissionsTab() {
     setSavingId(id);
     try {
       // Find current application
-      const currentApp = applications.find(app => app.id === id);
+      const currentApp = applications.find(app => app.id === id || app.appNumber === id);
       if (!currentApp) return;
 
-      const res = await fetch("/api/admissions", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          id,
-          status: currentApp.status,
-          notes: adminNotes[id] || ""
-        })
+      await apiClient.put("/admissions", {
+        id,
+        status: currentApp.status,
+        notes: adminNotes[id] || ""
       });
-
-      if (!res.ok) throw new Error();
 
       toast({
         title: "Notes Saved",
@@ -113,12 +108,13 @@ export function AdmissionsTab() {
       });
 
       setApplications(
-        applications.map((app) => (app.id === id ? { ...app, notes: adminNotes[id] } : app))
+        applications.map((app) => ((app.id === id || app.appNumber === id) ? { ...app, notes: adminNotes[id] } : app))
       );
-    } catch (e) {
+    } catch (e: any) {
+      const msg = e instanceof ApiError ? e.message : "Failed to save administrative notes.";
       toast({
         title: "Save Failed",
-        description: "Could not save administrative notes.",
+        description: msg,
         variant: "destructive"
       });
     } finally {

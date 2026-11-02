@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { NavState } from "../admin-nav";
 import { PageDashboard } from "../page-dashboard";
+import { apiClient, ApiError } from "@/lib/api-client";
 import {
   Phone,
   Mail,
@@ -75,11 +76,14 @@ export function ContactDashboard({ nav }: ContactDashboardProps) {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/contact");
-      const json = await res.json();
-      setData({ ...DEFAULT_DATA, ...json });
-    } catch {
-      setError("Failed to load contact data.");
+      const json = await apiClient.get<any>("/contact");
+      setData({ ...DEFAULT_DATA, ...(json?.data || json) });
+    } catch (err) {
+      if (err instanceof ApiError && (err.status === 401 || err.status === 403)) {
+        setError(`Access denied: ${err.message}`);
+      } else {
+        setError("Failed to load contact data.");
+      }
     } finally {
       setLoading(false);
     }
@@ -89,16 +93,15 @@ export function ContactDashboard({ nav }: ContactDashboardProps) {
     setSaving(true);
     setError("");
     try {
-      const res = await fetch("/api/contact", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      });
-      if (!res.ok) throw new Error();
+      await apiClient.put("/contact", data);
       setSuccess("Contact page saved successfully!");
       setTimeout(() => setSuccess(""), 3000);
-    } catch {
-      setError("Failed to save contact data.");
+    } catch (err) {
+      if (err instanceof ApiError) {
+        setError(err.status === 403 ? "Forbidden: You lack contact:update permission." : err.message);
+      } else {
+        setError("Failed to save contact data.");
+      }
     } finally {
       setSaving(false);
     }

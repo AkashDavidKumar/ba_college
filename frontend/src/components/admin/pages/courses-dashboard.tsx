@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { NavState } from "../admin-nav";
 import { PageDashboard } from "../page-dashboard";
+import { apiClient, ApiError } from "@/lib/api-client";
 import {
   GraduationCap,
   Plus,
@@ -78,11 +79,14 @@ export function CoursesDashboard({ nav, setNav }: CoursesDashboardProps) {
   const fetchCourses = async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/courses");
-      const data = await res.json();
-      setCourses(Array.isArray(data) ? data : data.courses || []);
-    } catch {
-      setError("Failed to load courses.");
+      const data = await apiClient.get<any>("/courses");
+      setCourses(Array.isArray(data) ? data : data?.data || data?.courses || []);
+    } catch (err) {
+      if (err instanceof ApiError && (err.status === 401 || err.status === 403)) {
+        setError(`Access denied: ${err.message}`);
+      } else {
+        setError("Failed to load courses.");
+      }
     } finally {
       setLoading(false);
     }
@@ -97,23 +101,25 @@ export function CoursesDashboard({ nav, setNav }: CoursesDashboardProps) {
     setError("");
     try {
       const isEdit = !!editCourse;
-      const method = isEdit ? "PUT" : "POST";
-      const url = isEdit ? `/api/courses/${editCourse!.id}` : "/api/courses";
+      const url = isEdit ? `/courses/${editCourse!.id}` : "/courses";
       const body = isEdit ? { ...form, id: editCourse!.id } : form;
-      const res = await fetch(url, {
-        method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
-      if (!res.ok) throw new Error("Save failed");
+      if (isEdit) {
+        await apiClient.put(url, body);
+      } else {
+        await apiClient.post(url, body);
+      }
       setSuccess(isEdit ? "Course updated!" : "Course added!");
       setEditCourse(null);
       setIsAdding(false);
       setForm(EMPTY_COURSE);
       fetchCourses();
       setTimeout(() => setSuccess(""), 3000);
-    } catch {
-      setError("Failed to save course.");
+    } catch (err) {
+      if (err instanceof ApiError) {
+        setError(err.status === 403 ? `Forbidden: ${err.message}` : err.message);
+      } else {
+        setError("Failed to save course.");
+      }
     } finally {
       setSaving(false);
     }
@@ -122,22 +128,26 @@ export function CoursesDashboard({ nav, setNav }: CoursesDashboardProps) {
   const handleDelete = async (id: string) => {
     if (!confirm("Delete this course?")) return;
     try {
-      await fetch(`/api/courses/${id}`, { method: "DELETE" });
+      await apiClient.delete(`/courses/${id}`);
       fetchCourses();
-    } catch {
-      setError("Failed to delete course.");
+    } catch (err) {
+      if (err instanceof ApiError) {
+        setError(err.status === 403 ? `Forbidden: ${err.message}` : err.message);
+      } else {
+        setError("Failed to delete course.");
+      }
     }
   };
 
   const handleTogglePublish = async (course: Course) => {
     try {
-      await fetch(`/api/courses/${course.id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...course, published: !course.published }),
-      });
+      await apiClient.put(`/courses/${course.id}`, { ...course, published: !course.published });
       fetchCourses();
-    } catch {}
+    } catch (err) {
+      if (err instanceof ApiError) {
+        setError(err.status === 403 ? `Forbidden: ${err.message}` : err.message);
+      }
+    }
   };
 
   const openEdit = (course: Course) => {

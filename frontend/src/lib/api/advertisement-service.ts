@@ -352,17 +352,8 @@ class AdvertisementService {
     const updated = [newAd, ...ads];
     this.saveToStorage(updated);
 
-    // Call API if present
-    try {
-      await fetch("/api/v1/advertisements", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(dto),
-      });
-    } catch (e) {
-      // offline fallback handled
-    }
-
+    // Note: Backend advertisement mutations are unconfigured in current API version.
+    // Changes are preserved in client-side storage for preview and session management.
     return newAd;
   }
 
@@ -390,16 +381,6 @@ class AdvertisementService {
     ads[index] = updatedAd;
     this.saveToStorage(ads);
 
-    try {
-      await fetch(`/api/v1/advertisements/${id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(dto),
-      });
-    } catch (e) {
-      // fallback
-    }
-
     return updatedAd;
   }
 
@@ -419,12 +400,6 @@ class AdvertisementService {
     const ads = this.getStoredAdvertisements();
     const filtered = ads.filter((a) => a.id !== id);
     this.saveToStorage(filtered);
-
-    try {
-      await fetch(`/api/v1/advertisements/${id}`, { method: "DELETE" });
-    } catch (e) {
-      // fallback
-    }
 
     return true;
   }

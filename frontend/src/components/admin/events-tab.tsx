@@ -187,40 +187,16 @@ export function EventsTab() {
     }
   };
 
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, target: "event" | "speaker" | "gallery") => {
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, _target: "event" | "speaker" | "gallery") => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const formData = new FormData();
-    formData.append("file", file);
-
-    try {
-      const res = await fetch("/api/upload", {
-        method: "POST",
-        body: formData
-      });
-      if (!res.ok) throw new Error();
-      const data = await res.json();
-      
-      if (target === "event") {
-        setEditingEvent({ ...editingEvent, image: data.url });
-      } else if (target === "speaker") {
-        setNewSpeaker({ ...newSpeaker, image: data.url });
-      } else if (target === "gallery") {
-        setNewGallery({ ...newGallery, url: data.url });
-      }
-
-      toast({
-        title: "Image Uploaded",
-        description: "File saved to media catalog.",
-      });
-    } catch (err) {
-      toast({
-        title: "Upload Failed",
-        description: "Failed to upload image file.",
-        variant: "destructive"
-      });
-    }
+    toast({
+      title: "Direct Upload Unavailable",
+      description: "Direct binary file upload is not configured on this server. Please enter a hosted image URL into the Image URL field.",
+      variant: "destructive"
+    });
+    e.target.value = "";
   };
 
   return (

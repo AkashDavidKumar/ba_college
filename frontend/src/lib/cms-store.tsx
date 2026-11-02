@@ -933,16 +933,16 @@ export function CMSStoreProvider({ children }: { children: React.ReactNode }) {
 
   // ── Scoping Checks ──────────────────────────────────────────────────────────
   const canAccessDepartment = useCallback((deptSlug?: string) => {
-    if (currentUser.role === "master_admin") return true;
+    if (currentUser.role === "master_admin" || currentUser.role === "sub_admin") return true;
     if (!deptSlug) return true;
-    if (currentUser.role === "hod" || currentUser.role === "sub_admin") {
+    if (currentUser.role === "hod") {
       return currentUser.departmentId === deptSlug;
     }
     return false;
   }, [currentUser]);
 
   const canAccessClub = useCallback((clubId?: string) => {
-    if (currentUser.role === "master_admin") return true;
+    if (currentUser.role === "master_admin" || currentUser.role === "sub_admin") return true;
     if (!clubId) return true;
     if (currentUser.role === "club_head") {
       return currentUser.clubId === clubId;
