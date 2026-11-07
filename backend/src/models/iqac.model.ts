@@ -214,6 +214,8 @@ const iqacDossierSchema = new Schema<IIQACDossierDocument>(
   }
 );
 
+iqacDossierSchema.index({ singletonKey: 1, isActive: 1 });
+
 export const IQACDossier: Model<IIQACDossierDocument> =
   (mongoose.models.IQACDossier as Model<IIQACDossierDocument>) ||
   mongoose.model<IIQACDossierDocument>('IQACDossier', iqacDossierSchema, 'iqac_dossiers');

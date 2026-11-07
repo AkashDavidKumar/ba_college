@@ -199,30 +199,88 @@ describe('Sub-Phase 3C — Public Read Controllers & Compatibility Layer', () =>
   });
 
   // ── 4. Departments & Course Virtual Population ────────────────────────────
-  describe('4. Departments & Course Virtual Population', () => {
-    const mockDept = {
+  describe('4. Departments & Course Parallel Read Queries (Option A Approved)', () => {
+    const mockDeptCS = {
       _id: '672000000000000000000001',
-      name: 'Computer Science',
+      name: 'Department of Computer Science',
       code: 'CS',
       slug: 'computer-science',
       description: 'Department of Computer Science',
       order: 1,
       isActive: true,
-      programs: [
-        {
-          _id: '672000000000000000000002',
-          title: 'B.Sc Computer Science',
-          level: 'UG',
-          duration: '3 Years',
-          slug: 'bsc-computer-science',
-          order: 1,
-          published: true,
-        },
-      ],
+      deletedAt: null,
     };
 
-    it('legacy GET /api/departments returns array with populated programs', async () => {
-      jest.spyOn(Department, 'find').mockReturnValue(mockMongooseQuery([mockDept]) as any);
+    const mockDeptCommerce = {
+      _id: '672000000000000000000002',
+      name: 'Department of Commerce',
+      code: 'COM',
+      slug: 'commerce',
+      description: 'Department of Commerce',
+      order: 2,
+      isActive: true,
+      deletedAt: null,
+    };
+
+    const mockDeptMath = {
+      _id: '672000000000000000000003',
+      name: 'Department of Mathematics',
+      code: 'MATH',
+      slug: 'mathematics',
+      description: 'Department of Mathematics',
+      order: 3,
+      isActive: true,
+      deletedAt: null,
+    };
+
+    const mockCourses = [
+      {
+        _id: '672000000000000000000011',
+        name: 'B.Sc Computer Science',
+        title: 'B.Sc Computer Science',
+        code: 'BSC-CS',
+        slug: 'bsc-cs',
+        departmentSlug: 'computer-science',
+        level: 'UG',
+        duration: '3 Years',
+        eligibility: 'Higher Secondary with Maths',
+        description: 'Undergraduate Computer Science',
+        published: true,
+        isActive: true,
+      },
+      {
+        _id: '672000000000000000000012',
+        name: 'M.Sc Computer Science',
+        title: 'M.Sc Computer Science',
+        code: 'MSC-CS',
+        slug: 'msc-cs',
+        departmentSlug: 'computer-science',
+        level: 'PG',
+        duration: '2 Years',
+        eligibility: 'B.Sc Computer Science',
+        description: 'Postgraduate Computer Science',
+        published: true,
+        isActive: true,
+      },
+      {
+        _id: '672000000000000000000013',
+        name: 'B.Com General',
+        title: 'B.Com General',
+        code: 'BCOM-GEN',
+        slug: 'bcom-gen',
+        departmentSlug: 'commerce',
+        level: 'UG',
+        duration: '3 Years',
+        eligibility: 'Higher Secondary Commerce',
+        description: 'Undergraduate Commerce',
+        published: true,
+        isActive: true,
+      },
+    ];
+
+    it('legacy GET /api/departments returns array with parallel populated programs', async () => {
+      jest.spyOn(Department, 'find').mockReturnValue(mockMongooseQuery([mockDeptCS]) as any);
+      jest.spyOn(Course, 'find').mockReturnValue(mockMongooseQuery([mockCourses[0]]) as any);
 
       const res = await request(app).get('/api/departments');
 
@@ -233,39 +291,122 @@ describe('Sub-Phase 3C — Public Read Controllers & Compatibility Layer', () =>
       expect(res.body[0].programs[0].title).toBe('B.Sc Computer Science');
     });
 
-    it('legacy GET /api/departments?slug=computer-science filters single department', async () => {
-      jest.spyOn(Department, 'findOne').mockReturnValue(mockMongooseQuery(mockDept) as any);
+    it('correctly associates courses across multiple departments and handles departments with no courses', async () => {
+      jest.spyOn(Department, 'find').mockReturnValue(
+        mockMongooseQuery([mockDeptCS, mockDeptCommerce, mockDeptMath]) as any
+      );
+      jest.spyOn(Course, 'find').mockReturnValue(mockMongooseQuery(mockCourses) as any);
+
+      const res = await request(app).get('/api/departments');
+
+      expect(res.status).toBe(200);
+      expect(res.body).toHaveLength(3);
+
+      // Computer Science has 2 programs
+      const csDept = res.body.find((d: any) => d.slug === 'computer-science');
+      expect(csDept.programs).toHaveLength(2);
+      expect(csDept.programs.map((p: any) => p.slug)).toEqual(['bsc-cs', 'msc-cs']);
+
+      // Commerce has 1 program
+      const comDept = res.body.find((d: any) => d.slug === 'commerce');
+      expect(comDept.programs).toHaveLength(1);
+      expect(comDept.programs[0].slug).toBe('bcom-gen');
+
+      // Mathematics has 0 programs (empty array, never undefined or null)
+      const mathDept = res.body.find((d: any) => d.slug === 'mathematics');
+      expect(mathDept.programs).toEqual([]);
+    });
+
+    it('returns empty array when no active departments exist', async () => {
+      jest.spyOn(Department, 'find').mockReturnValue(mockMongooseQuery([]) as any);
+      jest.spyOn(Course, 'find').mockReturnValue(mockMongooseQuery(mockCourses) as any);
+
+      const res = await request(app).get('/api/departments');
+
+      expect(res.status).toBe(200);
+      expect(Array.isArray(res.body)).toBe(true);
+      expect(res.body).toHaveLength(0);
+    });
+
+    it('returns departments with empty programs when no published courses exist', async () => {
+      jest.spyOn(Department, 'find').mockReturnValue(mockMongooseQuery([mockDeptCS, mockDeptCommerce]) as any);
+      jest.spyOn(Course, 'find').mockReturnValue(mockMongooseQuery([]) as any);
+
+      const res = await request(app).get('/api/departments');
+
+      expect(res.status).toBe(200);
+      expect(res.body).toHaveLength(2);
+      expect(res.body[0].programs).toEqual([]);
+      expect(res.body[1].programs).toEqual([]);
+    });
+
+    it('enforces queries filter for active departments and published active courses', async () => {
+      const deptFindSpy = jest.spyOn(Department, 'find').mockReturnValue(mockMongooseQuery([mockDeptCS]) as any);
+      const courseFindSpy = jest.spyOn(Course, 'find').mockReturnValue(mockMongooseQuery([mockCourses[0]]) as any);
+
+      await request(app).get('/api/departments');
+
+      // Department filter must exclude inactive and deleted records
+      expect(deptFindSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          isActive: true,
+          deletedAt: null,
+        })
+      );
+
+      // Course filter must enforce published and active
+      expect(courseFindSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          published: true,
+          isActive: true,
+        })
+      );
+    });
+
+    it('legacy GET /api/departments?slug=computer-science filters single department with courses concurrently', async () => {
+      jest.spyOn(Department, 'findOne').mockReturnValue(mockMongooseQuery(mockDeptCS) as any);
+      jest.spyOn(Course, 'find').mockReturnValue(mockMongooseQuery([mockCourses[0], mockCourses[1]]) as any);
 
       const res = await request(app).get('/api/departments?slug=computer-science');
 
       expect(res.status).toBe(200);
       expect(res.body.slug).toBe('computer-science');
+      expect(res.body.programs).toHaveLength(2);
       expect(res.body.programs[0].title).toBe('B.Sc Computer Science');
+      expect(res.body.programs[1].title).toBe('M.Sc Computer Science');
     });
 
-    it('versioned GET /api/v1/departments returns envelope with count', async () => {
-      jest.spyOn(Department, 'find').mockReturnValue(mockMongooseQuery([mockDept]) as any);
+    it('versioned GET /api/v1/departments returns envelope with count and populated programs', async () => {
+      jest.spyOn(Department, 'find').mockReturnValue(mockMongooseQuery([mockDeptCS, mockDeptCommerce]) as any);
+      jest.spyOn(Course, 'find').mockReturnValue(mockMongooseQuery(mockCourses) as any);
 
       const res = await request(app).get('/api/v1/departments');
 
       expect(res.status).toBe(200);
       expect(res.body.success).toBe(true);
-      expect(res.body.count).toBe(1);
+      expect(res.body.count).toBe(2);
       expect(res.body.data[0].slug).toBe('computer-science');
+      expect(res.body.data[0].programs).toHaveLength(2);
+      expect(res.body.data[1].slug).toBe('commerce');
+      expect(res.body.data[1].programs).toHaveLength(1);
     });
 
-    it('versioned GET /api/v1/departments/:slug returns department envelope', async () => {
-      jest.spyOn(Department, 'findOne').mockReturnValue(mockMongooseQuery(mockDept) as any);
+    it('versioned GET /api/v1/departments/:slug returns department envelope with programs', async () => {
+      jest.spyOn(Department, 'findOne').mockReturnValue(mockMongooseQuery(mockDeptCS) as any);
+      jest.spyOn(Course, 'find').mockReturnValue(mockMongooseQuery([mockCourses[0]]) as any);
 
       const res = await request(app).get('/api/v1/departments/computer-science');
 
       expect(res.status).toBe(200);
       expect(res.body.success).toBe(true);
       expect(res.body.data.slug).toBe('computer-science');
+      expect(res.body.data.programs).toHaveLength(1);
+      expect(res.body.data.programs[0].title).toBe('B.Sc Computer Science');
     });
 
     it('returns 404 for non-existent department slug', async () => {
       jest.spyOn(Department, 'findOne').mockReturnValue(mockMongooseQuery(null) as any);
+      jest.spyOn(Course, 'find').mockReturnValue(mockMongooseQuery([]) as any);
 
       const res = await request(app).get('/api/v1/departments/non-existent-dept');
       expect(res.status).toBe(404);

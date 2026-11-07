@@ -115,6 +115,8 @@ const galleryDataSchema = new Schema<IGalleryDataDocument>(
   }
 );
 
+galleryDataSchema.index({ singletonKey: 1, isActive: 1 });
+
 export const GalleryData: Model<IGalleryDataDocument> =
   (mongoose.models.GalleryData as Model<IGalleryDataDocument>) ||
   mongoose.model<IGalleryDataDocument>('GalleryData', galleryDataSchema, 'gallery_data');

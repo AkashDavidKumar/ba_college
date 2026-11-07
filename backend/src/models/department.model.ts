@@ -225,6 +225,7 @@ departmentSchema.virtual('programs', {
 });
 
 departmentSchema.index({ isActive: 1, order: 1 });
+departmentSchema.index({ isActive: 1, deletedAt: 1, order: 1, name: 1 });
 
 export const Department: Model<IDepartmentDocument> =
   (mongoose.models.Department as Model<IDepartmentDocument>) ||

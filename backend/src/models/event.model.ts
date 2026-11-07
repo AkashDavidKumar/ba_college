@@ -159,6 +159,7 @@ const eventSchema = new Schema<IEventDocument>(
 );
 
 eventSchema.index({ startDate: -1, isActive: 1 });
+eventSchema.index({ isActive: 1, isArchived: 1, startDate: 1 });
 eventSchema.index({ clubId: 1, isActive: 1 });
 eventSchema.index({ departmentSlug: 1, isActive: 1 });
 

@@ -19,8 +19,8 @@ export async function connectDatabase(uri: string): Promise<void> {
   logger.info(`Connecting to MongoDB: ${safeUri}`);
 
   await mongoose.connect(uri, {
-    maxPoolSize: 10,
-    minPoolSize: 2,
+    maxPoolSize: 30,
+    minPoolSize: 5,
     serverSelectionTimeoutMS: 5_000,
     socketTimeoutMS: 45_000,
     connectTimeoutMS: 10_000,

@@ -80,6 +80,7 @@ const guestSpeakerSchema = new Schema<IGuestSpeakerDocument>(
 );
 
 guestSpeakerSchema.index({ isActive: 1, order: 1 });
+guestSpeakerSchema.index({ isActive: 1, order: 1, name: 1 });
 
 export const GuestSpeaker: Model<IGuestSpeakerDocument> =
   (mongoose.models.GuestSpeaker as Model<IGuestSpeakerDocument>) ||

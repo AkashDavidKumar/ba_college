@@ -8,7 +8,8 @@
  */
 import { Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
-import { User } from '../models/user.model';
+import { User, IUserDocument } from '../models/user.model';
+import { ILeanUser } from '../types';
 import { ApiError } from '../utils/api-error';
 import {
   AUTH_COOKIE_NAME,
@@ -146,10 +147,55 @@ export async function logout(req: Request, res: Response): Promise<void> {
   });
 }
 
-export async function getMe(req: Request, res: Response): Promise<void> {
-  const userId = req.user?.id;
+export interface ISanitizedUser {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  departmentId?: string;
+  clubId?: string;
+  permissions: string[];
+  status: string;
+  lastLogin?: Date;
+  phone?: string;
+  avatar?: string;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
 
-  const user = await User.findById(userId);
+/**
+ * Directly formats the public user profile without Mongoose toJSON() document transformation.
+ * Strips password, tokenVersion, failedLoginAttempts, lockUntil, __v, and formats id.
+ */
+export function sanitizeUser(user: IUserDocument | ILeanUser): ISanitizedUser {
+  if (typeof (user as IUserDocument).toJSON === 'function') {
+    return (user as IUserDocument).toJSON() as unknown as ISanitizedUser;
+  }
+  const raw = user as ILeanUser;
+  const sanitized: ISanitizedUser = {
+    id: String(raw._id),
+    name: raw.name,
+    email: raw.email,
+    role: raw.role,
+    departmentId: raw.departmentId,
+    clubId: raw.clubId,
+    permissions: raw.permissions || [],
+    status: raw.status,
+    lastLogin: raw.lastLogin,
+    phone: raw.phone,
+    avatar: raw.avatar,
+    createdAt: raw.createdAt,
+    updatedAt: raw.updatedAt,
+  };
+  return sanitized;
+}
+
+export async function getMe(req: Request, res: Response): Promise<void> {
+  let user = req.userDoc;
+  if (!user && req.user?.id) {
+    const query = User.findById(req.user.id).select('+status');
+    user = (typeof query.lean === 'function' ? await query.lean() : await query) || undefined;
+  }
   if (!user || user.status !== 'active') {
     throw ApiError.unauthorized('User session is invalid.', 'INVALID_SESSION');
   }
@@ -157,7 +203,7 @@ export async function getMe(req: Request, res: Response): Promise<void> {
   res.status(200).json({
     success: true,
     data: {
-      user: user.toJSON(),
+      user: sanitizeUser(user),
     },
   });
 }

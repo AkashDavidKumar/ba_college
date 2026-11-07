@@ -64,8 +64,9 @@ export async function requireAuth(
   }
 
   try {
-    // Look up the user in database (including tokenVersion and status)
-    const user = await User.findById(payload.sub).select('+tokenVersion +status');
+    // Look up the user in database as a lean object (bypasses Mongoose Document hydration overhead)
+    const query = User.findById(payload.sub).select('+tokenVersion +status');
+    const user = typeof query.lean === 'function' ? await query.lean() : await query;
 
     if (!user) {
       next(ApiError.unauthorized('User account no longer exists.', 'USER_NOT_FOUND'));
@@ -95,6 +96,7 @@ export async function requireAuth(
       status: user.status,
       tokenVersion: user.tokenVersion,
     };
+    req.userDoc = user;
 
     next();
   } catch (err: unknown) {

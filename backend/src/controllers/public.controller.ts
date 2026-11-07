@@ -108,39 +108,74 @@ export async function getPublicDepartments(req: Request, res: Response, next: Ne
     const slugQuery = req.query['slug'] ? String(req.query['slug']).trim() : undefined;
 
     if (slugQuery) {
-      // Query single department by slug parameter (legacy ?slug= parameter)
-      const dept = await Department.findOne({
-        slug: slugQuery,
-        isActive: true,
-        deletedAt: null,
-      })
-        .populate({
-          path: 'programs',
-          match: { published: true, isActive: true },
-          select: '-__v -isSeedManaged -deletedAt',
+      // Query single department by slug parameter (legacy ?slug= parameter) concurrently with its courses
+      const [dept, courses] = await Promise.all([
+        Department.findOne({
+          slug: slugQuery,
+          isActive: true,
+          deletedAt: null,
         })
-        .lean({ virtuals: true });
+          .select('-__v -isSeedManaged -deletedAt')
+          .lean(),
+        Course.find({
+          departmentSlug: slugQuery,
+          published: true,
+          isActive: true,
+        })
+          .select('-__v -isSeedManaged -deletedAt')
+          .sort({ level: 1, name: 1 })
+          .lean(),
+      ]);
 
       if (!dept) {
         throw ApiError.notFound(`Department '${slugQuery}'`);
       }
 
-      res.status(200).json(serializeDepartment(dept as Record<string, unknown>));
+      const deptObj = dept as Record<string, unknown>;
+      deptObj['programs'] = courses;
+
+      res.status(200).json(serializeDepartment(deptObj));
       return;
     }
 
-    // List all active departments
-    const departments = await Department.find({
-      isActive: true,
-      deletedAt: null,
-    })
-      .sort({ order: 1, name: 1 })
-      .populate({
-        path: 'programs',
-        match: { published: true, isActive: true },
-        select: '-__v -isSeedManaged -deletedAt',
+    // Concurrently fetch active departments and eligible published courses (approved Option A optimization)
+    const [departments, courses] = await Promise.all([
+      Department.find({
+        isActive: true,
+        deletedAt: null,
       })
-      .lean({ virtuals: true });
+        .select('-__v -isSeedManaged -deletedAt')
+        .sort({ order: 1, name: 1 })
+        .lean(),
+      Course.find({
+        published: true,
+        isActive: true,
+      })
+        .select('-__v -isSeedManaged -deletedAt')
+        .sort({ level: 1, name: 1 })
+        .lean(),
+    ]);
+
+    // Group courses by departmentSlug in an in-memory Map
+    const coursesByDept = new Map<string, Array<Record<string, unknown>>>();
+    for (const course of courses) {
+      const slug = (course as { departmentSlug?: string }).departmentSlug;
+      if (slug) {
+        let list = coursesByDept.get(slug);
+        if (!list) {
+          list = [];
+          coursesByDept.set(slug, list);
+        }
+        list.push(course as Record<string, unknown>);
+      }
+    }
+
+    // Associate matching courses with each department
+    for (const dept of departments) {
+      const deptObj = dept as Record<string, unknown>;
+      const slug = String(deptObj['slug'] || '');
+      deptObj['programs'] = coursesByDept.get(slug) || [];
+    }
 
     const serialized = departments.map((d) => serializeDepartment(d as Record<string, unknown>));
 
@@ -164,23 +199,32 @@ export async function getPublicDepartmentBySlug(req: Request, res: Response, nex
   try {
     const slug = String(req.params['slug'] || '').trim();
 
-    const dept = await Department.findOne({
-      slug,
-      isActive: true,
-      deletedAt: null,
-    })
-      .populate({
-        path: 'programs',
-        match: { published: true, isActive: true },
-        select: '-__v -isSeedManaged -deletedAt',
+    const [dept, courses] = await Promise.all([
+      Department.findOne({
+        slug,
+        isActive: true,
+        deletedAt: null,
       })
-      .lean({ virtuals: true });
+        .select('-__v -isSeedManaged -deletedAt')
+        .lean(),
+      Course.find({
+        departmentSlug: slug,
+        published: true,
+        isActive: true,
+      })
+        .select('-__v -isSeedManaged -deletedAt')
+        .sort({ level: 1, name: 1 })
+        .lean(),
+    ]);
 
     if (!dept) {
       throw ApiError.notFound(`Department '${slug}'`);
     }
 
-    const serialized = serializeDepartment(dept as Record<string, unknown>);
+    const deptObj = dept as Record<string, unknown>;
+    deptObj['programs'] = courses;
+
+    const serialized = serializeDepartment(deptObj);
 
     if (req.baseUrl.includes('/v1')) {
       res.status(200).json({
@@ -215,6 +259,7 @@ export async function getPublicCourses(req: Request, res: Response, next: NextFu
     }
 
     const courses = await Course.find(filter)
+      .select('-__v -isSeedManaged -deletedAt')
       .sort({ level: 1, name: 1 })
       .lean();
 
@@ -271,9 +316,15 @@ export async function getPublicCourseByIdOrSlug(req: Request, res: Response, nex
 export async function getPublicEventsBundle(_req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
     const [events, guestSpeakers, galleryDoc] = await Promise.all([
-      Event.find({ isActive: true, isArchived: false }).sort({ startDate: 1 }).lean(),
-      GuestSpeaker.find({ isActive: true }).sort({ order: 1, name: 1 }).lean(),
-      GalleryData.findOne({ isActive: true }).lean(),
+      Event.find({ isActive: true, isArchived: false })
+        .select('-__v -isSeedManaged -deletedAt')
+        .sort({ startDate: 1 })
+        .lean(),
+      GuestSpeaker.find({ isActive: true })
+        .select('-__v -isSeedManaged -deletedAt')
+        .sort({ order: 1, name: 1 })
+        .lean(),
+      GalleryData.findOne({ singletonKey: 'default', isActive: true }).select('albums').lean(),
     ]);
 
     const serializedEvents = events.map((e) => serializeEvent(e as Record<string, unknown>));
@@ -470,7 +521,7 @@ export async function getPublicNewsArticleBySlug(req: Request, res: Response, ne
 // ── 8. IQAC Accreditation Dossier ────────────────────────────────────────────
 export async function getPublicIQAC(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    const iqacDoc = await IQACDossier.findOne({ isActive: true }).lean();
+    const iqacDoc = await IQACDossier.findOne({ singletonKey: 'default', isActive: true }).lean();
 
     if (!iqacDoc) {
       throw ApiError.notFound('IQAC Dossier');

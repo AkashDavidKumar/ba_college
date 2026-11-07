@@ -8,6 +8,8 @@ dist/
 .env
 .env.local
 .env.*.local
+.benchmark-auth.json
+.benchmark-isolated-results.json
 
 # Uploaded media files
 uploads/

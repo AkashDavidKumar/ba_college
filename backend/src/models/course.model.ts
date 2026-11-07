@@ -131,6 +131,8 @@ const courseSchema = new Schema<ICourseDocument>(
 
 courseSchema.index({ departmentSlug: 1, level: 1 });
 courseSchema.index({ published: 1, isActive: 1 });
+courseSchema.index({ departmentSlug: 1, published: 1, isActive: 1 });
+courseSchema.index({ published: 1, isActive: 1, level: 1, name: 1 });
 
 export const Course: Model<ICourseDocument> =
   (mongoose.models.Course as Model<ICourseDocument>) ||

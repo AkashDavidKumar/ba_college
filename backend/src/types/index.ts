@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+import { IUserDocument, IUser } from '../models/user.model';
 
 // ── Authenticated User payload attached to Request ───────────────────────────
 export interface IAuthUser {
@@ -13,6 +14,8 @@ export interface IAuthUser {
   tokenVersion: number;
 }
 
+export type ILeanUser = IUser & { _id: unknown };
+
 // ── Express request augmentation ──────────────────────────────────────────────
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
@@ -22,6 +25,8 @@ declare global {
       id: string;
       /** Authenticated user attached by requireAuth middleware */
       user?: IAuthUser;
+      /** Loaded user document or lean object attached by requireAuth to eliminate duplicate lookups */
+      userDoc?: IUserDocument | ILeanUser;
     }
   }
 }
