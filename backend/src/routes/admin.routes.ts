@@ -8,10 +8,11 @@
  *  4. Granular RBAC permissions and strict Zod payload validation.
  */
 import { Router } from 'express';
-import { requireAuth, requirePermissions } from '../middleware/auth';
+import { requireAuth, requirePermissions, requireAnyPermission } from '../middleware/auth';
 import { strictRateLimit } from '../middleware/rate-limit';
 import { validateBody } from '../validations/auth.validation';
 import * as adminController from '../controllers/admin.controller';
+import * as adminCmsController from '../controllers/admin-cms.controller';
 import {
   updateSiteContentSchema,
   updateAboutPageSchema,
@@ -31,6 +32,11 @@ import {
   updateAdmissionsApplicationStatusSchema,
   submitContactEnquirySchema,
   updateContactEnquiryStatusSchema,
+  createUserSchema,
+  updateUserSchema,
+  createApprovalSchema,
+  reviewApprovalSchema,
+  resubmitApprovalSchema,
 } from '../validations';
 
 export const adminRouter = Router();
@@ -366,6 +372,100 @@ adminRouter.put(
   requirePermissions('enquiries:read'),
   validateBody(updateContactEnquiryStatusSchema),
   adminController.updateContactEnquiry
+);
+
+// ── 14. Core Administration: User Management ───────────────────────────────
+// List all administrative users
+adminRouter.get(
+  ['/admin/users', '/users'],
+  requireAuth,
+  requireAnyPermission('users:read', 'users:manage'),
+  adminCmsController.listUsers
+);
+
+// Get single user by ID
+adminRouter.get(
+  ['/admin/users/:id', '/users/:id'],
+  requireAuth,
+  requireAnyPermission('users:read', 'users:manage'),
+  adminCmsController.getUserById
+);
+
+// Create new user
+adminRouter.post(
+  ['/admin/users', '/users'],
+  requireAuth,
+  requirePermissions('users:manage'),
+  validateBody(createUserSchema),
+  adminCmsController.createUser
+);
+
+// Update user (safeguards against self-demotion, self-deactivation, and lockout of last admin)
+adminRouter.put(
+  ['/admin/users/:id', '/users/:id'],
+  requireAuth,
+  requirePermissions('users:manage'),
+  validateBody(updateUserSchema),
+  adminCmsController.updateUser
+);
+
+// Delete user (safeguards against self-deletion and deletion of last admin)
+adminRouter.delete(
+  ['/admin/users/:id', '/users/:id'],
+  requireAuth,
+  requirePermissions('users:manage'),
+  adminCmsController.deleteUser
+);
+
+// ── 15. Core Administration: Persistent Audit Logs (Append-Only) ────────────
+// Query audit log history (read-only; no update/delete routes exposed)
+adminRouter.get(
+  ['/admin/audit-logs', '/audit-logs'],
+  requireAuth,
+  requirePermissions('audit:read'),
+  adminCmsController.listAuditLogs
+);
+
+// ── 16. Content Workflow Approvals ──────────────────────────────────────────
+// List approvals (scoped by role for HOD & Club Head)
+adminRouter.get(
+  ['/admin/approvals', '/approvals'],
+  requireAuth,
+  requirePermissions('approvals:read'),
+  adminCmsController.listApprovals
+);
+
+// Submit content for approval
+adminRouter.post(
+  ['/admin/approvals', '/approvals'],
+  requireAuth,
+  validateBody(createApprovalSchema),
+  adminCmsController.submitApproval
+);
+
+// Review (approve or reject) content submission
+adminRouter.put(
+  ['/admin/approvals/:id', '/approvals/:id'],
+  requireAuth,
+  requirePermissions('approvals:review'),
+  validateBody(reviewApprovalSchema),
+  adminCmsController.reviewApproval
+);
+
+adminRouter.patch(
+  ['/admin/approvals/:id', '/approvals/:id'],
+  requireAuth,
+  requirePermissions('approvals:review'),
+  validateBody(reviewApprovalSchema),
+  adminCmsController.reviewApproval
+);
+
+// Resubmit a previously rejected content submission
+adminRouter.post(
+  ['/admin/approvals/:id/resubmit', '/approvals/:id/resubmit'],
+  requireAuth,
+  validateBody(resubmitApprovalSchema),
+  adminCmsController.resubmitApproval
 );
 
 export default adminRouter;

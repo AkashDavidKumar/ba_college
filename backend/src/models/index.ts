@@ -20,3 +20,5 @@ export * from './placement.model';
 export * from './contact-info.model';
 export * from './contact-enquiry.model';
 export * from './app-counter.model';
+export * from './audit-log.model';
+export * from './approval.model';

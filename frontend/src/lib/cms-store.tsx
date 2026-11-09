@@ -660,6 +660,7 @@ type CMSStoreContextType = {
   submitForApproval: (item: Omit<ApprovalItem, "id" | "submittedAt" | "status">) => void;
   approveItem: (id: string) => void;
   rejectItem: (id: string, reason: string) => void;
+  resubmitItem: (id: string, updates?: { title?: string; previewData?: Record<string, any>; notes?: string }) => void;
 
   // Audit Logs
   auditLogs: AuditLogEntry[];
@@ -903,6 +904,119 @@ export function CMSStoreProvider({ children }: { children: React.ReactNode }) {
     return () => { active = false; };
   }, [currentUser]);
 
+  // ── Live Backend Users Sync ────────────────────────────────────────────────
+  useEffect(() => {
+    let active = true;
+    async function fetchLiveUsers() {
+      if (
+        currentUser.role !== "master_admin" &&
+        currentUser.role !== "sub_admin" &&
+        !currentUser.permissions.includes("users:read") &&
+        !currentUser.permissions.includes("users:manage") &&
+        !currentUser.permissions.includes("all")
+      ) {
+        return;
+      }
+      try {
+        const res = await apiClient.get<any>("/admin/users");
+        const list = res?.data || (Array.isArray(res) ? res : []);
+        if (Array.isArray(list) && list.length > 0 && active) {
+          const mapped: AdminUser[] = list.map((doc: any) => ({
+            id: doc.id || String(doc._id),
+            name: doc.name || "Administrator",
+            email: doc.email || "",
+            role: doc.role,
+            departmentId: doc.departmentId,
+            clubId: doc.clubId,
+            permissions: doc.permissions || [],
+            status: doc.status || "active",
+            phone: doc.phone,
+            lastLogin: doc.lastLogin ? new Date(doc.lastLogin).toLocaleString("en-IN") : "Active",
+          }));
+          setUsers(mapped);
+        }
+      } catch {
+        // Fall back to local users state
+      }
+    }
+    fetchLiveUsers();
+    return () => { active = false; };
+  }, [currentUser]);
+
+  // ── Live Backend Approvals Sync ────────────────────────────────────────────
+  useEffect(() => {
+    let active = true;
+    async function fetchLiveApprovals() {
+      try {
+        const res = await apiClient.get<any>("/admin/approvals?limit=100");
+        const list = res?.data?.approvals || res?.data || (Array.isArray(res) ? res : []);
+        if (Array.isArray(list) && list.length > 0 && active) {
+          const mapped: ApprovalItem[] = list.map((doc: any) => ({
+            id: doc.id || String(doc._id),
+            entityType: doc.entityType,
+            entityId: doc.entityId,
+            title: doc.title,
+            departmentId: doc.departmentId,
+            clubId: doc.clubId,
+            authorId: doc.authorId,
+            authorName: doc.authorName,
+            authorRole: doc.authorRole,
+            status: doc.status,
+            rejectionReason: doc.rejectionReason,
+            submittedAt: doc.submittedAt ? new Date(doc.submittedAt).toLocaleString("en-IN") : "Just now",
+            reviewedAt: doc.reviewedAt ? new Date(doc.reviewedAt).toLocaleString("en-IN") : undefined,
+            reviewerId: doc.reviewerId,
+            previewData: doc.previewData,
+          }));
+          setApprovals(mapped);
+        }
+      } catch {
+        // Fall back to local approvals state
+      }
+    }
+    fetchLiveApprovals();
+    return () => { active = false; };
+  }, [currentUser]);
+
+  // ── Live Backend Audit Logs Sync ───────────────────────────────────────────
+  useEffect(() => {
+    let active = true;
+    async function fetchLiveAuditLogs() {
+      if (
+        currentUser.role !== "master_admin" &&
+        currentUser.role !== "sub_admin" &&
+        !currentUser.permissions.includes("audit:read") &&
+        !currentUser.permissions.includes("all")
+      ) {
+        return;
+      }
+      try {
+        const res = await apiClient.get<any>("/admin/audit-logs?limit=100");
+        const list = res?.data?.logs || res?.data || (Array.isArray(res) ? res : []);
+        if (Array.isArray(list) && list.length > 0 && active) {
+          const mapped: AuditLogEntry[] = list.map((doc: any) => ({
+            id: doc.id || String(doc._id),
+            userId: doc.userId,
+            userName: doc.userName,
+            userRole: doc.userRole,
+            action: doc.action,
+            module: doc.module,
+            recordId: doc.recordId,
+            recordTitle: doc.recordTitle,
+            timestamp: doc.timestamp ? new Date(doc.timestamp).toLocaleString("en-IN") : "Just now",
+            oldValue: doc.oldValue,
+            newValue: doc.newValue,
+          }));
+          setAuditLogs(mapped);
+        }
+      } catch {
+        // Fall back to local audit logs state
+      }
+    }
+    fetchLiveAuditLogs();
+    return () => { active = false; };
+  }, [currentUser]);
+
   // ── Switch User ─────────────────────────────────────────────────────────────
   const switchUser = useCallback((identifier: string) => {
     const found = users.find((u) => u.email === identifier || u.role === identifier || u.id === identifier);
@@ -958,13 +1072,40 @@ export function CMSStoreProvider({ children }: { children: React.ReactNode }) {
 
   // ── Workflow & Approvals ────────────────────────────────────────────────────
   const submitForApproval = useCallback((item: Omit<ApprovalItem, "id" | "submittedAt" | "status">) => {
+    const tempId = "appr-" + Date.now();
     const newApproval: ApprovalItem = {
       ...item,
-      id: "appr-" + Date.now(),
+      id: tempId,
       status: "pending",
       submittedAt: new Date().toLocaleString("en-IN", { dateStyle: "short", timeStyle: "short" }),
     };
-    setApprovals((prev) => [newApproval, ...prev]);
+
+    setApprovals((prev) => {
+      const rollbackState = [...prev];
+      apiClient
+        .post<any>("/admin/approvals", {
+          entityType: item.entityType,
+          entityId: item.entityId,
+          title: item.title,
+          departmentId: item.departmentId,
+          clubId: item.clubId,
+          previewData: item.previewData,
+        })
+        .then((res) => {
+          const liveDoc = res?.data;
+          if (liveDoc?.id || liveDoc?._id) {
+            const realId = liveDoc.id || String(liveDoc._id);
+            setApprovals((current) => current.map((a) => (a.id === tempId ? { ...a, id: realId } : a)));
+          }
+        })
+        .catch((err) => {
+          console.error("[CMS Store] Backend approval submission failed, rolling back optimistic state:", err?.message);
+          setApprovals(rollbackState);
+        });
+
+      return [newApproval, ...prev];
+    });
+
     logAction({
       action: "CREATE",
       module: "Approvals",
@@ -974,9 +1115,18 @@ export function CMSStoreProvider({ children }: { children: React.ReactNode }) {
   }, [logAction]);
 
   const approveItem = useCallback((id: string) => {
-    setApprovals((prev) =>
-      prev.map((a) => (a.id === id ? { ...a, status: "approved", reviewedAt: new Date().toLocaleString(), reviewerId: currentUser.id } : a))
-    );
+    setApprovals((prev) => {
+      const rollbackState = [...prev];
+      apiClient.put(`/admin/approvals/${id}`, { status: "approved" }).catch((err) => {
+        console.error("[CMS Store] Backend approval update failed, rolling back optimistic state:", err?.message);
+        setApprovals(rollbackState);
+      });
+
+      return prev.map((a) =>
+        a.id === id ? { ...a, status: "approved", reviewedAt: new Date().toLocaleString(), reviewerId: currentUser.id } : a
+      );
+    });
+
     const item = approvals.find((a) => a.id === id);
     if (item) {
       logAction({
@@ -989,9 +1139,20 @@ export function CMSStoreProvider({ children }: { children: React.ReactNode }) {
   }, [approvals, currentUser.id, logAction]);
 
   const rejectItem = useCallback((id: string, reason: string) => {
-    setApprovals((prev) =>
-      prev.map((a) => (a.id === id ? { ...a, status: "rejected", rejectionReason: reason, reviewedAt: new Date().toLocaleString(), reviewerId: currentUser.id } : a))
-    );
+    setApprovals((prev) => {
+      const rollbackState = [...prev];
+      apiClient.put(`/admin/approvals/${id}`, { status: "rejected", rejectionReason: reason }).catch((err) => {
+        console.error("[CMS Store] Backend approval rejection failed, rolling back optimistic state:", err?.message);
+        setApprovals(rollbackState);
+      });
+
+      return prev.map((a) =>
+        a.id === id
+          ? { ...a, status: "rejected", rejectionReason: reason, reviewedAt: new Date().toLocaleString(), reviewerId: currentUser.id }
+          : a
+      );
+    });
+
     const item = approvals.find((a) => a.id === id);
     if (item) {
       logAction({
@@ -1002,6 +1163,39 @@ export function CMSStoreProvider({ children }: { children: React.ReactNode }) {
       });
     }
   }, [approvals, currentUser.id, logAction]);
+
+  const resubmitItem = useCallback((id: string, updates?: { title?: string; previewData?: Record<string, any>; notes?: string }) => {
+    setApprovals((prev) => {
+      const rollbackState = [...prev];
+      apiClient.post(`/admin/approvals/${id}/resubmit`, updates || {}).catch((err) => {
+        console.error("[CMS Store] Backend approval resubmission failed, rolling back optimistic state:", err?.message);
+        setApprovals(rollbackState);
+      });
+
+      return prev.map((a) =>
+        a.id === id
+          ? {
+              ...a,
+              status: "pending" as const,
+              rejectionReason: undefined,
+              title: updates?.title || a.title,
+              previewData: updates?.previewData || a.previewData,
+              submittedAt: new Date().toLocaleString("en-IN", { dateStyle: "short", timeStyle: "short" }),
+            }
+          : a
+      );
+    });
+
+    const item = approvals.find((a) => a.id === id);
+    if (item) {
+      logAction({
+        action: "UPDATE",
+        module: "Approvals",
+        recordId: id,
+        recordTitle: `Resubmitted for review: ${updates?.title || item.title}`,
+      });
+    }
+  }, [approvals, logAction]);
 
   // ── Dynamic Pages ───────────────────────────────────────────────────────────
   const savePage = useCallback((page: Partial<DynamicPage>, isNew = false) => {
@@ -1284,28 +1478,87 @@ export function CMSStoreProvider({ children }: { children: React.ReactNode }) {
   // ── Users Management ────────────────────────────────────────────────────────
   const saveUser = useCallback((user: Partial<AdminUser>, isNew = false) => {
     if (isNew) {
+      const tempId = user.id || "user-" + Date.now();
       const newUser: AdminUser = {
-        id: "user-" + Date.now(),
+        id: tempId,
         name: user.name || "Administrator",
         email: user.email || "user@bac.edu.in",
         role: user.role || "staff",
         departmentId: user.departmentId,
         clubId: user.clubId,
         permissions: user.permissions || ["view"],
-        status: "active",
+        status: user.status || "active",
         phone: user.phone,
         ...user,
       };
-      setUsers((prev) => [...prev, newUser]);
+
+      setUsers((prev) => {
+        const rollbackUsers = [...prev];
+        apiClient
+          .post<any>("/admin/users", {
+            name: newUser.name,
+            email: newUser.email,
+            password: "TempPassword123!",
+            role: newUser.role,
+            departmentId: newUser.departmentId || undefined,
+            clubId: newUser.clubId || undefined,
+            permissions: newUser.permissions,
+            status: newUser.status,
+            phone: newUser.phone,
+          })
+          .then((res) => {
+            const liveUser = res?.data;
+            if (liveUser?.id || liveUser?._id) {
+              const realId = liveUser.id || String(liveUser._id);
+              setUsers((current) => current.map((u) => (u.id === tempId ? { ...u, id: realId } : u)));
+            }
+          })
+          .catch((err) => {
+            console.error("[CMS Store] Backend user creation failed, rolling back optimistic state:", err?.message);
+            setUsers(rollbackUsers);
+          });
+
+        return [...prev, newUser];
+      });
+
       logAction({ action: "CREATE", module: "User Management", recordId: newUser.id, recordTitle: `Created user ${newUser.name}` });
     } else {
-      setUsers((prev) => prev.map((u) => (u.id === user.id ? { ...u, ...user } : u)));
+      setUsers((prev) => {
+        const rollbackUsers = [...prev];
+        if (user.id) {
+          apiClient
+            .put(`/admin/users/${user.id}`, {
+              name: user.name,
+              email: user.email,
+              role: user.role,
+              departmentId: user.departmentId || null,
+              clubId: user.clubId || null,
+              permissions: user.permissions,
+              status: user.status,
+              phone: user.phone || null,
+            })
+            .catch((err) => {
+              console.error("[CMS Store] Backend user update failed, rolling back optimistic state:", err?.message);
+              setUsers(rollbackUsers);
+            });
+        }
+        return prev.map((u) => (u.id === user.id ? { ...u, ...user } : u));
+      });
+
       logAction({ action: "UPDATE", module: "User Management", recordId: user.id || "", recordTitle: `Updated user ${user.name || ""}` });
     }
   }, [logAction]);
 
   const deleteUser = useCallback((id: string) => {
-    setUsers((prev) => prev.filter((u) => u.id !== id));
+    setUsers((prev) => {
+      const rollbackUsers = [...prev];
+      apiClient.delete(`/admin/users/${id}`).catch((err) => {
+        console.error("[CMS Store] Backend user deletion failed, rolling back optimistic state:", err?.message);
+        setUsers(rollbackUsers);
+      });
+      return prev.filter((u) => u.id !== id);
+    });
+
     logAction({ action: "DELETE", module: "User Management", recordId: id, recordTitle: "Deactivated user" });
   }, [logAction]);
 
@@ -1361,6 +1614,7 @@ export function CMSStoreProvider({ children }: { children: React.ReactNode }) {
         submitForApproval,
         approveItem,
         rejectItem,
+        resubmitItem,
         auditLogs,
         logAction,
         pages,

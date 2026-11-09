@@ -176,3 +176,40 @@ export function requirePermissions(...requiredPermissions: string[]) {
     );
   };
 }
+
+/**
+ * Middleware factory: Enforces that at least one of the specified permissions is present.
+ */
+export function requireAnyPermission(...permissions: string[]) {
+  return (req: Request, _res: Response, next: NextFunction): void => {
+    if (!req.user) {
+      next(ApiError.unauthorized('Authentication required.', 'UNAUTHORIZED'));
+      return;
+    }
+
+    const userPerms = req.user.permissions || [];
+
+    if (
+      req.user.role === 'master_admin' ||
+      req.user.role === 'ADMIN' ||
+      userPerms.includes('*') ||
+      userPerms.includes('all')
+    ) {
+      next();
+      return;
+    }
+
+    const hasAny = permissions.some((p) => userPerms.includes(p));
+    if (hasAny) {
+      next();
+      return;
+    }
+
+    next(
+      ApiError.forbidden(
+        'Forbidden: You lack the necessary permissions to perform this action.',
+        'FORBIDDEN_PERMISSION'
+      )
+    );
+  };
+}

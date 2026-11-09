@@ -16,3 +16,4 @@ export * from './facility.validation';
 export * from './placement.validation';
 export * from './contact-info.validation';
 export * from './contact-enquiry.validation';
+export * from './admin-cms.validation';
