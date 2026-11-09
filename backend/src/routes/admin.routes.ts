@@ -13,6 +13,9 @@ import { strictRateLimit } from '../middleware/rate-limit';
 import { validateBody } from '../validations/auth.validation';
 import * as adminController from '../controllers/admin.controller';
 import * as adminCmsController from '../controllers/admin-cms.controller';
+import * as dynamicPageController from '../controllers/dynamic-page.controller';
+import * as navigationMenuController from '../controllers/navigation-menu.controller';
+import * as mediaAssetController from '../controllers/media-asset.controller';
 import {
   updateSiteContentSchema,
   updateAboutPageSchema,
@@ -37,6 +40,13 @@ import {
   createApprovalSchema,
   reviewApprovalSchema,
   resubmitApprovalSchema,
+  createDynamicPageSchema,
+  updateDynamicPageSchema,
+  createNavigationMenuSchema,
+  updateNavigationMenuSchema,
+  reorderNavigationMenusSchema,
+  createMediaAssetSchema,
+  updateMediaAssetSchema,
 } from '../validations';
 
 export const adminRouter = Router();
@@ -466,6 +476,160 @@ adminRouter.post(
   requireAuth,
   validateBody(resubmitApprovalSchema),
   adminCmsController.resubmitApproval
+);
+
+// ── 17. Dynamic Page Builder Administration ─────────────────────────────────
+// List dynamic pages (scoped by role for HOD & Club Head)
+adminRouter.get(
+  '/admin/pages',
+  requireAuth,
+  requireAnyPermission('pages:read', 'pages:manage', 'all'),
+  dynamicPageController.listAdminPages
+);
+
+// Get single page by ID or slug (scoped)
+adminRouter.get(
+  '/admin/pages/:id',
+  requireAuth,
+  requireAnyPermission('pages:read', 'pages:manage', 'all'),
+  dynamicPageController.getAdminPageById
+);
+
+// Create dynamic page
+adminRouter.post(
+  ['/admin/pages', '/pages'],
+  requireAuth,
+  requireAnyPermission('pages:create', 'pages:manage', 'all'),
+  validateBody(createDynamicPageSchema),
+  dynamicPageController.createDynamicPage
+);
+
+// Update dynamic page
+adminRouter.put(
+  ['/admin/pages/:id', '/pages/:id'],
+  requireAuth,
+  requireAnyPermission('pages:update', 'pages:manage', 'all'),
+  validateBody(updateDynamicPageSchema),
+  dynamicPageController.updateDynamicPage
+);
+
+adminRouter.patch(
+  ['/admin/pages/:id', '/pages/:id'],
+  requireAuth,
+  requireAnyPermission('pages:update', 'pages:manage', 'all'),
+  validateBody(updateDynamicPageSchema),
+  dynamicPageController.updateDynamicPage
+);
+
+// Delete dynamic page (supports ?archive=true)
+adminRouter.delete(
+  ['/admin/pages/:id', '/pages/:id'],
+  requireAuth,
+  requireAnyPermission('pages:delete', 'pages:manage', 'all'),
+  dynamicPageController.deleteDynamicPage
+);
+
+// ── 18. Navigation Menu Builder Administration ──────────────────────────────
+// List navigation menus (scoped by role for HOD & Club Head)
+adminRouter.get(
+  '/admin/menus',
+  requireAuth,
+  requireAnyPermission('menus:read', 'menus:manage', 'all'),
+  navigationMenuController.listAdminMenus
+);
+
+// Get single menu item by ID
+adminRouter.get(
+  '/admin/menus/:id',
+  requireAuth,
+  requireAnyPermission('menus:read', 'menus:manage', 'all'),
+  navigationMenuController.getAdminMenuById
+);
+
+// Create navigation menu item
+adminRouter.post(
+  ['/admin/menus', '/menus'],
+  requireAuth,
+  requireAnyPermission('menus:manage', 'all'),
+  validateBody(createNavigationMenuSchema),
+  navigationMenuController.createNavigationMenu
+);
+
+// Bulk reorder navigation menu hierarchy
+adminRouter.put(
+  ['/admin/menus', '/menus'],
+  requireAuth,
+  requireAnyPermission('menus:manage', 'all'),
+  validateBody(reorderNavigationMenusSchema),
+  navigationMenuController.reorderNavigationMenus
+);
+
+// Update single navigation menu item
+adminRouter.put(
+  ['/admin/menus/:id', '/menus/:id'],
+  requireAuth,
+  requireAnyPermission('menus:manage', 'all'),
+  validateBody(updateNavigationMenuSchema),
+  navigationMenuController.updateNavigationMenu
+);
+
+// Delete navigation menu item (cascades to nested submenus)
+adminRouter.delete(
+  ['/admin/menus/:id', '/menus/:id'],
+  requireAuth,
+  requireAnyPermission('menus:manage', 'all'),
+  navigationMenuController.deleteNavigationMenu
+);
+
+// ── 19. Media Library Administration (Metadata & External URLs Only) ────────
+// List media assets (scoped by role for HOD & Club Head)
+adminRouter.get(
+  '/admin/media',
+  requireAuth,
+  requireAnyPermission('media:read', 'media:manage', 'all'),
+  mediaAssetController.listAdminMedia
+);
+
+// Get single media asset by ID (scoped)
+adminRouter.get(
+  '/admin/media/:id',
+  requireAuth,
+  requireAnyPermission('media:read', 'media:manage', 'all'),
+  mediaAssetController.getAdminMediaById
+);
+
+// Register external media asset
+adminRouter.post(
+  ['/admin/media', '/media'],
+  requireAuth,
+  requireAnyPermission('media:create', 'media:manage', 'all'),
+  validateBody(createMediaAssetSchema),
+  mediaAssetController.createMediaAsset
+);
+
+// Update media asset metadata/URL
+adminRouter.put(
+  ['/admin/media/:id', '/media/:id'],
+  requireAuth,
+  requireAnyPermission('media:update', 'media:manage', 'all'),
+  validateBody(updateMediaAssetSchema),
+  mediaAssetController.updateMediaAsset
+);
+
+adminRouter.patch(
+  ['/admin/media/:id', '/media/:id'],
+  requireAuth,
+  requireAnyPermission('media:update', 'media:manage', 'all'),
+  validateBody(updateMediaAssetSchema),
+  mediaAssetController.updateMediaAsset
+);
+
+// Delete or archive media asset (reference-protected against in-use dynamic pages)
+adminRouter.delete(
+  ['/admin/media/:id', '/media/:id'],
+  requireAuth,
+  requireAnyPermission('media:delete', 'media:manage', 'all'),
+  mediaAssetController.deleteMediaAsset
 );
 
 export default adminRouter;

@@ -26,6 +26,9 @@ import {
   getPublicContactInfo,
   getPublicActiveAdvertisement,
 } from '../../controllers/public.controller';
+import { getPublicPageBySlug } from '../../controllers/dynamic-page.controller';
+import { getPublicNavigationMenus } from '../../controllers/navigation-menu.controller';
+import { getPublicMedia } from '../../controllers/media-asset.controller';
 
 const publicV1Router = Router();
 
@@ -62,5 +65,14 @@ publicV1Router.get('/contact', getPublicContactInfo);
 // ── 6. Advertisements ────────────────────────────────────────────────────────
 publicV1Router.get('/advertisements/active', getPublicActiveAdvertisement);
 publicV1Router.get('/advertisements', getPublicActiveAdvertisement);
+
+// ── 7. Dynamic Pages ────────────────────────────────────────────────────────
+publicV1Router.get('/pages/:slug', getPublicPageBySlug);
+
+// ── 8. Navigation Menus ─────────────────────────────────────────────────────
+publicV1Router.get('/menus', getPublicNavigationMenus);
+
+// ── 9. Media Library ────────────────────────────────────────────────────────
+publicV1Router.get('/media', getPublicMedia);
 
 export default publicV1Router;

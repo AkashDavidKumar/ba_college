@@ -11,6 +11,9 @@ dist/
 .benchmark-auth.json
 .benchmark-isolated-results.json
 
+# Backups
+backups/
+
 # Uploaded media files
 uploads/
 

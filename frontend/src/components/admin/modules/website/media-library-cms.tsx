@@ -5,62 +5,174 @@ import { useCMSStore, MediaAsset } from "@/lib/cms-store";
 import { PageHeader } from "@/components/admin/core/page-header";
 import { ConfirmationDialog } from "@/components/admin/core/confirmation-dialog";
 import { useToast } from "@/hooks/use-toast";
+import { isSafeMediaUrl } from "@/lib/navigation-security";
 import {
   Image as ImageIcon,
   Video,
   FileText,
-  Upload,
   Copy,
   Trash2,
+  Edit,
   Search,
-  CheckCircle2,
-  ExternalLink,
   Plus,
+  ExternalLink,
+  Tag,
+  Folder,
 } from "lucide-react";
 
 export function MediaLibraryCMS() {
-  const { mediaAssets, saveMediaAsset, deleteMediaAsset } = useCMSStore();
+  const { mediaAssets, saveMediaAsset, deleteMediaAsset, currentUser } = useCMSStore();
   const { toast } = useToast();
 
-  const [activeTab, setActiveTab] = useState<"all" | "image" | "video" | "document">("all");
+  const canManageMedia =
+    currentUser.role === "master_admin" ||
+    currentUser.role === "sub_admin" ||
+    currentUser.role === "hod" ||
+    currentUser.role === "club_head" ||
+    currentUser.permissions?.includes("media:manage") ||
+    currentUser.permissions?.includes("media:create") ||
+    currentUser.permissions?.includes("all") ||
+    currentUser.permissions?.includes("*");
+
+  const [activeTab, setActiveTab] = useState<"all" | "image" | "video" | "document" | "audio">("all");
   const [search, setSearch] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
+  const [editingAsset, setEditingAsset] = useState<MediaAsset | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
-  const [uploadForm, setUploadForm] = useState({
+  const [form, setForm] = useState({
     title: "",
-    fileName: "",
-    fileType: "image" as "image" | "video" | "document",
-    url: "",
-    category: "Campus Life",
     altText: "",
+    description: "",
+    fileType: "image" as "image" | "video" | "document" | "audio" | "other",
+    url: "",
+    thumbnailUrl: "",
+    category: "Campus Life",
+    tags: "",
   });
 
   const filtered = mediaAssets.filter((item) => {
-    const matchesTab = activeTab === "all" || item.fileType === activeTab;
+    const assetType = item.mediaType || item.fileType;
+    const matchesTab = activeTab === "all" || assetType === activeTab;
+    const q = search.toLowerCase().trim();
     const matchesQuery =
-      item.title.toLowerCase().includes(search.toLowerCase()) ||
-      item.fileName.toLowerCase().includes(search.toLowerCase()) ||
-      item.category.toLowerCase().includes(search.toLowerCase());
+      !q ||
+      item.title.toLowerCase().includes(q) ||
+      (item.altText && item.altText.toLowerCase().includes(q)) ||
+      (item.category && item.category.toLowerCase().includes(q)) ||
+      (item.folder && item.folder.toLowerCase().includes(q)) ||
+      (item.tags && item.tags.some((t) => t.toLowerCase().includes(q)));
     return matchesTab && matchesQuery;
   });
 
   const handleCopyUrl = (url: string) => {
     navigator.clipboard.writeText(url);
-    toast({ title: "Copied!", description: "Asset URL copied to clipboard." });
+    toast({ title: "Copied!", description: "External media URL copied to clipboard." });
   };
 
-  const handleSaveUpload = () => {
-    if (!uploadForm.title.trim() || !uploadForm.url.trim()) {
-      toast({ title: "Validation Error", description: "Title and URL are required.", variant: "destructive" });
+  const handleOpenCreate = () => {
+    setEditingAsset(null);
+    setForm({
+      title: "",
+      altText: "",
+      description: "",
+      fileType: "image",
+      url: "",
+      thumbnailUrl: "",
+      category: "Campus Life",
+      tags: "",
+    });
+    setModalOpen(true);
+  };
+
+  const handleOpenEdit = (asset: MediaAsset) => {
+    setEditingAsset(asset);
+    setForm({
+      title: asset.title,
+      altText: asset.altText || "",
+      description: asset.description || "",
+      fileType: (asset.mediaType || asset.fileType || "image") as any,
+      url: asset.url,
+      thumbnailUrl: asset.thumbnailUrl || "",
+      category: asset.folder || asset.category || "Campus Life",
+      tags: (asset.tags || []).join(", "),
+    });
+    setModalOpen(true);
+  };
+
+  const handleSave = () => {
+    if (!form.title.trim()) {
+      toast({ title: "Validation Error", description: "Asset title is required.", variant: "destructive" });
       return;
     }
-    saveMediaAsset({
-      ...uploadForm,
-      size: "1.5 MB",
-      mimeType: uploadForm.fileType === "image" ? "image/jpeg" : uploadForm.fileType === "video" ? "video/mp4" : "application/pdf",
-    }, true);
-    toast({ title: "Uploaded", description: `Asset '${uploadForm.title}' added to library.` });
+    if (!form.url.trim()) {
+      toast({ title: "Validation Error", description: "External media URL is required.", variant: "destructive" });
+      return;
+    }
+    if (!isSafeMediaUrl(form.url)) {
+      toast({
+        title: "Security Validation Error",
+        description: "Media URL must be a valid external HTTPS URL (or HTTP for verified institutional domains: bac.edu.in, b-u.ac.in). Dangerous schemes are prohibited.",
+        variant: "destructive",
+      });
+      return;
+    }
+    if (form.thumbnailUrl && !isSafeMediaUrl(form.thumbnailUrl)) {
+      toast({
+        title: "Security Validation Error",
+        description: "Thumbnail URL must be a valid external HTTPS URL (or HTTP for verified institutional domains: bac.edu.in, b-u.ac.in).",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const tagArray = form.tags
+      .split(",")
+      .map((t) => t.trim())
+      .filter(Boolean);
+
+    if (editingAsset) {
+      saveMediaAsset(
+        {
+          id: editingAsset.id,
+          title: form.title.trim(),
+          altText: form.altText.trim() || form.title.trim(),
+          description: form.description.trim(),
+          fileType: form.fileType,
+          mediaType: form.fileType,
+          url: form.url.trim(),
+          thumbnailUrl: form.thumbnailUrl.trim() || undefined,
+          category: form.category,
+          folder: form.category,
+          tags: tagArray,
+        },
+        false
+      );
+      toast({ title: "Media Updated", description: `Updated '${form.title}'.` });
+    } else {
+      saveMediaAsset(
+        {
+          title: form.title.trim(),
+          altText: form.altText.trim() || form.title.trim(),
+          description: form.description.trim(),
+          fileType: form.fileType,
+          mediaType: form.fileType,
+          url: form.url.trim(),
+          thumbnailUrl: form.thumbnailUrl.trim() || undefined,
+          category: form.category,
+          folder: form.category,
+          tags: tagArray,
+          mimeType:
+            form.fileType === "image"
+              ? "image/jpeg"
+              : form.fileType === "video"
+              ? "video/mp4"
+              : "application/pdf",
+        },
+        true
+      );
+      toast({ title: "Media Registered", description: `External media '${form.title}' added to library.` });
+    }
     setModalOpen(false);
   };
 
@@ -68,7 +180,7 @@ export function MediaLibraryCMS() {
     <div className="p-6 max-w-7xl mx-auto space-y-6">
       <PageHeader
         title="Centralized Media Library"
-        subtitle="Upload, search, organize, and copy URLs for all images, videos, and graphic assets used across Bishop Ambrose College."
+        subtitle="Register external URLs, search, organize, and copy URLs for all images, videos, and graphic assets used across Bishop Ambrose College."
         badge={`${mediaAssets.length} Assets`}
         breadcrumbs={[
           { label: "Dashboard", onClick: () => {} },
@@ -76,9 +188,9 @@ export function MediaLibraryCMS() {
           { label: "Media Library" },
         ]}
         action={{
-          label: "Upload Asset",
-          icon: Upload,
-          onClick: () => setModalOpen(true),
+          label: "Register External Media",
+          icon: Plus,
+          onClick: handleOpenCreate,
         }}
       />
 
@@ -107,7 +219,7 @@ export function MediaLibraryCMS() {
           <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
           <input
             type="search"
-            placeholder="Search assets by title or tag..."
+            placeholder="Search assets by title, category, or tag..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full pl-9 pr-3.5 py-1.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:border-slate-800"
@@ -122,76 +234,113 @@ export function MediaLibraryCMS() {
             <ImageIcon className="w-6 h-6" />
           </div>
           <h3 className="font-bold text-sm text-slate-800">No media assets found</h3>
-          <p className="text-xs text-slate-500 max-w-sm mx-auto">Upload campus photos, auditorium videos, or certificates to make them available across the CMS.</p>
-          <button
-            onClick={() => setModalOpen(true)}
-            className="px-4 py-2 bg-[#009688] text-white rounded-xl text-xs font-bold hover:bg-[#00796b]"
-          >
-            Upload First Asset
-          </button>
+          <p className="text-xs text-slate-500 max-w-sm mx-auto">
+            Register external URLs for campus photos, videos, or documents to make them available across the CMS.
+          </p>
+          {canManageMedia && (
+            <button
+              onClick={handleOpenCreate}
+              className="px-4 py-2 bg-[#009688] text-white rounded-xl text-xs font-bold hover:bg-[#00796b] cursor-pointer"
+            >
+              Register First Media Asset
+            </button>
+          )}
         </div>
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {filtered.map((asset) => (
-            <div
-              key={asset.id}
-              className="group bg-white rounded-2xl border border-slate-200/80 overflow-hidden shadow-xs hover:shadow-md transition-all flex flex-col justify-between"
-            >
-              <div className="relative aspect-video bg-slate-100 overflow-hidden flex items-center justify-center">
-                {asset.fileType === "image" ? (
-                  <img
-                    src={asset.url}
-                    alt={asset.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
-                ) : (
-                  <div className="w-10 h-10 rounded-xl bg-slate-200 text-slate-600 flex items-center justify-center">
-                    {asset.fileType === "video" ? <Video className="w-5 h-5" /> : <FileText className="w-5 h-5" />}
-                  </div>
-                )}
-                <span className="absolute top-2 left-2 px-2 py-0.5 rounded-md bg-black/60 text-white text-[10px] font-bold uppercase backdrop-blur-xs">
-                  {asset.fileType}
-                </span>
-              </div>
-
-              <div className="p-3.5 space-y-2">
-                <div>
-                  <h4 className="font-bold text-xs text-slate-800 truncate" title={asset.title}>
-                    {asset.title}
-                  </h4>
-                  <p className="text-[10px] text-slate-400 font-mono truncate">{asset.fileName}</p>
+          {filtered.map((asset) => {
+            const assetType = asset.mediaType || asset.fileType;
+            return (
+              <div
+                key={asset.id}
+                className="group bg-white rounded-2xl border border-slate-200/80 overflow-hidden shadow-xs hover:shadow-md transition-all flex flex-col justify-between"
+              >
+                <div className="relative aspect-video bg-slate-100 overflow-hidden flex items-center justify-center">
+                  {assetType === "image" ? (
+                    <img
+                      src={asset.url}
+                      alt={asset.altText || asset.title}
+                      onError={(e) => {
+                        (e.currentTarget as HTMLElement).style.display = "none";
+                        const parent = (e.currentTarget as HTMLElement).parentElement;
+                        if (parent) {
+                          const fallback = document.createElement("div");
+                          fallback.className = "text-[11px] text-slate-400 p-2 text-center";
+                          fallback.textContent = "External image unavailable";
+                          parent.appendChild(fallback);
+                        }
+                      }}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                  ) : (
+                    <div className="w-10 h-10 rounded-xl bg-slate-200 text-slate-600 flex items-center justify-center">
+                      {assetType === "video" ? <Video className="w-5 h-5" /> : <FileText className="w-5 h-5" />}
+                    </div>
+                  )}
+                  <span className="absolute top-2 left-2 px-2 py-0.5 rounded-md bg-black/60 text-white text-[10px] font-bold uppercase backdrop-blur-xs">
+                    {assetType}
+                  </span>
+                  {asset.status === "archived" && (
+                    <span className="absolute top-2 right-2 px-2 py-0.5 rounded-md bg-amber-600 text-white text-[10px] font-bold uppercase">
+                      Archived
+                    </span>
+                  )}
                 </div>
 
-                <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
-                  <span className="text-[10px] text-slate-400">{asset.size}</span>
-                  <div className="flex items-center gap-1">
-                    <button
-                      onClick={() => handleCopyUrl(asset.url)}
-                      title="Copy URL"
-                      className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-600 transition-colors cursor-pointer"
-                    >
-                      <Copy className="w-3.5 h-3.5" />
-                    </button>
-                    <button
-                      onClick={() => setDeleteId(asset.id)}
-                      title="Delete Asset"
-                      className="p-1.5 rounded-lg hover:bg-rose-50 text-rose-600 transition-colors cursor-pointer"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
+                <div className="p-3.5 space-y-2">
+                  <div>
+                    <h4 className="font-bold text-xs text-slate-800 truncate" title={asset.title}>
+                      {asset.title}
+                    </h4>
+                    <p className="text-[10px] text-slate-400 font-mono truncate">{asset.url}</p>
+                  </div>
+
+                  <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
+                    <span className="text-[10px] text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md truncate max-w-[100px]">
+                      {asset.folder || asset.category || "General"}
+                    </span>
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => handleCopyUrl(asset.url)}
+                        title="Copy External URL"
+                        className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-600 transition-colors cursor-pointer"
+                      >
+                        <Copy className="w-3.5 h-3.5" />
+                      </button>
+                      {canManageMedia && (
+                        <button
+                          onClick={() => handleOpenEdit(asset)}
+                          title="Edit Metadata"
+                          className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-600 transition-colors cursor-pointer"
+                        >
+                          <Edit className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                      {canManageMedia && (
+                        <button
+                          onClick={() => setDeleteId(asset.id)}
+                          title="Remove Asset"
+                          className="p-1.5 rounded-lg hover:bg-rose-50 text-rose-600 transition-colors cursor-pointer"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
-      {/* Upload Modal */}
+      {/* Registration & Edit Modal */}
       {modalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
           <div className="bg-white rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl border border-slate-200">
-            <h3 className="font-bold text-base text-slate-900 font-serif">Upload Asset to Media Library</h3>
+            <h3 className="font-bold text-base text-slate-900 font-serif">
+              {editingAsset ? "Edit Media Asset Metadata" : "Register External Media URL"}
+            </h3>
 
             <div className="space-y-3">
               <div>
@@ -201,23 +350,37 @@ export function MediaLibraryCMS() {
                 <input
                   type="text"
                   required
-                  placeholder="e.g. Science Laboratory Students"
-                  value={uploadForm.title}
-                  onChange={(e) => setUploadForm({ ...uploadForm, title: e.target.value })}
+                  placeholder="e.g. Campus Quadrangle & Academic Blocks"
+                  value={form.title}
+                  onChange={(e) => setForm({ ...form, title: e.target.value })}
                   className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-200 focus:outline-none"
                 />
               </div>
 
               <div>
                 <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-700 mb-1">
-                  Asset URL / File Source *
+                  Alt Text (Accessibility) *
                 </label>
                 <input
                   type="text"
                   required
-                  placeholder="https://... or /uploads/..."
-                  value={uploadForm.url}
-                  onChange={(e) => setUploadForm({ ...uploadForm, url: e.target.value, fileName: e.target.value.split("/").pop() || "asset.jpg" })}
+                  placeholder="e.g. Students in front of main academic building"
+                  value={form.altText}
+                  onChange={(e) => setForm({ ...form, altText: e.target.value })}
+                  className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-200 focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-700 mb-1">
+                  Externally Hosted Media URL *
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="https://example.com/images/campus.jpg"
+                  value={form.url}
+                  onChange={(e) => setForm({ ...form, url: e.target.value })}
                   className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-200 focus:outline-none font-mono"
                 />
               </div>
@@ -225,25 +388,26 @@ export function MediaLibraryCMS() {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-700 mb-1">
-                    Asset Type
+                    Media Type
                   </label>
                   <select
-                    value={uploadForm.fileType}
-                    onChange={(e) => setUploadForm({ ...uploadForm, fileType: e.target.value as any })}
+                    value={form.fileType}
+                    onChange={(e) => setForm({ ...form, fileType: e.target.value as any })}
                     className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 bg-white focus:outline-none"
                   >
-                    <option value="image">Image (JPG, PNG)</option>
+                    <option value="image">Image (JPG, PNG, WebP)</option>
                     <option value="video">Video (MP4, YouTube)</option>
                     <option value="document">Document (PDF)</option>
+                    <option value="audio">Audio (MP3, WAV)</option>
                   </select>
                 </div>
                 <div>
                   <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-700 mb-1">
-                    Category
+                    Category / Folder
                   </label>
                   <select
-                    value={uploadForm.category}
-                    onChange={(e) => setUploadForm({ ...uploadForm, category: e.target.value })}
+                    value={form.category}
+                    onChange={(e) => setForm({ ...form, category: e.target.value })}
                     className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 bg-white focus:outline-none"
                   >
                     <option>Campus Life</option>
@@ -251,8 +415,23 @@ export function MediaLibraryCMS() {
                     <option>Cultural Events</option>
                     <option>Sports & Athletics</option>
                     <option>Infrastructure</option>
+                    <option>Faculty</option>
+                    <option>General</option>
                   </select>
                 </div>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-700 mb-1">
+                  Tags (comma-separated)
+                </label>
+                <input
+                  type="text"
+                  placeholder="campus, students, lab, 2026"
+                  value={form.tags}
+                  onChange={(e) => setForm({ ...form, tags: e.target.value })}
+                  className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-200 focus:outline-none"
+                />
               </div>
             </div>
 
@@ -264,29 +443,29 @@ export function MediaLibraryCMS() {
                 Cancel
               </button>
               <button
-                onClick={handleSaveUpload}
+                onClick={handleSave}
                 className="px-5 py-2 rounded-xl text-xs font-bold text-white bg-[#009688] hover:bg-[#00796b] shadow-xs cursor-pointer"
               >
-                Upload Asset
+                {editingAsset ? "Save Changes" : "Register Media Asset"}
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Delete Confirmation Modal */}
+      {/* Delete / Archival Confirmation Modal */}
       <ConfirmationDialog
         open={Boolean(deleteId)}
         onClose={() => setDeleteId(null)}
         onConfirm={() => {
           if (deleteId) {
             deleteMediaAsset(deleteId);
-            toast({ title: "Deleted", description: "Media asset removed." });
+            toast({ title: "Deleted", description: "Media asset reference removed." });
           }
         }}
-        title="Delete Media Asset"
-        description="Are you sure you want to delete this media asset? Any pages embedding this asset URL may need to be updated."
-        confirmLabel="Delete"
+        title="Remove Media Asset"
+        description="Are you sure you want to remove this media reference? If this media URL is currently used by published pages, deletion may be blocked or safely soft-archived."
+        confirmLabel="Remove"
         confirmVariant="danger"
       />
     </div>

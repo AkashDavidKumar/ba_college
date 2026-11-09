@@ -5,6 +5,7 @@ import { useCMSStore, MenuItem } from "@/lib/cms-store";
 import { PageHeader } from "@/components/admin/core/page-header";
 import { ConfirmationDialog } from "@/components/admin/core/confirmation-dialog";
 import { useToast } from "@/hooks/use-toast";
+import { isSafeNavigationUrl } from "@/lib/navigation-security";
 import {
   Menu as MenuIcon,
   Plus,
@@ -21,8 +22,17 @@ import {
 } from "lucide-react";
 
 export function MenuBuilderCMS() {
-  const { menuItems, saveMenuItem, deleteMenuItem, reorderMenuItems, pages } = useCMSStore();
+  const { menuItems, saveMenuItem, deleteMenuItem, reorderMenuItems, pages, currentUser } = useCMSStore();
   const { toast } = useToast();
+
+  const canManageMenus =
+    currentUser.role === "master_admin" ||
+    currentUser.role === "sub_admin" ||
+    currentUser.role === "hod" ||
+    currentUser.role === "club_head" ||
+    currentUser.permissions?.includes("menus:manage") ||
+    currentUser.permissions?.includes("all") ||
+    currentUser.permissions?.includes("*");
 
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
@@ -60,6 +70,14 @@ export function MenuBuilderCMS() {
       toast({ title: "Validation Error", description: "Menu item label is required.", variant: "destructive" });
       return;
     }
+    if (formData.path && !isSafeNavigationUrl(formData.path)) {
+      toast({
+        title: "Security Validation Error",
+        description: "Destination URL is unsafe or invalid. Must start with /, #, https://, or http:// and cannot use dangerous schemes or protocol-relative '//'.",
+        variant: "destructive",
+      });
+      return;
+    }
     saveMenuItem(formData, !editingItem);
     toast({ title: editingItem ? "Menu Updated" : "Menu Item Added", description: `Saved '${formData.label}'.` });
     setModalOpen(false);
@@ -79,6 +97,7 @@ export function MenuBuilderCMS() {
   };
 
   const mainMenus = menuItems.filter((m) => !m.parentId);
+  const publishedPages = pages.filter((p) => p.status === "published");
 
   return (
     <div className="p-6 max-w-7xl mx-auto space-y-6">
@@ -131,20 +150,39 @@ export function MenuBuilderCMS() {
 
                       <div className="flex items-center gap-1.5">
                         <button
+                          disabled={idx === 0 || !canManageMenus}
+                          onClick={() => handleMove(menuItems.findIndex((m) => m.id === main.id), "up")}
+                          className="p-1.5 rounded-lg hover:bg-white text-slate-500 disabled:opacity-30 cursor-pointer"
+                          title="Move Up"
+                        >
+                          <ArrowUp className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          disabled={idx === mainMenus.length - 1 || !canManageMenus}
+                          onClick={() => handleMove(menuItems.findIndex((m) => m.id === main.id), "down")}
+                          className="p-1.5 rounded-lg hover:bg-white text-slate-500 disabled:opacity-30 cursor-pointer"
+                          title="Move Down"
+                        >
+                          <ArrowDown className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          disabled={!canManageMenus}
                           onClick={() => handleOpenCreate(main.id)}
-                          className="px-2.5 py-1 rounded-lg bg-white border border-slate-200 text-[11px] font-semibold text-slate-700 hover:bg-slate-100 flex items-center gap-1 cursor-pointer"
+                          className="px-2.5 py-1 rounded-lg bg-white border border-slate-200 text-[11px] font-semibold text-slate-700 hover:bg-slate-100 disabled:opacity-40 flex items-center gap-1 cursor-pointer"
                         >
                           <Plus className="w-3 h-3 text-[#009688]" /> Add Submenu
                         </button>
                         <button
+                          disabled={!canManageMenus}
                           onClick={() => handleOpenEdit(main)}
-                          className="p-1.5 rounded-lg hover:bg-white text-slate-600 cursor-pointer"
+                          className="p-1.5 rounded-lg hover:bg-white text-slate-600 disabled:opacity-40 cursor-pointer"
                         >
                           <Edit className="w-3.5 h-3.5" />
                         </button>
                         <button
+                          disabled={!canManageMenus}
                           onClick={() => setDeleteId(main.id)}
-                          className="p-1.5 rounded-lg hover:bg-rose-50 text-rose-600 cursor-pointer"
+                          className="p-1.5 rounded-lg hover:bg-rose-50 text-rose-600 disabled:opacity-40 cursor-pointer"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
@@ -198,10 +236,10 @@ export function MenuBuilderCMS() {
           </p>
 
           <div className="space-y-2">
-            {pages.length === 0 ? (
-              <p className="text-xs text-slate-400 italic">No custom pages created yet.</p>
+            {publishedPages.length === 0 ? (
+              <p className="text-xs text-slate-400 italic">No published custom pages available to link.</p>
             ) : (
-              pages.map((p) => (
+              publishedPages.map((p) => (
                 <div
                   key={p.id}
                   className="p-3 bg-slate-50 border border-slate-100 rounded-xl flex items-center justify-between text-xs"
@@ -267,6 +305,59 @@ export function MenuBuilderCMS() {
                   onChange={(e) => setFormData({ ...formData, path: e.target.value })}
                   className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-200 focus:outline-none font-mono"
                 />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-700 mb-1">
+                  Parent Menu (Optional)
+                </label>
+                <select
+                  value={formData.parentId || ""}
+                  onChange={(e) => setFormData({ ...formData, parentId: e.target.value || undefined })}
+                  className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-200 bg-white focus:outline-none"
+                >
+                  <option value="">None (Top-Level Main Menu)</option>
+                  {mainMenus
+                    .filter((m) => m.id !== formData.id)
+                    .map((m) => (
+                      <option key={m.id} value={m.id}>
+                        {m.label} ({m.path})
+                      </option>
+                    ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-700 mb-1">
+                  Link to Published Page (Optional)
+                </label>
+                <select
+                  value={formData.pageId || ""}
+                  onChange={(e) => {
+                    const selId = e.target.value;
+                    if (!selId) {
+                      setFormData({ ...formData, pageId: undefined });
+                    } else {
+                      const selected = publishedPages.find((p) => p.id === selId);
+                      if (selected) {
+                        setFormData({
+                          ...formData,
+                          pageId: selected.id,
+                          path: `/${selected.slug}`,
+                          label: formData.label || selected.title,
+                        });
+                      }
+                    }
+                  }}
+                  className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-200 bg-white focus:outline-none"
+                >
+                  <option value="">-- No Page Linked (Custom Route / External URL) --</option>
+                  {publishedPages.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.title} (/{p.slug})
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div>

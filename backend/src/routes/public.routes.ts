@@ -23,6 +23,9 @@ import {
   getPublicPlacements,
   getPublicContactInfo,
 } from '../controllers/public.controller';
+import { getPublicPageBySlug } from '../controllers/dynamic-page.controller';
+import { getPublicNavigationMenus } from '../controllers/navigation-menu.controller';
+import { getPublicMedia } from '../controllers/media-asset.controller';
 
 const publicRouter = Router();
 
@@ -53,5 +56,14 @@ publicRouter.get('/facilities', getPublicFacilities);
 publicRouter.get('/facilities/:id', getPublicFacilityById);
 publicRouter.get('/placements', getPublicPlacements);
 publicRouter.get('/contact', getPublicContactInfo);
+
+// ── 6. Dynamic Pages ────────────────────────────────────────────────────────
+publicRouter.get('/pages/:slug', getPublicPageBySlug);
+
+// ── 7. Navigation Menus ─────────────────────────────────────────────────────
+publicRouter.get('/menus', getPublicNavigationMenus);
+
+// ── 8. Media Library ────────────────────────────────────────────────────────
+publicRouter.get('/media', getPublicMedia);
 
 export default publicRouter;

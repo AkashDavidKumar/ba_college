@@ -51,7 +51,7 @@ const AVAILABLE_BLOCK_TYPES = [
 ];
 
 export function PageBuilderCMS() {
-  const { pages, savePage, deletePage, currentUser } = useCMSStore();
+  const { pages, savePage, deletePage, currentUser, mediaAssets } = useCMSStore();
   const { toast } = useToast();
 
   const [editingPage, setEditingPage] = useState<DynamicPage | null>(null);
@@ -369,6 +369,26 @@ export function PageBuilderCMS() {
                   onChange={(e) => setFormData({ ...formData, bannerImage: e.target.value })}
                   className="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs focus:border-slate-800 focus:outline-none"
                 />
+                {mediaAssets && mediaAssets.length > 0 && (
+                  <select
+                    onChange={(e) => {
+                      if (e.target.value) {
+                        setFormData({ ...formData, bannerImage: e.target.value });
+                      }
+                    }}
+                    defaultValue=""
+                    className="mt-1.5 w-full px-3 py-1.5 rounded-lg border border-slate-200 text-[11px] text-slate-600 bg-slate-50 focus:outline-none"
+                  >
+                    <option value="">-- Or choose from Media Library ({mediaAssets.length} assets) --</option>
+                    {mediaAssets
+                      .filter((m) => (m.mediaType || m.fileType) === "image")
+                      .map((m) => (
+                        <option key={m.id} value={m.url}>
+                          {m.title} ({m.folder || m.category || "General"})
+                        </option>
+                      ))}
+                  </select>
+                )}
               </div>
 
               <div>

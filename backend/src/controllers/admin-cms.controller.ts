@@ -18,6 +18,7 @@ import { Approval } from '../models/approval.model';
 import { Event } from '../models/event.model';
 import { Department } from '../models/department.model';
 import { Course } from '../models/course.model';
+import { DynamicPage } from '../models/dynamic-page.model';
 import { ApiError } from '../utils/api-error';
 import { logAdminAction } from '../utils/audit-log';
 
@@ -130,6 +131,22 @@ async function validateEntityExistenceAndOwnership(
         resolvedDept = existing.departmentSlug || resolvedDept;
         if (user.role === 'hod' && existing.departmentSlug && existing.departmentSlug.toLowerCase() !== user.departmentId?.toLowerCase()) {
           throw ApiError.forbidden('You cannot submit a course from another department for approval.', 'FORBIDDEN_DEPARTMENT_SCOPE');
+        }
+      }
+    } else if (entityType === 'page') {
+      const existing = await DynamicPage.findOne({
+        $or: [{ _id: entityId.match(/^[0-9a-fA-F]{24}$/) ? entityId : undefined }, { slug: entityId }],
+      }).lean();
+
+      if (existing) {
+        resolvedDept = existing.departmentId || resolvedDept;
+        resolvedClub = existing.clubId || resolvedClub;
+
+        if (user.role === 'hod' && existing.departmentId && existing.departmentId.toLowerCase() !== user.departmentId?.toLowerCase()) {
+          throw ApiError.forbidden('You cannot submit a page belonging to another department for approval.', 'FORBIDDEN_DEPARTMENT_SCOPE');
+        }
+        if (user.role === 'club_head' && existing.clubId && existing.clubId.toLowerCase() !== user.clubId?.toLowerCase()) {
+          throw ApiError.forbidden('You cannot submit a page belonging to another club for approval.', 'FORBIDDEN_CLUB_SCOPE');
         }
       }
     }

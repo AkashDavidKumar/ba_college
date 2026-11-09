@@ -22,3 +22,6 @@ export * from './contact-enquiry.model';
 export * from './app-counter.model';
 export * from './audit-log.model';
 export * from './approval.model';
+export * from './dynamic-page.model';
+export * from './navigation-menu.model';
+export * from './media-asset.model';

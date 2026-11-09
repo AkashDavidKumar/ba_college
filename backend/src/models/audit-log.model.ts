@@ -16,6 +16,7 @@ export const AUDIT_ACTIONS = [
   'APPROVE',
   'REJECT',
   'LOGIN',
+  'ARCHIVE',
 ] as const;
 
 export type AuditAction = (typeof AUDIT_ACTIONS)[number];

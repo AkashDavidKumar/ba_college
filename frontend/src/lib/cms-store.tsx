@@ -110,15 +110,27 @@ export type MediaAsset = {
   id: string;
   title: string;
   fileName: string;
-  fileType: "image" | "video" | "document";
-  mimeType: string;
-  size: string;
+  fileType: "image" | "video" | "document" | "audio" | "other";
+  mediaType?: "image" | "video" | "document" | "audio" | "other";
+  mimeType?: string;
+  size?: string;
+  fileSize?: number;
+  width?: number;
+  height?: number;
   url: string;
+  thumbnailUrl?: string;
   category: string;
+  folder?: string;
   tags: string[];
-  uploadedBy: string;
-  uploadedAt: string;
+  uploadedBy?: string;
+  uploadedAt?: string;
   altText?: string;
+  description?: string;
+  status?: "active" | "archived";
+  departmentId?: string;
+  clubId?: string;
+  createdAt?: string;
+  updatedAt?: string;
 };
 
 export type CollegeDocument = {
@@ -1017,6 +1029,125 @@ export function CMSStoreProvider({ children }: { children: React.ReactNode }) {
     return () => { active = false; };
   }, [currentUser]);
 
+  // ── Live Backend Dynamic Pages Sync ─────────────────────────────────────────
+  useEffect(() => {
+    let active = true;
+    async function fetchLivePages() {
+      try {
+        let allPages: any[] = [];
+        let currentPage = 1;
+        let totalPages = 1;
+
+        do {
+          const res = await apiClient.get<any>(`/admin/pages?limit=100&page=${currentPage}`);
+          const list = res?.data || (Array.isArray(res) ? res : []);
+          if (Array.isArray(list)) {
+            allPages = allPages.concat(list);
+          }
+          totalPages = res?.totalPages || 1;
+          currentPage++;
+        } while (currentPage <= totalPages && active);
+
+        if (allPages.length > 0 && active) {
+          const mapped: DynamicPage[] = allPages.map((doc: any) => ({
+            id: doc.id || String(doc._id),
+            title: doc.title,
+            slug: doc.slug,
+            parentMenuId: doc.parentMenuId,
+            pageType: doc.pageType || "standard",
+            description: doc.description || "",
+            bannerImage: doc.bannerImage || "",
+            blocks: doc.blocks || [],
+            seo: doc.seo || { metaTitle: doc.title || "", metaDescription: doc.description || "" },
+            status: doc.status || "draft",
+            departmentId: doc.departmentId,
+            clubId: doc.clubId,
+            authorId: doc.authorId || "",
+            authorName: doc.authorName || "",
+            createdAt: doc.createdAt || new Date().toISOString(),
+            updatedAt: doc.updatedAt || new Date().toISOString(),
+            version: doc.version || 1,
+          }));
+          setPages(mapped);
+        }
+      } catch {
+        // Fall back to local pages state
+      }
+    }
+    fetchLivePages();
+    return () => { active = false; };
+  }, [currentUser]);
+
+  // ── Live Backend Navigation Menus Sync ──────────────────────────────────────
+  useEffect(() => {
+    let active = true;
+    async function fetchLiveMenus() {
+      try {
+        const res = await apiClient.get<any>("/admin/menus");
+        const list = res?.data || (Array.isArray(res) ? res : []);
+        if (Array.isArray(list) && list.length > 0 && active) {
+          const mapped: MenuItem[] = list.map((doc: any) => ({
+            id: doc.id || String(doc._id),
+            label: doc.label,
+            path: doc.path,
+            icon: doc.icon,
+            order: doc.order || 0,
+            parentId: doc.parentId || undefined,
+            target: doc.target || "_self",
+            isCustom: doc.isCustom !== undefined ? doc.isCustom : true,
+            visible: doc.visible !== undefined ? doc.visible : true,
+            pageId: doc.pageId,
+          }));
+          setMenuItems(mapped);
+        }
+      } catch {
+        // Fall back to local menu state
+      }
+    }
+
+    async function fetchLiveMediaAssets() {
+      try {
+        const res = await apiClient.get<any>("/admin/media?limit=100");
+        const list = res?.data || (Array.isArray(res) ? res : []);
+        if (Array.isArray(list) && list.length > 0 && active) {
+          const mapped: MediaAsset[] = list.map((doc: any) => ({
+            id: doc.id || String(doc._id),
+            title: doc.title,
+            fileName: doc.fileName || doc.title,
+            fileType: doc.mediaType || doc.fileType || "image",
+            mediaType: doc.mediaType || doc.fileType || "image",
+            mimeType: doc.mimeType || "image/jpeg",
+            size: doc.fileSize ? `${Math.round(doc.fileSize / 1024)} KB` : "1.2 MB",
+            fileSize: doc.fileSize,
+            width: doc.width,
+            height: doc.height,
+            url: doc.url,
+            thumbnailUrl: doc.thumbnailUrl,
+            category: doc.folder || doc.category || "General",
+            folder: doc.folder || doc.category || "General",
+            tags: doc.tags || [],
+            uploadedBy: doc.uploadedBy || "Administrator",
+            uploadedAt: doc.createdAt ? new Date(doc.createdAt).toLocaleDateString("en-IN") : new Date().toLocaleDateString("en-IN"),
+            altText: doc.altText,
+            description: doc.description,
+            status: doc.status || "active",
+            departmentId: doc.departmentId,
+            clubId: doc.clubId,
+            createdAt: doc.createdAt,
+            updatedAt: doc.updatedAt,
+          }));
+          setMediaAssets(mapped);
+        }
+      } catch {
+        // Fall back to local media state
+      }
+    }
+
+    fetchLiveMenus();
+    fetchLiveMediaAssets();
+    return () => { active = false; };
+  }, [currentUser]);
+
   // ── Switch User ─────────────────────────────────────────────────────────────
   const switchUser = useCallback((identifier: string) => {
     const found = users.find((u) => u.email === identifier || u.role === identifier || u.id === identifier);
@@ -1217,19 +1348,93 @@ export function CMSStoreProvider({ children }: { children: React.ReactNode }) {
         version: 1,
         ...page,
       } as DynamicPage;
-      setPages((prev) => [newPage, ...prev]);
+
+      setPages((prev) => {
+        const rollbackState = [...prev];
+        const payload = {
+          title: newPage.title,
+          slug: newPage.slug,
+          parentMenuId: newPage.parentMenuId,
+          pageType: newPage.pageType,
+          description: newPage.description,
+          bannerImage: newPage.bannerImage,
+          blocks: newPage.blocks,
+          seo: newPage.seo,
+          status: newPage.status,
+          departmentId: newPage.departmentId,
+          clubId: newPage.clubId,
+        };
+
+        apiClient
+          .post<any>("/admin/pages", payload)
+          .then((res) => {
+            const serverPage = res?.data;
+            if (serverPage && (serverPage.id || serverPage._id)) {
+              setPages((current) =>
+                current.map((p) =>
+                  p.id === newPage.id ? { ...p, id: serverPage.id || String(serverPage._id), version: serverPage.version || 1 } : p
+                )
+              );
+            }
+          })
+          .catch((err) => {
+            console.error("[CMS Store] Backend page creation failed, rolling back optimistic state:", err?.message);
+            setPages(rollbackState);
+          });
+
+        return [newPage, ...prev];
+      });
+
       logAction({ action: "CREATE", module: "Page Builder", recordId: newPage.id, recordTitle: newPage.title });
     } else {
-      setPages((prev) =>
-        prev.map((p) => (p.id === page.id ? { ...p, ...page, updatedAt: new Date().toISOString(), version: p.version + 1 } : p))
-      );
+      setPages((prev) => {
+        const rollbackState = [...prev];
+        const existingPage = prev.find((p) => p.id === page.id || (page.slug && p.slug === page.slug));
+        const targetId = existingPage?.id || page.id || page.slug || "";
+
+        const payload = {
+          title: page.title,
+          slug: page.slug,
+          parentMenuId: page.parentMenuId,
+          pageType: page.pageType,
+          description: page.description,
+          bannerImage: page.bannerImage,
+          blocks: page.blocks,
+          seo: page.seo,
+          status: page.status,
+          departmentId: page.departmentId,
+          clubId: page.clubId,
+        };
+
+        apiClient
+          .put<any>(`/admin/pages/${targetId}`, payload)
+          .catch((err) => {
+            console.error("[CMS Store] Backend page update failed, rolling back optimistic state:", err?.message);
+            setPages(rollbackState);
+          });
+
+        return prev.map((p) =>
+          p.id === page.id || (page.slug && p.slug === page.slug)
+            ? { ...p, ...page, updatedAt: new Date().toISOString(), version: (p.version || 1) + 1 }
+            : p
+        );
+      });
+
       logAction({ action: "UPDATE", module: "Page Builder", recordId: page.id || "", recordTitle: page.title || "Page Update" });
     }
   }, [currentUser, logAction]);
 
   const deletePage = useCallback((id: string) => {
     const page = pages.find((p) => p.id === id);
-    setPages((prev) => prev.filter((p) => p.id !== id));
+    setPages((prev) => {
+      const rollbackState = [...prev];
+      apiClient.delete(`/admin/pages/${id}`).catch((err) => {
+        console.error("[CMS Store] Backend page deletion failed, rolling back optimistic state:", err?.message);
+        setPages(rollbackState);
+      });
+      return prev.filter((p) => p.id !== id);
+    });
+
     if (page) logAction({ action: "DELETE", module: "Page Builder", recordId: id, recordTitle: page.title });
   }, [pages, logAction]);
 
@@ -1246,52 +1451,233 @@ export function CMSStoreProvider({ children }: { children: React.ReactNode }) {
         visible: true,
         ...item,
       };
-      setMenuItems((prev) => [...prev, newItem]);
+
+      setMenuItems((prev) => {
+        const rollbackState = [...prev];
+        const payload = {
+          label: newItem.label,
+          path: newItem.path,
+          icon: newItem.icon,
+          order: newItem.order,
+          parentId: newItem.parentId || null,
+          target: newItem.target || "_self",
+          isCustom: newItem.isCustom,
+          visible: newItem.visible,
+          pageId: newItem.pageId,
+        };
+
+        apiClient
+          .post<any>("/admin/menus", payload)
+          .then((res) => {
+            const serverMenu = res?.data;
+            if (serverMenu && (serverMenu.id || serverMenu._id)) {
+              setMenuItems((current) =>
+                current.map((m) =>
+                  m.id === newItem.id ? { ...m, id: serverMenu.id || String(serverMenu._id) } : m
+                )
+              );
+            }
+          })
+          .catch((err) => {
+            console.error("[CMS Store] Backend menu creation failed, rolling back optimistic state:", err?.message);
+            setMenuItems(rollbackState);
+          });
+
+        return [...prev, newItem];
+      });
+
       logAction({ action: "CREATE", module: "Menu Builder", recordId: newItem.id, recordTitle: newItem.label });
     } else {
-      setMenuItems((prev) => prev.map((m) => (m.id === item.id ? { ...m, ...item } : m)));
+      setMenuItems((prev) => {
+        const rollbackState = [...prev];
+        const existing = prev.find((m) => m.id === item.id);
+        const targetId = existing?.id || item.id || "";
+
+        const payload = {
+          label: item.label,
+          path: item.path,
+          icon: item.icon,
+          order: item.order,
+          parentId: item.parentId !== undefined ? (item.parentId || null) : undefined,
+          target: item.target,
+          isCustom: item.isCustom,
+          visible: item.visible,
+          pageId: item.pageId,
+        };
+
+        apiClient
+          .put<any>(`/admin/menus/${targetId}`, payload)
+          .catch((err) => {
+            console.error("[CMS Store] Backend menu update failed, rolling back optimistic state:", err?.message);
+            setMenuItems(rollbackState);
+          });
+
+        return prev.map((m) => (m.id === item.id ? { ...m, ...item } : m));
+      });
+
       logAction({ action: "UPDATE", module: "Menu Builder", recordId: item.id || "", recordTitle: item.label || "Menu" });
     }
   }, [menuItems.length, logAction]);
 
   const deleteMenuItem = useCallback((id: string) => {
-    setMenuItems((prev) => prev.filter((m) => m.id !== id));
-    logAction({ action: "DELETE", module: "Menu Builder", recordId: id, recordTitle: "Deleted menu item" });
-  }, [logAction]);
+    const item = menuItems.find((m) => m.id === id);
+    setMenuItems((prev) => {
+      const rollbackState = [...prev];
+
+      // Optimistically remove item and nested submenus
+      const idsToRemove = new Set<string>([id]);
+      let added = true;
+      while (added) {
+        added = false;
+        for (const m of prev) {
+          if (m.parentId && idsToRemove.has(m.parentId) && !idsToRemove.has(m.id)) {
+            idsToRemove.add(m.id);
+            added = true;
+          }
+        }
+      }
+
+      apiClient.delete(`/admin/menus/${id}`).catch((err) => {
+        console.error("[CMS Store] Backend menu deletion failed, rolling back optimistic state:", err?.message);
+        setMenuItems(rollbackState);
+      });
+
+      return prev.filter((m) => !idsToRemove.has(m.id));
+    });
+
+    if (item) logAction({ action: "DELETE", module: "Menu Builder", recordId: id, recordTitle: `Deleted menu item: ${item.label}` });
+  }, [menuItems, logAction]);
 
   const reorderMenuItems = useCallback((items: MenuItem[]) => {
-    setMenuItems(items);
+    setMenuItems((prev) => {
+      const rollbackState = [...prev];
+
+      const payload = items.map((m, idx) => ({
+        id: m.id,
+        order: idx + 1,
+        parentId: m.parentId || null,
+        visible: m.visible,
+      }));
+
+      apiClient.put<any>("/admin/menus", { items: payload }).catch((err) => {
+        console.error("[CMS Store] Backend menu reordering failed, rolling back optimistic state:", err?.message);
+        setMenuItems(rollbackState);
+      });
+
+      return items;
+    });
+
     logAction({ action: "UPDATE", module: "Menu Builder", recordId: "reorder", recordTitle: "Reordered navigation menus" });
   }, [logAction]);
 
   // ── Media Library ───────────────────────────────────────────────────────────
   const saveMediaAsset = useCallback((asset: Partial<MediaAsset>, isNew = false) => {
+    const rollbackState = [...mediaAssets];
     if (isNew) {
+      const tempId = "media-" + Date.now();
       const newAsset: MediaAsset = {
-        id: "media-" + Date.now(),
+        id: asset.id || tempId,
         title: asset.title || "Asset",
-        fileName: asset.fileName || "upload.jpg",
-        fileType: asset.fileType || "image",
+        fileName: asset.fileName || "media-asset",
+        fileType: asset.fileType || (asset.mediaType as any) || "image",
+        mediaType: asset.mediaType || asset.fileType || "image",
         mimeType: asset.mimeType || "image/jpeg",
         size: asset.size || "1.2 MB",
-        url: asset.url || "https://images.unsplash.com/photo-1562774053-701939374585?auto=format&fit=crop&w=1200&q=80",
-        category: asset.category || "General",
+        url: asset.url || "",
+        thumbnailUrl: asset.thumbnailUrl,
+        category: asset.category || asset.folder || "General",
+        folder: asset.folder || asset.category || "General",
         tags: asset.tags || ["campus"],
         uploadedBy: currentUser.name,
         uploadedAt: new Date().toLocaleDateString("en-IN"),
+        altText: asset.altText || asset.title || "",
+        description: asset.description || "",
+        status: asset.status || "active",
+        departmentId: asset.departmentId,
+        clubId: asset.clubId,
         ...asset,
       };
+
       setMediaAssets((prev) => [newAsset, ...prev]);
+
+      const payload = {
+        title: newAsset.title,
+        altText: newAsset.altText || newAsset.title,
+        description: newAsset.description,
+        mediaType: newAsset.mediaType || newAsset.fileType,
+        url: newAsset.url,
+        thumbnailUrl: newAsset.thumbnailUrl,
+        mimeType: newAsset.mimeType,
+        fileName: newAsset.fileName,
+        fileSize: newAsset.fileSize,
+        width: newAsset.width,
+        height: newAsset.height,
+        folder: newAsset.folder || newAsset.category,
+        tags: newAsset.tags,
+        status: newAsset.status,
+        departmentId: newAsset.departmentId,
+        clubId: newAsset.clubId,
+      };
+
+      apiClient.post<any>("/admin/media", payload)
+        .then((res) => {
+          if (res?.data?.id) {
+            setMediaAssets((current) =>
+              current.map((item) =>
+                item.id === tempId ? { ...item, id: res.data.id } : item
+              )
+            );
+          }
+        })
+        .catch((err) => {
+          console.error("[CMS Store] Backend media asset creation failed, rolling back optimistic state:", err?.message);
+          setMediaAssets(rollbackState);
+        });
+
       logAction({ action: "CREATE", module: "Media Library", recordId: newAsset.id, recordTitle: newAsset.title });
     } else {
       setMediaAssets((prev) => prev.map((m) => (m.id === asset.id ? { ...m, ...asset } : m)));
+
+      if (asset.id && !asset.id.startsWith("media-")) {
+        const payload: Record<string, unknown> = {};
+        if (asset.title !== undefined) payload.title = asset.title;
+        if (asset.altText !== undefined) payload.altText = asset.altText;
+        if (asset.description !== undefined) payload.description = asset.description;
+        if (asset.mediaType !== undefined || asset.fileType !== undefined) payload.mediaType = asset.mediaType || asset.fileType;
+        if (asset.url !== undefined) payload.url = asset.url;
+        if (asset.thumbnailUrl !== undefined) payload.thumbnailUrl = asset.thumbnailUrl;
+        if (asset.mimeType !== undefined) payload.mimeType = asset.mimeType;
+        if (asset.fileName !== undefined) payload.fileName = asset.fileName;
+        if (asset.folder !== undefined || asset.category !== undefined) payload.folder = asset.folder || asset.category;
+        if (asset.tags !== undefined) payload.tags = asset.tags;
+        if (asset.status !== undefined) payload.status = asset.status;
+        if (asset.departmentId !== undefined) payload.departmentId = asset.departmentId;
+        if (asset.clubId !== undefined) payload.clubId = asset.clubId;
+
+        apiClient.put<any>(`/admin/media/${asset.id}`, payload).catch((err) => {
+          console.error("[CMS Store] Backend media asset update failed, rolling back optimistic state:", err?.message);
+          setMediaAssets(rollbackState);
+        });
+      }
+
+      logAction({ action: "UPDATE", module: "Media Library", recordId: asset.id || "media", recordTitle: asset.title || "Media asset" });
     }
-  }, [currentUser.name, logAction]);
+  }, [currentUser.name, logAction, mediaAssets]);
 
   const deleteMediaAsset = useCallback((id: string) => {
+    const rollbackState = [...mediaAssets];
+    const asset = mediaAssets.find((m) => m.id === id);
     setMediaAssets((prev) => prev.filter((m) => m.id !== id));
-    logAction({ action: "DELETE", module: "Media Library", recordId: id, recordTitle: "Deleted media file" });
-  }, [logAction]);
+
+    if (id && !id.startsWith("media-")) {
+      apiClient.delete<any>(`/admin/media/${id}`).catch((err) => {
+        console.error("[CMS Store] Backend media asset deletion failed, rolling back optimistic state:", err?.message);
+        setMediaAssets(rollbackState);
+      });
+    }
+
+    logAction({ action: "DELETE", module: "Media Library", recordId: id, recordTitle: asset?.title || "Deleted media asset" });
+  }, [mediaAssets, logAction]);
 
   // ── Document Center ─────────────────────────────────────────────────────────
   const saveDocument = useCallback((doc: Partial<CollegeDocument>, isNew = false) => {
