@@ -35,9 +35,27 @@ import {
   getPublicFeatured,
   registerAlumni,
 } from '../../controllers/alumni.controller';
+import {
+  getPublicClubDirectory,
+  getPublicClubBySlug,
+  getPublicClubMembers,
+  registerClubMembership,
+  withdrawPublicDirectoryConsent,
+} from '../../controllers/club.controller';
+import {
+  getPublicNotices,
+  getPublicPinnedNotices,
+  getPublicNoticeCategories,
+  getPublicNoticeBySlug,
+} from '../../controllers/notice.controller';
 import { strictRateLimit } from '../../middleware/rate-limit';
 import { validateBody } from '../../validations/auth.validation';
-import { submitAnswersSchema, registerAlumniSchema } from '../../validations';
+import {
+  submitAnswersSchema,
+  registerAlumniSchema,
+  registerMembershipSchema,
+  withdrawDirectoryConsentSchema,
+} from '../../validations';
 
 const publicV1Router = Router();
 
@@ -102,5 +120,28 @@ publicV1Router.post(
   validateBody(registerAlumniSchema),
   registerAlumni
 );
+
+// ── 12. Student Clubs & Activities ──────────────────────────────────────────
+publicV1Router.get('/clubs/directory', getPublicClubDirectory);
+publicV1Router.get('/clubs/:slug', getPublicClubBySlug);
+publicV1Router.get('/clubs/:slug/members', getPublicClubMembers);
+publicV1Router.post(
+  '/clubs/:slug/memberships',
+  strictRateLimit,
+  validateBody(registerMembershipSchema),
+  registerClubMembership
+);
+publicV1Router.post(
+  '/clubs/:slug/memberships/withdraw-consent',
+  strictRateLimit,
+  validateBody(withdrawDirectoryConsentSchema),
+  withdrawPublicDirectoryConsent
+);
+
+// ── 13. Public Notices & Circulars ───────────────────────────────────────────
+publicV1Router.get('/notices', getPublicNotices);
+publicV1Router.get('/notices/pinned', getPublicPinnedNotices);
+publicV1Router.get('/notices/categories', getPublicNoticeCategories);
+publicV1Router.get('/notices/:slug', getPublicNoticeBySlug);
 
 export default publicV1Router;

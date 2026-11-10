@@ -922,17 +922,25 @@ export function CMSStoreProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => { localStorage.setItem(STORAGE_PREFIX + "menus", JSON.stringify(menuItems)); }, [menuItems]);
   useEffect(() => { localStorage.setItem(STORAGE_PREFIX + "media", JSON.stringify(mediaAssets)); }, [mediaAssets]);
   useEffect(() => { localStorage.setItem(STORAGE_PREFIX + "forms", JSON.stringify(forms)); }, [forms]);
-  // Note: formSubmissions and alumni records are strictly NOT written to localStorage for applicant and alumni privacy protection.
+  // Note: formSubmissions, alumni, and notices are strictly account-isolated and NOT written to shared localStorage keys.
   useEffect(() => {
-    // Proactively clear any legacy submissions and alumni cache from browser localStorage
+    // Proactively clear any legacy submissions, alumni, and shared notices cache from browser localStorage
     try {
       localStorage.removeItem(STORAGE_PREFIX + "form_submissions");
       localStorage.removeItem(STORAGE_PREFIX + "alumni");
+      localStorage.removeItem(STORAGE_PREFIX + "notices");
     } catch {}
   }, []);
   useEffect(() => { localStorage.setItem(STORAGE_PREFIX + "documents", JSON.stringify(documents)); }, [documents]);
   useEffect(() => { localStorage.setItem(STORAGE_PREFIX + "applications", JSON.stringify(applications)); }, [applications]);
-  useEffect(() => { localStorage.setItem(STORAGE_PREFIX + "notices", JSON.stringify(notices)); }, [notices]);
+  // Account-isolated fallback notices persistence
+  useEffect(() => {
+    if (!currentUser?.id && !currentUser?.email) return;
+    const userNoticesKey = `${STORAGE_PREFIX}notices_${currentUser.id || currentUser.email}`;
+    try {
+      localStorage.setItem(userNoticesKey, JSON.stringify(notices));
+    } catch {}
+  }, [notices, currentUser?.id, currentUser?.email]);
   useEffect(() => { localStorage.setItem(STORAGE_PREFIX + "clubs", JSON.stringify(clubs)); }, [clubs]);
   useEffect(() => { localStorage.setItem(STORAGE_PREFIX + "enquiries", JSON.stringify(enquiries)); }, [enquiries]);
 
@@ -1463,9 +1471,13 @@ export function CMSStoreProvider({ children }: { children: React.ReactNode }) {
 
   // ── Switch User ─────────────────────────────────────────────────────────────
   const switchUser = useCallback((identifier: string) => {
-    // Instantly purge sensitive in-memory applicant submissions and alumni on user switch / logout
+    // Instantly purge sensitive in-memory applicant submissions, alumni, and cached notices on user switch / logout
     setFormSubmissions([]);
     setAlumni([]);
+    setNotices([]);
+    try {
+      localStorage.removeItem(STORAGE_PREFIX + "notices");
+    } catch {}
     const found = users.find((u) => u.email === identifier || u.role === identifier || u.id === identifier);
     if (found) {
       setCurrentUser(found);

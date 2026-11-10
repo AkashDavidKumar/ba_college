@@ -28,3 +28,6 @@ export * from './media-asset.model';
 export * from './form.model';
 export * from './form-submission.model';
 export * from './alumni.model';
+export * from './club.model';
+export * from './club-membership.model';
+export * from './notice.model';

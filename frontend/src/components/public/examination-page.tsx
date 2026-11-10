@@ -1,6 +1,9 @@
 "use client";
+import React, { useState, useEffect } from "react";
 import { ChevronRight, FileText, Calendar, Download, AlertCircle, CheckCircle, Clock } from "lucide-react";
 import { Reveal } from "@/components/site/primitives";
+import { noticeService } from "@/lib/api/notice-service";
+import type { PublicNotice } from "@/types/notice";
 
 const EXAM_SCHEDULE = [
   { exam: "CIA – I (Odd Semester)",        date: "July 2025",     type: "Internal", status: "Completed" },
@@ -21,6 +24,30 @@ const NOTICES = [
 ];
 
 export function ExaminationPage() {
+  const [liveNotices, setLiveNotices] = useState<PublicNotice[]>([]);
+
+  useEffect(() => {
+    noticeService
+      .getPublicNotices({ category: "Examination", limit: 10 })
+      .then((res) => {
+        if (res && res.data && res.data.length > 0) {
+          setLiveNotices(res.data);
+        }
+      })
+      .catch((err) => {
+        console.warn("Live exam notices fetch failed, using fallback:", err);
+      });
+  }, []);
+
+  const displayNotices = liveNotices.length > 0
+    ? liveNotices.map((n) => ({
+        title: n.title,
+        date: String(n.publishAt).split("T")[0],
+        size: "PDF Circular",
+        url: n.attachmentUrl,
+      }))
+    : NOTICES.map((n) => ({ ...n, url: undefined }));
+
   return (
     <div className="min-h-screen bg-slate-50">
       <div className="relative bg-navy-dark text-white py-16 overflow-hidden">
@@ -86,7 +113,7 @@ export function ExaminationPage() {
             <h3 className="text-white font-bold">Examination Notices & Downloads</h3>
           </div>
           <div className="divide-y divide-slate-50">
-            {NOTICES.map((n, i) => (
+            {displayNotices.map((n, i) => (
               <div key={i} className="flex items-center justify-between px-6 py-4 hover:bg-slate-50/50 transition-colors">
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 rounded-lg bg-red-50 flex items-center justify-center shrink-0">
@@ -97,9 +124,20 @@ export function ExaminationPage() {
                     <p className="text-xs text-slate-500">{n.date} · {n.size}</p>
                   </div>
                 </div>
-                <button className="flex items-center gap-1 px-3 py-1.5 bg-navy text-white text-xs font-semibold rounded-lg hover:bg-navy-dark transition-colors">
-                  <Download className="w-3.5 h-3.5" /> Download
-                </button>
+                {n.url ? (
+                  <a
+                    href={n.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1 px-3 py-1.5 bg-navy text-white text-xs font-semibold rounded-lg hover:bg-navy-dark transition-colors"
+                  >
+                    <Download className="w-3.5 h-3.5" /> Download
+                  </a>
+                ) : (
+                  <button className="flex items-center gap-1 px-3 py-1.5 bg-navy text-white text-xs font-semibold rounded-lg hover:bg-navy-dark transition-colors">
+                    <Download className="w-3.5 h-3.5" /> Download
+                  </button>
+                )}
               </div>
             ))}
           </div>

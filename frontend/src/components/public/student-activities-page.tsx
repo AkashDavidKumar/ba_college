@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Users, Palette, Trophy, Heart, Briefcase, ChevronRight, Star, Calendar, Award, ArrowRight } from "lucide-react";
 import { useNav } from "@/components/site/nav-context";
 import { Reveal } from "@/components/site/primitives";
+import { ClubsDirectorySection } from "@/components/public/clubs-directory-section";
 
 const CLUBS = [
   { name: "Computer Science Association",   dept: "CS", members: 180, events: 12, image: "https://images.unsplash.com/photo-1531482615713-2afd69097998?auto=format&fit=crop&w=500&q=70", desc: "Tech talks, hackathons, coding competitions and industry visits." },
@@ -34,6 +35,7 @@ const FINE_ARTS = [
 
 const SA_NAV = [
   { id: "council",      label: "Student Council",    icon: Users },
+  { id: "clubs",        label: "Clubs & Committees", icon: Award },
   { id: "fine-arts",    label: "Fine Arts",           icon: Palette },
   { id: "sports",       label: "Sports",              icon: Trophy },
   { id: "associations", label: "Associations",        icon: Users },
@@ -80,6 +82,7 @@ export function StudentActivitiesPage({ section }: { section?: string }) {
   const renderContent = () => {
     switch (active) {
       case "council": return <CouncilView />;
+      case "clubs": return <ClubsDirectorySection />;
       case "sports":
         return (
           <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-5">

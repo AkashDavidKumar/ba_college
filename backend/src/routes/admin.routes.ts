@@ -18,6 +18,8 @@ import * as navigationMenuController from '../controllers/navigation-menu.contro
 import * as mediaAssetController from '../controllers/media-asset.controller';
 import * as formController from '../controllers/form.controller';
 import * as alumniController from '../controllers/alumni.controller';
+import * as clubController from '../controllers/club.controller';
+import * as noticeController from '../controllers/notice.controller';
 import {
   updateSiteContentSchema,
   updateAboutPageSchema,
@@ -55,6 +57,15 @@ import {
   updateAlumniSchema,
   rejectAlumniSchema,
   verifyAlumniSchema,
+  createClubSchema,
+  updateClubSchema,
+  assignClubHeadSchema,
+  reviewMembershipSchema,
+  updateMembershipLifecycleSchema,
+  createNoticeSchema,
+  updateNoticeSchema,
+  reviewNoticeSchema,
+  publishNoticeSchema,
 } from '../validations';
 
 export const adminRouter = Router();
@@ -799,6 +810,179 @@ adminRouter.delete(
   requireAuth,
   requireAnyPermission('alumni:delete', 'alumni:manage', 'all'),
   alumniController.deleteAdminAlumni
+);
+
+// ── 13. Clubs Management System (Phase 4C-2B) ──────────────────────────────
+// List clubs (admins get all, club heads get their assigned club)
+adminRouter.get(
+  '/admin/clubs',
+  requireAuth,
+  clubController.listAdminClubs
+);
+
+// Get single club by ObjectId or canonical slug
+adminRouter.get(
+  '/admin/clubs/:id',
+  requireAuth,
+  clubController.getAdminClubById
+);
+
+// Create new club (institutional admins only)
+adminRouter.post(
+  '/admin/clubs',
+  requireAuth,
+  validateBody(createClubSchema),
+  clubController.createAdminClub
+);
+
+// Update club details
+adminRouter.put(
+  '/admin/clubs/:id',
+  requireAuth,
+  validateBody(updateClubSchema),
+  clubController.updateAdminClub
+);
+
+adminRouter.patch(
+  '/admin/clubs/:id',
+  requireAuth,
+  validateBody(updateClubSchema),
+  clubController.updateAdminClub
+);
+
+// Soft archive club
+adminRouter.delete(
+  '/admin/clubs/:id',
+  requireAuth,
+  clubController.deleteAdminClub
+);
+
+// Assign or replace club head
+adminRouter.post(
+  '/admin/clubs/:id/head',
+  requireAuth,
+  validateBody(assignClubHeadSchema),
+  clubController.assignAdminClubHead
+);
+
+// List memberships for a club
+adminRouter.get(
+  '/admin/clubs/:id/memberships',
+  requireAuth,
+  clubController.listAdminClubMemberships
+);
+
+// Approve pending membership
+adminRouter.post(
+  '/admin/clubs/:id/memberships/:memberId/approve',
+  requireAuth,
+  clubController.approveAdminClubMembership
+);
+
+// Reject pending membership
+adminRouter.post(
+  '/admin/clubs/:id/memberships/:memberId/reject',
+  requireAuth,
+  validateBody(reviewMembershipSchema),
+  clubController.rejectAdminClubMembership
+);
+
+// Update membership lifecycle (promotion, deactivation, archival)
+adminRouter.patch(
+  '/admin/clubs/:id/memberships/:memberId',
+  requireAuth,
+  validateBody(updateMembershipLifecycleSchema),
+  clubController.updateAdminClubMembership
+);
+
+// Reconcile memberCount from actual active records
+adminRouter.post(
+  '/admin/clubs/:id/reconcile',
+  requireAuth,
+  clubController.reconcileAdminClubMemberCount
+);
+
+// ── 13. Notices & Circulars Administration ──────────────────────────────────
+adminRouter.get(
+  '/admin/notices/metrics',
+  requireAuth,
+  noticeController.getAdminNoticeMetrics
+);
+
+adminRouter.get(
+  '/admin/notices',
+  requireAuth,
+  noticeController.listAdminNotices
+);
+
+adminRouter.get(
+  '/admin/notices/:id',
+  requireAuth,
+  noticeController.getAdminNoticeById
+);
+
+adminRouter.post(
+  '/admin/notices',
+  requireAuth,
+  validateBody(createNoticeSchema),
+  noticeController.createAdminNotice
+);
+
+adminRouter.put(
+  '/admin/notices/:id',
+  requireAuth,
+  validateBody(updateNoticeSchema),
+  noticeController.updateAdminNotice
+);
+
+adminRouter.patch(
+  '/admin/notices/:id',
+  requireAuth,
+  noticeController.patchAdminNotice
+);
+
+adminRouter.post(
+  '/admin/notices/:id/submit',
+  requireAuth,
+  noticeController.submitAdminNotice
+);
+
+adminRouter.post(
+  '/admin/notices/:id/approve',
+  requireAuth,
+  noticeController.reviewAdminNotice
+);
+
+adminRouter.post(
+  '/admin/notices/:id/reject',
+  requireAuth,
+  noticeController.reviewAdminNotice
+);
+
+adminRouter.post(
+  '/admin/notices/:id/review',
+  requireAuth,
+  validateBody(reviewNoticeSchema),
+  noticeController.reviewAdminNotice
+);
+
+adminRouter.post(
+  '/admin/notices/:id/publish',
+  requireAuth,
+  validateBody(publishNoticeSchema),
+  noticeController.publishAdminNotice
+);
+
+adminRouter.post(
+  '/admin/notices/:id/archive',
+  requireAuth,
+  noticeController.archiveAdminNotice
+);
+
+adminRouter.delete(
+  '/admin/notices/:id',
+  requireAuth,
+  noticeController.deleteAdminNotice
 );
 
 export default adminRouter;

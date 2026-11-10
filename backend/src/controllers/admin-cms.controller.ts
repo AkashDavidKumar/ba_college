@@ -20,6 +20,7 @@ import { Department } from '../models/department.model';
 import { Course } from '../models/course.model';
 import { DynamicPage } from '../models/dynamic-page.model';
 import { Form } from '../models/form.model';
+import { Notice } from '../models/notice.model';
 import { ApiError } from '../utils/api-error';
 import { logAdminAction } from '../utils/audit-log';
 
@@ -164,6 +165,18 @@ async function validateEntityExistenceAndOwnership(
         }
         if (user.role === 'club_head' && existing.clubId && existing.clubId.toLowerCase() !== user.clubId?.toLowerCase()) {
           throw ApiError.forbidden('You cannot submit a form belonging to another club for approval.', 'FORBIDDEN_CLUB_SCOPE');
+        }
+      }
+    } else if (entityType === 'notice') {
+      const existing = await Notice.findOne({
+        $or: [{ _id: entityId.match(/^[0-9a-fA-F]{24}$/) ? entityId : undefined }, { slug: entityId }],
+      }).lean();
+
+      if (existing) {
+        resolvedDept = existing.departmentId || resolvedDept;
+
+        if (user.role === 'hod' && existing.departmentId && existing.departmentId.toLowerCase() !== user.departmentId?.toLowerCase()) {
+          throw ApiError.forbidden('You cannot submit a notice belonging to another department for approval.', 'FORBIDDEN_DEPARTMENT_SCOPE');
         }
       }
     }

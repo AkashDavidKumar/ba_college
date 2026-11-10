@@ -17,6 +17,7 @@ import {
   X,
 } from "lucide-react";
 import { Reveal, Badge, PremiumButton } from "@/components/site/primitives";
+import { NoticesFeedSection } from "./notices-feed-section";
 
 type NewsItem = {
   id: string;
@@ -248,6 +249,9 @@ export function NewsPage() {
           </AnimatePresence>
         </div>
       </div>
+
+      {/* Official Campus Notices & Circulars Feed */}
+      <NoticesFeedSection />
 
       {/* Detail Modal */}
       <AnimatePresence>

@@ -22,3 +22,5 @@ export * from './navigation-menu.validation';
 export * from './media-asset.validation';
 export * from './form.validation';
 export * from './alumni.validation';
+export * from './club.validation';
+export * from './notice.validation';

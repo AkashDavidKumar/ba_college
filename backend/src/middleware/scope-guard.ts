@@ -211,3 +211,108 @@ export function assertGalleryManagement(user: IAuthUser | undefined): void {
     'FORBIDDEN_PERMISSION'
   );
 }
+
+/**
+ * Asserts that the authenticated user is authorized to access or mutate resources for targetClubSlug.
+ *
+ * Rules:
+ *  1. Master Admin and Sub Admin (and canonical alias ADMIN) have institutional global access.
+ *  2. Club Head must have an assigned clubId and it must strictly match targetClubSlug (case-insensitive).
+ *  3. All other roles (hod, content_editor, EDITOR, staff, VIEWER, and any unmapped/unknown roles)
+ *     are strictly forbidden (default deny).
+ *
+ * @param user Authenticated user payload from req.user
+ * @param targetClubSlug Canonical lowercase slug of the target club being accessed or mutated
+ * @throws ApiError 401 if unauthenticated, 403 if unauthorized or scope mismatch
+ */
+export function assertClubScope(user: IAuthUser | undefined, targetClubSlug: string): void {
+  if (!user) {
+    throw ApiError.unauthorized('Authentication required.', 'UNAUTHORIZED');
+  }
+
+  // 1. Institutional administrators have global access
+  if (user.role === 'master_admin' || user.role === 'ADMIN' || user.role === 'sub_admin') {
+    return;
+  }
+
+  // 2. Club Head must strictly match assigned clubId
+  if (user.role === 'club_head') {
+    if (!user.clubId || user.clubId.trim() === '') {
+      throw ApiError.forbidden(
+        'Account lacks an assigned club scope. Please contact the administrator.',
+        'UNASSIGNED_SCOPE'
+      );
+    }
+
+    if (!targetClubSlug || user.clubId.trim().toLowerCase() !== targetClubSlug.trim().toLowerCase()) {
+      throw ApiError.forbidden(
+        `Cross-club access forbidden: You can only manage your assigned club (${user.clubId}).`,
+        'FORBIDDEN_CLUB_SCOPE'
+      );
+    }
+    return;
+  }
+
+  // 3. Fail closed: All other roles (hod, content_editor, staff, EDITOR, VIEWER, unknown) are denied
+  throw ApiError.forbidden('Forbidden: You lack the required role to manage club resources.', 'FORBIDDEN_ROLE');
+}
+
+/**
+ * Asserts that the authenticated user is authorized to create, update, or mutate a notice.
+ *
+ * Rules:
+ *  1. Master Admin and Sub Admin (and canonical alias ADMIN) have institutional global access.
+ *  2. Content Editor has global access for drafting/updating institutional notices.
+ *  3. HOD must have an assigned departmentId and targetDepartmentId must match user's departmentId.
+ *     HOD is forbidden from creating/modifying global notices (departmentId null/empty/'all') or other departments.
+ *  4. Staff must have an assigned departmentId and targetDepartmentId must match user's departmentId.
+ *  5. Club Head and unmapped roles are denied.
+ */
+export function assertNoticeScope(
+  user: IAuthUser | undefined,
+  targetDepartmentId?: string | null
+): void {
+  if (!user) {
+    throw ApiError.unauthorized('Authentication required.', 'UNAUTHORIZED');
+  }
+
+  // 1. Institutional administrators have global access
+  if (
+    user.role === 'master_admin' ||
+    user.role === 'ADMIN' ||
+    user.role === 'sub_admin' ||
+    user.role === 'content_editor' ||
+    user.role === 'EDITOR'
+  ) {
+    return;
+  }
+
+  // 2. Departmental roles (HOD, staff)
+  if (user.role === 'hod' || user.role === 'staff') {
+    if (!user.departmentId || user.departmentId.trim() === '') {
+      throw ApiError.forbidden(
+        'Account lacks an assigned department scope. Please contact the administrator.',
+        'UNASSIGNED_SCOPE'
+      );
+    }
+
+    if (!targetDepartmentId || targetDepartmentId.trim() === '' || targetDepartmentId.toLowerCase() === 'all') {
+      throw ApiError.forbidden(
+        'Department-scoped users are not authorized to manage institution-wide global circulars.',
+        'FORBIDDEN_DEPARTMENT_SCOPE'
+      );
+    }
+
+    if (user.departmentId.trim().toLowerCase() !== targetDepartmentId.trim().toLowerCase()) {
+      throw ApiError.forbidden(
+        `Department scope mismatch: You can only manage notices for your assigned department (${user.departmentId}).`,
+        'FORBIDDEN_DEPARTMENT_SCOPE'
+      );
+    }
+    return;
+  }
+
+  // 3. Fail closed
+  throw ApiError.forbidden('Forbidden: You lack permission to manage college notices.', 'FORBIDDEN_ROLE');
+}
+
