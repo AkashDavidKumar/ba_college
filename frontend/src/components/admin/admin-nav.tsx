@@ -60,7 +60,7 @@ const NAV_GROUPS: NavGroup[] = [
   },
   {
     id: "website", label: "Website", icon: Globe,
-    visibleTo: [...TOP, "content_editor"],
+    visibleTo: [...TOP, "content_editor", "hod", "club_head"],
     items: [
       { id: "home",          label: "Homepage",         icon: Home },
       { id: "news-events",   label: "News & Events",    icon: Newspaper },
@@ -68,6 +68,7 @@ const NAV_GROUPS: NavGroup[] = [
       { id: "pages",         label: "Pages",            icon: FileText },
       { id: "menus",         label: "Menu Builder",     icon: Menu },
       { id: "media",         label: "Media Library",    icon: Image },
+      { id: "forms",         label: "Forms & Inquiries",icon: ClipboardList },
       { id: "documents",     label: "Documents",        icon: FolderOpen },
       { id: "seo",           label: "SEO",              icon: Search },
       { id: "site-settings", label: "Website Settings", icon: Settings },

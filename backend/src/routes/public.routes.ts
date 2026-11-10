@@ -26,6 +26,10 @@ import {
 import { getPublicPageBySlug } from '../controllers/dynamic-page.controller';
 import { getPublicNavigationMenus } from '../controllers/navigation-menu.controller';
 import { getPublicMedia } from '../controllers/media-asset.controller';
+import { getPublicFormBySlug, submitFormAnswers } from '../controllers/form.controller';
+import { strictRateLimit } from '../middleware/rate-limit';
+import { validateBody } from '../validations/auth.validation';
+import { submitAnswersSchema } from '../validations';
 
 const publicRouter = Router();
 
@@ -65,5 +69,14 @@ publicRouter.get('/menus', getPublicNavigationMenus);
 
 // ── 8. Media Library ────────────────────────────────────────────────────────
 publicRouter.get('/media', getPublicMedia);
+
+// ── 9. Forms & Inquiries Engine ─────────────────────────────────────────────
+publicRouter.get('/forms/:slug', getPublicFormBySlug);
+publicRouter.post(
+  '/forms/:slug/submissions',
+  strictRateLimit,
+  validateBody(submitAnswersSchema),
+  submitFormAnswers
+);
 
 export default publicRouter;

@@ -20,3 +20,4 @@ export * from './admin-cms.validation';
 export * from './dynamic-page.validation';
 export * from './navigation-menu.validation';
 export * from './media-asset.validation';
+export * from './form.validation';

@@ -246,6 +246,69 @@ export type ContactEnquiry = {
   notes?: string;
 };
 
+export type FormFieldType =
+  | "text"
+  | "textarea"
+  | "email"
+  | "phone"
+  | "number"
+  | "select"
+  | "radio"
+  | "checkbox"
+  | "date"
+  | "url";
+
+export type FormField = {
+  id: string;
+  label: string;
+  type: FormFieldType;
+  placeholder?: string;
+  helpText?: string;
+  required: boolean;
+  order: number;
+  options?: string[];
+  validation?: {
+    minLength?: number;
+    maxLength?: number;
+    min?: number;
+    max?: number;
+    pattern?: string;
+  };
+};
+
+export type CMSForm = {
+  id: string;
+  title: string;
+  slug: string;
+  description?: string;
+  category: "general" | "admissions" | "academics" | "feedback" | "events" | "department" | "club";
+  fields: FormField[];
+  status: "draft" | "submitted" | "pending" | "approved" | "published" | "archived";
+  isActive: boolean;
+  submitButtonText: string;
+  successMessage: string;
+  departmentId?: string;
+  clubId?: string;
+  createdAt?: string;
+  updatedAt?: string;
+};
+
+export type CMSFormSubmission = {
+  id: string;
+  formId: string;
+  formSlug: string;
+  formTitle: string;
+  submissionReference: string;
+  answers: Record<string, any>;
+  status: "new" | "in_review" | "responded" | "resolved" | "rejected";
+  departmentId?: string;
+  clubId?: string;
+  notes?: string;
+  submittedAt: string;
+  reviewedBy?: string;
+  reviewedAt?: string;
+};
+
 export type CollegeNotification = {
   id: string;
   title: string;
@@ -652,6 +715,47 @@ const INITIAL_AUDIT_LOGS: AuditLogEntry[] = [
   },
 ];
 
+const INITIAL_FORMS: CMSForm[] = [
+  {
+    id: "form-1",
+    title: "Undergraduate Admissions Query 2026",
+    slug: "ug-admissions-query",
+    description: "Submit inquiries regarding undergraduate degree programmes, eligibility, and scholarship quotas.",
+    category: "admissions",
+    status: "published",
+    isActive: true,
+    submitButtonText: "Submit Inquiry",
+    successMessage: "Thank you for reaching out to the Bishop Ambrose College Admissions Office. Our counselors will contact you shortly.",
+    fields: [
+      { id: "fld_candidate_name", label: "Candidate Name", type: "text", required: true, order: 1, placeholder: "e.g. Arun Kumar" },
+      { id: "fld_email", label: "Email Address", type: "email", required: true, order: 2, placeholder: "arun@example.com" },
+      { id: "fld_phone", label: "Mobile Number", type: "phone", required: true, order: 3, placeholder: "+91 98765 43210" },
+      { id: "fld_course", label: "Programme of Interest", type: "select", required: true, order: 4, options: ["B.Sc. Computer Science", "B.Com. Professional Accounting", "B.A. English Literature", "BBA", "BCA"] },
+      { id: "fld_plus2_percentage", label: "+2 Percentage", type: "number", required: true, order: 5, placeholder: "e.g. 88.5", validation: { min: 35, max: 100 } },
+      { id: "fld_query", label: "Specific Question or Details", type: "textarea", required: false, order: 6, placeholder: "Enter any questions regarding syllabus, hostel, or fees..." },
+    ],
+  },
+  {
+    id: "form-2",
+    title: "General Campus Feedback & Grievance",
+    slug: "general-feedback",
+    description: "Institutional feedback mechanism for students, parents, and visitors.",
+    category: "feedback",
+    status: "published",
+    isActive: true,
+    submitButtonText: "Send Feedback",
+    successMessage: "Thank you for sharing your feedback. Your remarks have been forwarded to the administration.",
+    fields: [
+      { id: "fld_name", label: "Full Name", type: "text", required: true, order: 1 },
+      { id: "fld_role", label: "I am a...", type: "radio", required: true, order: 2, options: ["Student", "Alumni", "Parent", "Visitor"] },
+      { id: "fld_email", label: "Email Address", type: "email", required: true, order: 3 },
+      { id: "fld_feedback", label: "Detailed Remarks", type: "textarea", required: true, order: 4 },
+    ],
+  },
+];
+
+const INITIAL_FORM_SUBMISSIONS: CMSFormSubmission[] = [];
+
 // ─── Store Context Definition ─────────────────────────────────────────────────
 
 type CMSStoreContextType = {
@@ -694,6 +798,17 @@ type CMSStoreContextType = {
   mediaAssets: MediaAsset[];
   saveMediaAsset: (asset: Partial<MediaAsset>, isNew?: boolean) => void;
   deleteMediaAsset: (id: string) => void;
+
+  // Forms & Inquiries Engine
+  forms: CMSForm[];
+  formSubmissions: CMSFormSubmission[];
+  saveForm: (form: Partial<CMSForm>, isNew?: boolean) => Promise<CMSForm | void>;
+  deleteForm: (id: string, archiveInstead?: boolean) => Promise<boolean>;
+  publishForm: (id: string) => Promise<void>;
+  archiveForm: (id: string) => Promise<void>;
+  getFormBySlug: (slug: string) => CMSForm | undefined;
+  updateInquiryStatus: (id: string, status: CMSFormSubmission["status"], notes?: string) => Promise<void>;
+  deleteInquiry: (id: string) => Promise<boolean>;
 
   // Document Center
   documents: CollegeDocument[];
@@ -771,6 +886,10 @@ export function CMSStoreProvider({ children }: { children: React.ReactNode }) {
   const [pages, setPages] = useState<DynamicPage[]>(() => loadState("pages", []));
   const [menuItems, setMenuItems] = useState<MenuItem[]>(() => loadState("menus", []));
   const [mediaAssets, setMediaAssets] = useState<MediaAsset[]>(() => loadState("media", []));
+  const [forms, setForms] = useState<CMSForm[]>(() => loadState("forms", INITIAL_FORMS));
+  // Privacy & Data Protection: Applicant submissions contain PII and internal counselor remarks.
+  // Never persist real submission payloads to browser localStorage. Kept strictly in controlled React memory.
+  const [formSubmissions, setFormSubmissions] = useState<CMSFormSubmission[]>([]);
   const [documents, setDocuments] = useState<CollegeDocument[]>(() => loadState("documents", INITIAL_DOCUMENTS));
   const [applications, setApplications] = useState<AdmissionApplication[]>(() => loadState("applications", INITIAL_APPLICATIONS));
   const [alumni, setAlumni] = useState<AlumniMember[]>(() => loadState("alumni", INITIAL_ALUMNI));
@@ -790,6 +909,14 @@ export function CMSStoreProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => { localStorage.setItem(STORAGE_PREFIX + "pages", JSON.stringify(pages)); }, [pages]);
   useEffect(() => { localStorage.setItem(STORAGE_PREFIX + "menus", JSON.stringify(menuItems)); }, [menuItems]);
   useEffect(() => { localStorage.setItem(STORAGE_PREFIX + "media", JSON.stringify(mediaAssets)); }, [mediaAssets]);
+  useEffect(() => { localStorage.setItem(STORAGE_PREFIX + "forms", JSON.stringify(forms)); }, [forms]);
+  // Note: formSubmissions is strictly NOT written to localStorage for applicant privacy protection.
+  useEffect(() => {
+    // Proactively clear any legacy submissions cache from browser localStorage
+    try {
+      localStorage.removeItem(STORAGE_PREFIX + "form_submissions");
+    } catch {}
+  }, []);
   useEffect(() => { localStorage.setItem(STORAGE_PREFIX + "documents", JSON.stringify(documents)); }, [documents]);
   useEffect(() => { localStorage.setItem(STORAGE_PREFIX + "applications", JSON.stringify(applications)); }, [applications]);
   useEffect(() => { localStorage.setItem(STORAGE_PREFIX + "alumni", JSON.stringify(alumni)); }, [alumni]);
@@ -818,7 +945,8 @@ export function CMSStoreProvider({ children }: { children: React.ReactNode }) {
           });
         }
       } catch {
-        // Backend offline or unauthenticated; fall back to local stored state
+        // Backend offline or unauthenticated; clear sensitive submission memory
+        if (active) setFormSubmissions([]);
       }
     }
     verifyLiveSession();
@@ -1143,13 +1271,108 @@ export function CMSStoreProvider({ children }: { children: React.ReactNode }) {
       }
     }
 
+    async function fetchLiveForms() {
+      try {
+        let allForms: any[] = [];
+        let currentPage = 1;
+        let totalPages = 1;
+
+        do {
+          const res = await apiClient.get<any>(`/admin/forms?limit=100&page=${currentPage}`);
+          const list = res?.data || (Array.isArray(res) ? res : []);
+          if (Array.isArray(list)) {
+            allForms = allForms.concat(list);
+          }
+          totalPages = res?.totalPages || 1;
+          currentPage++;
+        } while (currentPage <= totalPages && active);
+
+        if (allForms.length > 0 && active) {
+          const mapped: CMSForm[] = allForms.map((doc: any) => ({
+            id: doc.id || String(doc._id),
+            title: doc.title,
+            slug: doc.slug,
+            description: doc.description || "",
+            category: doc.category || "general",
+            status: doc.status || "draft",
+            isActive: doc.isActive !== undefined ? doc.isActive : true,
+            departmentId: doc.departmentId,
+            clubId: doc.clubId,
+            fields: Array.isArray(doc.fields) ? doc.fields : [],
+            submitButtonText: doc.submitButtonText || "Submit",
+            successMessage: doc.successMessage || "Thank you for your submission.",
+            createdAt: doc.createdAt,
+            updatedAt: doc.updatedAt,
+          }));
+          setForms(mapped);
+        }
+      } catch {
+        // Fall back to local forms state
+      }
+    }
+
+    async function fetchLiveSubmissions() {
+      // Permission check: only fetch sensitive applicant submissions if authorized
+      const hasSubPermission =
+        currentUser.role === "master_admin" ||
+        currentUser.role === "sub_admin" ||
+        currentUser.permissions.includes("form_submissions:read") ||
+        currentUser.permissions.includes("forms:read") ||
+        currentUser.permissions.includes("forms:manage") ||
+        currentUser.permissions.includes("all") ||
+        currentUser.permissions.includes("*");
+
+      if (!hasSubPermission) {
+        if (active) setFormSubmissions([]);
+        return;
+      }
+
+      try {
+        let allSubs: any[] = [];
+        let currentPage = 1;
+        let totalPages = 1;
+
+        do {
+          const res = await apiClient.get<any>(`/admin/form-submissions?limit=100&page=${currentPage}`);
+          const list = res?.data || (Array.isArray(res) ? res : []);
+          if (Array.isArray(list)) {
+            allSubs = allSubs.concat(list);
+          }
+          totalPages = res?.totalPages || 1;
+          currentPage++;
+        } while (currentPage <= totalPages && active);
+
+        if (active) {
+          const mapped: CMSFormSubmission[] = allSubs.map((doc: any) => ({
+            id: doc.id || String(doc._id),
+            formId: doc.formId ? String(doc.formId) : "",
+            formSlug: doc.formSlug || "",
+            formTitle: doc.formTitle || "",
+            submissionReference: doc.submissionReference || doc.reference || "",
+            answers: doc.answers || {},
+            status: doc.status || "new",
+            notes: doc.notes || "",
+            submittedAt: doc.submittedAt || (doc.createdAt ? new Date(doc.createdAt).toLocaleString("en-IN") : new Date().toLocaleString("en-IN")),
+          }));
+          setFormSubmissions(mapped);
+        }
+      } catch {
+        // Clear sensitive submission data on failure or session expiry to protect PII
+        if (active) setFormSubmissions([]);
+      }
+    }
+
     fetchLiveMenus();
     fetchLiveMediaAssets();
+    fetchLiveForms();
+    fetchLiveSubmissions();
     return () => { active = false; };
   }, [currentUser]);
 
   // ── Switch User ─────────────────────────────────────────────────────────────
   const switchUser = useCallback((identifier: string) => {
+    // Instantly purge sensitive in-memory applicant submissions on user switch / logout
+    setFormSubmissions([]);
     const found = users.find((u) => u.email === identifier || u.role === identifier || u.id === identifier);
     if (found) {
       setCurrentUser(found);
@@ -1679,6 +1902,195 @@ export function CMSStoreProvider({ children }: { children: React.ReactNode }) {
     logAction({ action: "DELETE", module: "Media Library", recordId: id, recordTitle: asset?.title || "Deleted media asset" });
   }, [mediaAssets, logAction]);
 
+  // ── Forms & Inquiries Engine ────────────────────────────────────────────────
+  const saveForm = useCallback(async (form: Partial<CMSForm>, isNew = false): Promise<CMSForm | void> => {
+    const rollbackState = [...forms];
+    if (isNew) {
+      const tempId = "form-" + Date.now();
+      const newForm: CMSForm = {
+        id: form.id || tempId,
+        title: form.title || "Untitled Form",
+        slug: form.slug || "form-" + Date.now(),
+        description: form.description || "",
+        category: form.category || "general",
+        status: form.status || (currentUser.role === "master_admin" ? "published" : "draft"),
+        isActive: form.isActive !== undefined ? form.isActive : true,
+        departmentId: form.departmentId,
+        clubId: form.clubId,
+        fields: form.fields || [],
+        submitButtonText: form.submitButtonText || "Submit",
+        successMessage: form.successMessage || "Thank you for your submission.",
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        ...form,
+      };
+
+      setForms((prev) => [newForm, ...prev]);
+
+      try {
+        const payload = {
+          title: newForm.title,
+          slug: newForm.slug,
+          description: newForm.description,
+          category: newForm.category,
+          status: newForm.status,
+          isActive: newForm.isActive,
+          departmentId: newForm.departmentId,
+          clubId: newForm.clubId,
+          fields: newForm.fields,
+          submitButtonText: newForm.submitButtonText,
+          successMessage: newForm.successMessage,
+        };
+
+        const res = await apiClient.post<any>("/admin/forms", payload);
+        const liveDoc = res?.data;
+        if (liveDoc?.id || liveDoc?._id) {
+          const finalId = liveDoc.id || String(liveDoc._id);
+          const finalForm = { ...newForm, id: finalId };
+          setForms((current) => current.map((f) => (f.id === tempId ? finalForm : f)));
+          logAction({ action: "CREATE", module: "Forms Engine", recordId: finalId, recordTitle: newForm.title });
+          return finalForm;
+        }
+        return newForm;
+      } catch (err: any) {
+        console.error("[CMS Store] Backend form creation failed, rolling back optimistic state:", err?.message);
+        setForms(rollbackState);
+        throw err;
+      }
+    } else {
+      const targetId = form.id || "";
+      const existing = forms.find((f) => f.id === targetId || (form.slug && f.slug === form.slug));
+      const realId = existing?.id || targetId;
+
+      setForms((prev) => prev.map((f) => (f.id === realId ? { ...f, ...form, updatedAt: new Date().toISOString() } : f)));
+
+      try {
+        const payload: Record<string, unknown> = {};
+        if (form.title !== undefined) payload.title = form.title;
+        if (form.slug !== undefined) payload.slug = form.slug;
+        if (form.description !== undefined) payload.description = form.description;
+        if (form.category !== undefined) payload.category = form.category;
+        if (form.status !== undefined) payload.status = form.status;
+        if (form.isActive !== undefined) payload.isActive = form.isActive;
+        if (form.departmentId !== undefined) payload.departmentId = form.departmentId;
+        if (form.clubId !== undefined) payload.clubId = form.clubId;
+        if (form.fields !== undefined) payload.fields = form.fields;
+        if (form.submitButtonText !== undefined) payload.submitButtonText = form.submitButtonText;
+        if (form.successMessage !== undefined) payload.successMessage = form.successMessage;
+
+        const res = await apiClient.put<any>(`/admin/forms/${realId}`, payload);
+        logAction({ action: "UPDATE", module: "Forms Engine", recordId: realId, recordTitle: form.title || existing?.title || "Form Update" });
+        return res?.data;
+      } catch (err: any) {
+        console.error("[CMS Store] Backend form update failed, rolling back optimistic state:", err?.message);
+        setForms(rollbackState);
+        throw err;
+      }
+    }
+  }, [currentUser.role, forms, logAction]);
+
+  const deleteForm = useCallback(async (id: string, archiveInstead = false): Promise<boolean> => {
+    const rollbackState = [...forms];
+    const form = forms.find((f) => f.id === id);
+
+    if (archiveInstead) {
+      setForms((prev) => prev.map((f) => (f.id === id ? { ...f, status: "archived", isActive: false } : f)));
+      try {
+        await apiClient.delete<any>(`/admin/forms/${id}?archive=true`);
+        logAction({ action: "UPDATE", module: "Forms Engine", recordId: id, recordTitle: `Archived Form: ${form?.title || id}` });
+        return true;
+      } catch (err: any) {
+        console.error("[CMS Store] Backend form archive failed, rolling back optimistic state:", err?.message);
+        setForms(rollbackState);
+        throw err;
+      }
+    }
+
+    setForms((prev) => prev.filter((f) => f.id !== id));
+    try {
+      await apiClient.delete<any>(`/admin/forms/${id}`);
+      logAction({ action: "DELETE", module: "Forms Engine", recordId: id, recordTitle: form?.title || "Deleted Form" });
+      return true;
+    } catch (err: any) {
+      console.error("[CMS Store] Backend form deletion failed, rolling back optimistic state:", err?.message);
+      setForms(rollbackState);
+      throw err;
+    }
+  }, [forms, logAction]);
+
+  const publishForm = useCallback(async (id: string): Promise<void> => {
+    const rollbackState = [...forms];
+    const form = forms.find((f) => f.id === id);
+    setForms((prev) => prev.map((f) => (f.id === id ? { ...f, status: "published", isActive: true } : f)));
+
+    try {
+      await apiClient.put<any>(`/admin/forms/${id}`, { status: "published", isActive: true });
+      logAction({ action: "APPROVE", module: "Forms Engine", recordId: id, recordTitle: `Published form: ${form?.title || id}` });
+    } catch (err: any) {
+      console.error("[CMS Store] Backend form publish failed, rolling back optimistic state:", err?.message);
+      setForms(rollbackState);
+      throw err;
+    }
+  }, [forms, logAction]);
+
+  const archiveForm = useCallback(async (id: string): Promise<void> => {
+    const rollbackState = [...forms];
+    const form = forms.find((f) => f.id === id);
+    setForms((prev) => prev.map((f) => (f.id === id ? { ...f, status: "archived", isActive: false } : f)));
+
+    try {
+      await apiClient.put<any>(`/admin/forms/${id}`, { status: "archived", isActive: false });
+      logAction({ action: "UPDATE", module: "Forms Engine", recordId: id, recordTitle: `Archived form: ${form?.title || id}` });
+    } catch (err: any) {
+      console.error("[CMS Store] Backend form archive failed, rolling back optimistic state:", err?.message);
+      setForms(rollbackState);
+      throw err;
+    }
+  }, [forms, logAction]);
+
+  const getFormBySlug = useCallback((slug: string) => forms.find((f) => f.slug === slug), [forms]);
+
+  const updateInquiryStatus = useCallback(async (id: string, status: CMSFormSubmission["status"], notes?: string): Promise<void> => {
+    const rollbackState = [...formSubmissions];
+    const sub = formSubmissions.find((s) => s.id === id);
+    setFormSubmissions((prev) => prev.map((s) => (s.id === id ? { ...s, status, notes: notes !== undefined ? notes : s.notes } : s)));
+
+    try {
+      await apiClient.put<any>(`/admin/form-submissions/${id}/status`, { status, notes });
+      logAction({
+        action: "UPDATE",
+        module: "Inquiry Triage",
+        recordId: id,
+        recordTitle: `Updated status to ${status.toUpperCase()} (${sub?.submissionReference || id})`,
+      });
+    } catch (err: any) {
+      console.error("[CMS Store] Backend inquiry status update failed, rolling back optimistic state:", err?.message);
+      setFormSubmissions(rollbackState);
+      throw err;
+    }
+  }, [formSubmissions, logAction]);
+
+  const deleteInquiry = useCallback(async (id: string): Promise<boolean> => {
+    const rollbackState = [...formSubmissions];
+    const sub = formSubmissions.find((s) => s.id === id);
+    setFormSubmissions((prev) => prev.filter((s) => s.id !== id));
+
+    try {
+      await apiClient.delete<any>(`/admin/form-submissions/${id}`);
+      logAction({
+        action: "DELETE",
+        module: "Inquiry Triage",
+        recordId: id,
+        recordTitle: `Deleted inquiry reference: ${sub?.submissionReference || id}`,
+      });
+      return true;
+    } catch (err: any) {
+      console.error("[CMS Store] Backend inquiry deletion failed, rolling back optimistic state:", err?.message);
+      setFormSubmissions(rollbackState);
+      throw err;
+    }
+  }, [formSubmissions, logAction]);
+
   // ── Document Center ─────────────────────────────────────────────────────────
   const saveDocument = useCallback((doc: Partial<CollegeDocument>, isNew = false) => {
     if (isNew) {
@@ -2014,6 +2426,15 @@ export function CMSStoreProvider({ children }: { children: React.ReactNode }) {
         mediaAssets,
         saveMediaAsset,
         deleteMediaAsset,
+        forms,
+        formSubmissions,
+        saveForm,
+        deleteForm,
+        publishForm,
+        archiveForm,
+        getFormBySlug,
+        updateInquiryStatus,
+        deleteInquiry,
         documents,
         saveDocument,
         deleteDocument,

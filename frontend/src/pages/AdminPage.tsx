@@ -15,6 +15,7 @@ import { AdvertisementsCMS } from "@/components/admin/modules/website/advertisem
 import { PageBuilderCMS } from "@/components/admin/modules/website/page-builder-cms";
 import { MenuBuilderCMS } from "@/components/admin/modules/website/menu-builder-cms";
 import { MediaLibraryCMS } from "@/components/admin/modules/website/media-library-cms";
+import { FormsInquiriesCMS } from "@/components/admin/modules/website/forms-inquiries-cms";
 import { DocumentCenterCMS } from "@/components/admin/modules/website/document-center-cms";
 import { SEOManagerCMS } from "@/components/admin/modules/website/seo-manager-cms";
 import { WebsiteSettingsCMS } from "@/components/admin/modules/website/website-settings-cms";
@@ -127,6 +128,7 @@ export default function AdminPage() {
       {p === "pages"         && <PageBuilderCMS />}
       {p === "menus"         && <MenuBuilderCMS />}
       {p === "media"         && <MediaLibraryCMS />}
+      {p === "forms"         && <FormsInquiriesCMS />}
       {p === "documents"     && <DocumentCenterCMS />}
       {p === "seo"           && <SEOManagerCMS />}
       {(p === "site-settings" || p === "settings") && <WebsiteSettingsCMS />}

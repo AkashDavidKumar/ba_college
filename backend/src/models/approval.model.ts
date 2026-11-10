@@ -16,6 +16,7 @@ export const APPROVAL_ENTITY_TYPES = [
   'department',
   'club',
   'achievement',
+  'form',
 ] as const;
 
 export type ApprovalEntityType = (typeof APPROVAL_ENTITY_TYPES)[number];

@@ -25,3 +25,5 @@ export * from './approval.model';
 export * from './dynamic-page.model';
 export * from './navigation-menu.model';
 export * from './media-asset.model';
+export * from './form.model';
+export * from './form-submission.model';

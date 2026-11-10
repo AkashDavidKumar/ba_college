@@ -16,6 +16,7 @@ import * as adminCmsController from '../controllers/admin-cms.controller';
 import * as dynamicPageController from '../controllers/dynamic-page.controller';
 import * as navigationMenuController from '../controllers/navigation-menu.controller';
 import * as mediaAssetController from '../controllers/media-asset.controller';
+import * as formController from '../controllers/form.controller';
 import {
   updateSiteContentSchema,
   updateAboutPageSchema,
@@ -47,6 +48,9 @@ import {
   reorderNavigationMenusSchema,
   createMediaAssetSchema,
   updateMediaAssetSchema,
+  createFormSchema,
+  updateFormSchema,
+  updateInquiryStatusSchema,
 } from '../validations';
 
 export const adminRouter = Router();
@@ -630,6 +634,107 @@ adminRouter.delete(
   requireAuth,
   requireAnyPermission('media:delete', 'media:manage', 'all'),
   mediaAssetController.deleteMediaAsset
+);
+
+// ── 20. Forms Administration (Form Builder Engine) ───────────────────────────
+// List forms (scoped by role for HOD & Club Head)
+adminRouter.get(
+  '/admin/forms',
+  requireAuth,
+  requireAnyPermission('forms:read', 'forms:manage', 'all'),
+  formController.listAdminForms
+);
+
+// Get single form by ID or slug
+adminRouter.get(
+  '/admin/forms/:id',
+  requireAuth,
+  requireAnyPermission('forms:read', 'forms:manage', 'all'),
+  formController.getAdminFormById
+);
+
+// Create new form definition
+adminRouter.post(
+  ['/admin/forms', '/forms'],
+  requireAuth,
+  requireAnyPermission('forms:create', 'forms:manage', 'all'),
+  validateBody(createFormSchema),
+  formController.createForm
+);
+
+// Update form definition
+adminRouter.put(
+  ['/admin/forms/:id', '/forms/:id'],
+  requireAuth,
+  requireAnyPermission('forms:update', 'forms:manage', 'all'),
+  validateBody(updateFormSchema),
+  formController.updateForm
+);
+
+adminRouter.patch(
+  ['/admin/forms/:id', '/forms/:id'],
+  requireAuth,
+  requireAnyPermission('forms:update', 'forms:manage', 'all'),
+  validateBody(updateFormSchema),
+  formController.updateForm
+);
+
+// Delete or archive form
+adminRouter.delete(
+  ['/admin/forms/:id', '/forms/:id'],
+  requireAuth,
+  requireAnyPermission('forms:delete', 'forms:manage', 'all'),
+  formController.deleteForm
+);
+
+// Publish form
+adminRouter.post(
+  ['/admin/forms/:id/publish', '/forms/:id/publish'],
+  requireAuth,
+  requireAnyPermission('forms:publish', 'forms:manage', 'all'),
+  formController.publishForm
+);
+
+// Archive form
+adminRouter.post(
+  ['/admin/forms/:id/archive', '/forms/:id/archive'],
+  requireAuth,
+  requireAnyPermission('forms:update', 'forms:manage', 'all'),
+  formController.archiveForm
+);
+
+// ── 21. Inquiries & Submissions Administration ──────────────────────────────
+// List inquiries / submissions (scoped)
+adminRouter.get(
+  '/admin/form-submissions',
+  requireAuth,
+  requireAnyPermission('form_submissions:read', 'forms:manage', 'all'),
+  formController.listAdminInquiries
+);
+
+// Get single inquiry detail
+adminRouter.get(
+  '/admin/form-submissions/:id',
+  requireAuth,
+  requireAnyPermission('form_submissions:read', 'forms:manage', 'all'),
+  formController.getAdminInquiryById
+);
+
+// Triage inquiry status & notes
+adminRouter.patch(
+  '/admin/form-submissions/:id/status',
+  requireAuth,
+  requireAnyPermission('form_submissions:update', 'forms:manage', 'all'),
+  validateBody(updateInquiryStatusSchema),
+  formController.updateInquiryStatus
+);
+
+// Delete inquiry submission (restricted)
+adminRouter.delete(
+  '/admin/form-submissions/:id',
+  requireAuth,
+  requireAnyPermission('forms:manage', 'all'),
+  formController.deleteAdminInquiry
 );
 
 export default adminRouter;
