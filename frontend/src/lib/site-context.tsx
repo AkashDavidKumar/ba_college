@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import { Department, UniversityEvent } from "./university-data";
+import * as mockUniversityData from "./university-data";
 import { apiClient } from "./api-client";
 
 type HeroContent = {
@@ -460,9 +461,9 @@ export function SiteDataProvider({ children }: { children: React.ReactNode }) {
       console.info("[SiteContext] Backend not reachable, activating resilient offline data fallback.");
       setError(err.message || "An error occurred while loading content");
       
-      // Resilient Fallback: Dynamically import university data mock so site functions offline/during boot
+      // Resilient Fallback: Use imported university data mock so site functions offline/during boot
       try {
-        const mock = await import("./university-data");
+        const mock = mockUniversityData;
         setData((prev) => {
           // If we already had valid content loaded, preserve it instead of overriding with mock
           if (prev && prev.departments && prev.departments.length > 0) {

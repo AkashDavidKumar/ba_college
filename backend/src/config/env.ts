@@ -39,7 +39,7 @@ function requirePort(key: string): number {
   return port;
 }
 
-function parseOrigins(raw: string): string[] {
+function parseOrigins(raw: string, isProduction = false): string[] {
   const origins = raw
     .split(',')
     .map((o) => o.trim())
@@ -48,6 +48,20 @@ function parseOrigins(raw: string): string[] {
     throw new EnvValidationError(
       'CORS_ORIGINS must contain at least one origin (e.g. http://localhost:3000).'
     );
+  }
+  if (isProduction) {
+    if (origins.includes('*')) {
+      throw new EnvValidationError(
+        'Wildcard origin "*" is strictly forbidden in production CORS_ORIGINS.'
+      );
+    }
+    for (const origin of origins) {
+      if (!origin.startsWith('https://') && !origin.startsWith('http://localhost') && !origin.startsWith('http://127.0.0.1')) {
+        throw new EnvValidationError(
+          `Production CORS origin "${origin}" must use HTTPS protocol.`
+        );
+      }
+    }
   }
   return origins;
 }
@@ -63,14 +77,67 @@ function parseTrustProxy(raw: string | undefined): boolean {
 }
 
 function validateJwtSecret(secret: string, isProduction: boolean): string {
-  if (secret.length < 32) {
-    if (isProduction) {
+  if (isProduction) {
+    if (secret.length < 32) {
       throw new EnvValidationError(
         'JWT_SECRET must be at least 32 characters long in production environments.'
       );
     }
+    const lower = secret.toLowerCase().trim();
+    const exactWeakPlaceholders = [
+      'jwt_secret',
+      'secret',
+      'password',
+      'changeme',
+      '12345678',
+      'default',
+    ];
+    const substringWeakPlaceholders = ['changeme', 'replace_with', 'example'];
+    if (
+      exactWeakPlaceholders.includes(lower) ||
+      substringWeakPlaceholders.some((placeholder) => lower.includes(placeholder))
+    ) {
+      throw new EnvValidationError(
+        'JWT_SECRET contains an insecure placeholder value. Set a high-entropy secret in production.'
+      );
+    }
   }
   return secret;
+}
+
+function validateCookieSecret(secret: string | undefined, isProduction: boolean): string | undefined {
+  if (isProduction) {
+    if (!secret || secret.trim() === '') {
+      throw new EnvValidationError(
+        'Required environment variable "COOKIE_SECRET" is missing or empty in production. Set a secure secret (at least 32 characters).'
+      );
+    }
+    const trimmed = secret.trim();
+    if (trimmed.length < 32) {
+      throw new EnvValidationError(
+        'COOKIE_SECRET must be at least 32 characters long in production environments.'
+      );
+    }
+    const lower = trimmed.toLowerCase();
+    const exactWeakPlaceholders = [
+      'cookie_secret',
+      'secret',
+      'password',
+      'changeme',
+      '12345678',
+      'default',
+    ];
+    const substringWeakPlaceholders = ['changeme', 'replace_with', 'example'];
+    if (
+      exactWeakPlaceholders.includes(lower) ||
+      substringWeakPlaceholders.some((placeholder) => lower.includes(placeholder))
+    ) {
+      throw new EnvValidationError(
+        'COOKIE_SECRET contains an insecure placeholder value. Set a high-entropy secret in production.'
+      );
+    }
+  }
+  return secret ? secret.trim() : undefined;
 }
 
 export function validateEnv(): ValidatedEnv {
@@ -97,7 +164,7 @@ export function validateEnv(): ValidatedEnv {
   }
 
   // CORS_ORIGINS — comma-separated list
-  const CORS_ORIGINS = parseOrigins(requireString('CORS_ORIGINS'));
+  const CORS_ORIGINS = parseOrigins(requireString('CORS_ORIGINS'), isProd);
 
   // TRUST_PROXY — optional, defaults to false
   const TRUST_PROXY = parseTrustProxy(process.env['TRUST_PROXY']);
@@ -116,8 +183,8 @@ export function validateEnv(): ValidatedEnv {
   // JWT_EXPIRES_IN — optional, defaults to "8h"
   const JWT_EXPIRES_IN = process.env['JWT_EXPIRES_IN']?.trim() || '8h';
 
-  // COOKIE_SECRET — optional
-  const COOKIE_SECRET = process.env['COOKIE_SECRET']?.trim() || undefined;
+  // COOKIE_SECRET — mandatory in production, optional in development/test
+  const COOKIE_SECRET = validateCookieSecret(process.env['COOKIE_SECRET'], isProd);
 
   cachedEnv = {
     NODE_ENV,

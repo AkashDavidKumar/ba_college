@@ -142,4 +142,67 @@ describe('validateEnv()', () => {
     process.env['CORS_ORIGINS'] = '';
     expect(() => validateEnv()).toThrow('CORS_ORIGINS');
   });
+
+  // ── Phase 5B Production Security Hardening ───────────────────────────────
+  it('throws when COOKIE_SECRET is missing in production', () => {
+    process.env['NODE_ENV'] = 'production';
+    process.env['JWT_SECRET'] = 'a_very_secure_high_entropy_jwt_secret_for_production_2026';
+    process.env['CORS_ORIGINS'] = 'https://bishopambrose.edu.in';
+    delete process.env['COOKIE_SECRET'];
+    expect(() => validateEnv()).toThrow('COOKIE_SECRET');
+  });
+
+  it('throws when COOKIE_SECRET is under 32 characters in production', () => {
+    process.env['NODE_ENV'] = 'production';
+    process.env['JWT_SECRET'] = 'a_very_secure_high_entropy_jwt_secret_for_production_2026';
+    process.env['CORS_ORIGINS'] = 'https://bishopambrose.edu.in';
+    process.env['COOKIE_SECRET'] = 'short_cookie_secret';
+    expect(() => validateEnv()).toThrow('32 characters');
+  });
+
+  it('throws when COOKIE_SECRET has a predictable placeholder in production', () => {
+    process.env['NODE_ENV'] = 'production';
+    process.env['JWT_SECRET'] = 'a_very_secure_high_entropy_jwt_secret_for_production_2026';
+    process.env['CORS_ORIGINS'] = 'https://bishopambrose.edu.in';
+    process.env['COOKIE_SECRET'] = 'replace_with_cookie_secret_key_in_production_12345';
+    expect(() => validateEnv()).toThrow('insecure placeholder');
+  });
+
+  it('throws when JWT_SECRET has a predictable placeholder in production', () => {
+    process.env['NODE_ENV'] = 'production';
+    process.env['JWT_SECRET'] = 'replace_with_a_secure_random_32_char_secret_key_in_production';
+    process.env['COOKIE_SECRET'] = 'a_very_secure_high_entropy_cookie_secret_for_production_2026';
+    process.env['CORS_ORIGINS'] = 'https://bishopambrose.edu.in';
+    expect(() => validateEnv()).toThrow('insecure placeholder');
+  });
+
+  it('throws when wildcard origin "*" is configured in production CORS_ORIGINS', () => {
+    process.env['NODE_ENV'] = 'production';
+    process.env['JWT_SECRET'] = 'a_very_secure_high_entropy_jwt_secret_for_production_2026';
+    process.env['COOKIE_SECRET'] = 'a_very_secure_high_entropy_cookie_secret_for_production_2026';
+    process.env['CORS_ORIGINS'] = '*';
+    expect(() => validateEnv()).toThrow('Wildcard origin "*" is strictly forbidden');
+  });
+
+  it('throws when production CORS origin does not use HTTPS or localhost', () => {
+    process.env['NODE_ENV'] = 'production';
+    process.env['JWT_SECRET'] = 'a_very_secure_high_entropy_jwt_secret_for_production_2026';
+    process.env['COOKIE_SECRET'] = 'a_very_secure_high_entropy_cookie_secret_for_production_2026';
+    process.env['CORS_ORIGINS'] = 'http://insecure-domain.edu.in';
+    expect(() => validateEnv()).toThrow('must use HTTPS');
+  });
+
+  it('succeeds in production when all security secrets and origins are valid', () => {
+    process.env['NODE_ENV'] = 'production';
+    process.env['JWT_SECRET'] = 'a_very_secure_high_entropy_jwt_secret_for_production_2026';
+    process.env['COOKIE_SECRET'] = 'a_very_secure_high_entropy_cookie_secret_for_production_2026';
+    process.env['CORS_ORIGINS'] = 'https://bishopambrose.edu.in,https://admin.bishopambrose.edu.in';
+    const env = validateEnv();
+    expect(env.NODE_ENV).toBe('production');
+    expect(env.COOKIE_SECRET).toBe('a_very_secure_high_entropy_cookie_secret_for_production_2026');
+    expect(env.CORS_ORIGINS).toEqual([
+      'https://bishopambrose.edu.in',
+      'https://admin.bishopambrose.edu.in',
+    ]);
+  });
 });

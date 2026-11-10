@@ -138,9 +138,6 @@ export function NewsEventsSection() {
 
   const cfg: NewsEventsConfig = data?.newsConfig || defaultNewsEventsConfig;
 
-  // Hide section if disabled in admin
-  if (!cfg.sectionEnabled) return null;
-
   const allArticles = (data?.news && data.news.length > 0 ? data.news : FALLBACK_NEWS)
     .filter((a) => a.published);
 
@@ -169,6 +166,9 @@ export function NewsEventsSection() {
     }
     return articles.slice(0, cfg.maxNewsVisible);
   }, [allArticles, featured, activeFilter, cfg.maxNewsVisible]);
+
+  // Hide section if disabled in admin — evaluated strictly after all Hooks
+  if (!cfg.sectionEnabled) return null;
 
   const showEvents = activeFilter === "All" || activeFilter === "Events";
 

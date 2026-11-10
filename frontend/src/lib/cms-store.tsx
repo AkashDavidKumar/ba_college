@@ -945,13 +945,26 @@ export function CMSStoreProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => { localStorage.setItem(STORAGE_PREFIX + "enquiries", JSON.stringify(enquiries)); }, [enquiries]);
 
   // ── Live Backend Authentication & Session Sync ──────────────────────────────
+  const [isLiveAuthenticated, setIsLiveAuthenticated] = useState<boolean>(false);
+
   useEffect(() => {
     let active = true;
     async function verifyLiveSession() {
+      // Only query session if stored admin profile exists or actively visiting an admin path
+      const hasAdminContext =
+        typeof window !== "undefined" &&
+        (localStorage.getItem("bac_admin_user") !== null || window.location.pathname.startsWith("/admin"));
+
+      if (!hasAdminContext) {
+        if (active) setIsLiveAuthenticated(false);
+        return;
+      }
+
       try {
         const res = await apiClient.get<any>("/auth/me");
         const liveUser = res?.data?.user || res?.user;
         if (liveUser && active) {
+          setIsLiveAuthenticated(true);
           setCurrentUser({
             id: liveUser.id || String(liveUser._id),
             name: liveUser.name,
@@ -967,6 +980,7 @@ export function CMSStoreProvider({ children }: { children: React.ReactNode }) {
       } catch {
         // Backend offline or unauthenticated; clear sensitive submission and alumni memory
         if (active) {
+          setIsLiveAuthenticated(false);
           setFormSubmissions([]);
           setAlumni([]);
         }
@@ -980,6 +994,7 @@ export function CMSStoreProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     let active = true;
     async function fetchLiveApplications() {
+      if (!isLiveAuthenticated) return;
       if (
         currentUser.role !== "master_admin" &&
         !currentUser.permissions.includes("admissions:read") &&
@@ -1028,12 +1043,13 @@ export function CMSStoreProvider({ children }: { children: React.ReactNode }) {
     }
     fetchLiveApplications();
     return () => { active = false; };
-  }, [currentUser]);
+  }, [currentUser, isLiveAuthenticated]);
 
   // ── Live Backend Contact Enquiries Sync ─────────────────────────────────────
   useEffect(() => {
     let active = true;
     async function fetchLiveEnquiries() {
+      if (!isLiveAuthenticated) return;
       if (
         currentUser.role !== "master_admin" &&
         !currentUser.permissions.includes("enquiries:read") &&
@@ -1065,12 +1081,13 @@ export function CMSStoreProvider({ children }: { children: React.ReactNode }) {
     }
     fetchLiveEnquiries();
     return () => { active = false; };
-  }, [currentUser]);
+  }, [currentUser, isLiveAuthenticated]);
 
   // ── Live Backend Users Sync ────────────────────────────────────────────────
   useEffect(() => {
     let active = true;
     async function fetchLiveUsers() {
+      if (!isLiveAuthenticated) return;
       if (
         currentUser.role !== "master_admin" &&
         currentUser.role !== "sub_admin" &&
@@ -1104,12 +1121,13 @@ export function CMSStoreProvider({ children }: { children: React.ReactNode }) {
     }
     fetchLiveUsers();
     return () => { active = false; };
-  }, [currentUser]);
+  }, [currentUser, isLiveAuthenticated]);
 
   // ── Live Backend Approvals Sync ────────────────────────────────────────────
   useEffect(() => {
     let active = true;
     async function fetchLiveApprovals() {
+      if (!isLiveAuthenticated) return;
       try {
         const res = await apiClient.get<any>("/admin/approvals?limit=100");
         const list = res?.data?.approvals || res?.data || (Array.isArray(res) ? res : []);
@@ -1139,12 +1157,13 @@ export function CMSStoreProvider({ children }: { children: React.ReactNode }) {
     }
     fetchLiveApprovals();
     return () => { active = false; };
-  }, [currentUser]);
+  }, [currentUser, isLiveAuthenticated]);
 
   // ── Live Backend Audit Logs Sync ───────────────────────────────────────────
   useEffect(() => {
     let active = true;
     async function fetchLiveAuditLogs() {
+      if (!isLiveAuthenticated) return;
       if (
         currentUser.role !== "master_admin" &&
         currentUser.role !== "sub_admin" &&
@@ -1178,12 +1197,13 @@ export function CMSStoreProvider({ children }: { children: React.ReactNode }) {
     }
     fetchLiveAuditLogs();
     return () => { active = false; };
-  }, [currentUser]);
+  }, [currentUser, isLiveAuthenticated]);
 
   // ── Live Backend Dynamic Pages Sync ─────────────────────────────────────────
   useEffect(() => {
     let active = true;
     async function fetchLivePages() {
+      if (!isLiveAuthenticated) return;
       try {
         let allPages: any[] = [];
         let currentPage = 1;
@@ -1227,12 +1247,13 @@ export function CMSStoreProvider({ children }: { children: React.ReactNode }) {
     }
     fetchLivePages();
     return () => { active = false; };
-  }, [currentUser]);
+  }, [currentUser, isLiveAuthenticated]);
 
   // ── Live Backend Navigation Menus Sync ──────────────────────────────────────
   useEffect(() => {
     let active = true;
     async function fetchLiveMenus() {
+      if (!isLiveAuthenticated) return;
       try {
         const res = await apiClient.get<any>("/admin/menus");
         const list = res?.data || (Array.isArray(res) ? res : []);
@@ -1257,6 +1278,7 @@ export function CMSStoreProvider({ children }: { children: React.ReactNode }) {
     }
 
     async function fetchLiveMediaAssets() {
+      if (!isLiveAuthenticated) return;
       try {
         const res = await apiClient.get<any>("/admin/media?limit=100");
         const list = res?.data || (Array.isArray(res) ? res : []);
@@ -1295,6 +1317,7 @@ export function CMSStoreProvider({ children }: { children: React.ReactNode }) {
     }
 
     async function fetchLiveForms() {
+      if (!isLiveAuthenticated) return;
       try {
         let allForms: any[] = [];
         let currentPage = 1;
@@ -1335,6 +1358,7 @@ export function CMSStoreProvider({ children }: { children: React.ReactNode }) {
     }
 
     async function fetchLiveSubmissions() {
+      if (!isLiveAuthenticated) return;
       // Permission check: only fetch sensitive applicant submissions if authorized
       const hasSubPermission =
         currentUser.role === "master_admin" ||
@@ -1386,6 +1410,7 @@ export function CMSStoreProvider({ children }: { children: React.ReactNode }) {
     }
 
     async function fetchLiveAlumni() {
+      if (!isLiveAuthenticated) return;
       // Permission check: only fetch sensitive alumni records if authorized
       const hasAlumniPermission =
         currentUser.role === "master_admin" ||
@@ -1467,7 +1492,7 @@ export function CMSStoreProvider({ children }: { children: React.ReactNode }) {
     fetchLiveSubmissions();
     fetchLiveAlumni();
     return () => { active = false; };
-  }, [currentUser]);
+  }, [currentUser, isLiveAuthenticated]);
 
   // ── Switch User ─────────────────────────────────────────────────────────────
   const switchUser = useCallback((identifier: string) => {
@@ -1481,6 +1506,7 @@ export function CMSStoreProvider({ children }: { children: React.ReactNode }) {
     const found = users.find((u) => u.email === identifier || u.role === identifier || u.id === identifier);
     if (found) {
       setCurrentUser(found);
+      setIsLiveAuthenticated(true);
       localStorage.setItem("bac_admin_user", JSON.stringify({
         name: found.name,
         role: found.role === "master_admin" ? "Master Admin" : found.role === "hod" ? `HOD (${found.departmentId})` : found.role,

@@ -39,13 +39,35 @@ export interface AppConfig {
   corsOrigins: string[];
   trustProxy: boolean;
   cookieSecret?: string;
+  isProduction?: boolean;
 }
 
 export function createApp(config: AppConfig): Application {
   const app = express();
 
-  // ── 1. Helmet — security headers ─────────────────────────────────────────
-  app.use(helmet());
+  // ── 1. Helmet — security headers & production CSP ───────────────────────
+  app.use(
+    helmet({
+      contentSecurityPolicy: {
+        directives: {
+          defaultSrc: ["'self'"],
+          baseUri: ["'self'"],
+          fontSrc: ["'self'", 'https:', 'data:'],
+          formAction: ["'self'"],
+          frameAncestors: ["'none'"],
+          imgSrc: ["'self'", 'data:', 'https:', 'blob:'],
+          objectSrc: ["'none'"],
+          scriptSrc: ["'self'"],
+          scriptSrcAttr: ["'none'"],
+          styleSrc: ["'self'", 'https:', "'unsafe-inline'"],
+          connectSrc: ["'self'", ...config.corsOrigins],
+          upgradeInsecureRequests: config.isProduction ? [] : null,
+        },
+      },
+      crossOriginEmbedderPolicy: false,
+      crossOriginResourcePolicy: { policy: 'cross-origin' },
+    })
+  );
 
   // ── 2. Trust proxy — must be BEFORE CORS and rate limiting ───────────────
   // Only enable when a real trusted proxy (Nginx, ALB, etc.) is confirmed.
@@ -57,7 +79,12 @@ export function createApp(config: AppConfig): Application {
   app.use(
     cors({
       origin: (origin, callback) => {
-        // Allow requests with no origin (e.g. server-to-server, curl in dev)
+        // Disallow wildcard origin with credentials
+        if (config.corsOrigins.includes('*')) {
+          callback(new Error('CORS: Wildcard origin "*" is strictly prohibited with credentials.'));
+          return;
+        }
+        // Allow requests with no origin (e.g. server-to-server, curl in dev/testing)
         if (!origin) {
           callback(null, true);
           return;

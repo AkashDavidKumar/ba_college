@@ -35,6 +35,7 @@ const app = createApp({
   corsOrigins: env.CORS_ORIGINS,
   trustProxy: env.TRUST_PROXY,
   cookieSecret: env.COOKIE_SECRET,
+  isProduction: env.NODE_ENV === 'production',
 });
 
 // ── 3. Create HTTP server (not started yet) ──────────────────────────────────

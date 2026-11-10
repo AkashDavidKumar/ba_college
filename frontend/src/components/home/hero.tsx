@@ -34,9 +34,15 @@ export function Hero() {
   // Auto-play safety check on mount
   useEffect(() => {
     if (videoRef.current && heroSection.enabled && heroSection.backgroundVideo) {
-      videoRef.current.play().catch((err) => {
-        console.warn("Video auto-play suppressed by browser policy:", err);
-      });
+      const playPromise = videoRef.current.play();
+      if (playPromise !== undefined) {
+        playPromise.catch((err) => {
+          // Ignore AbortError when component re-renders or unmounts media
+          if (err && err.name !== "AbortError") {
+            console.warn("Video auto-play suppressed by browser policy:", err);
+          }
+        });
+      }
     }
   }, [heroSection.backgroundVideo, heroSection.enabled]);
 

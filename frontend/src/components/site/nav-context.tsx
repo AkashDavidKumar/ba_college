@@ -1,38 +1,22 @@
 "use client";
 
 import { createContext, useContext, useState, useCallback, useEffect, type ReactNode } from "react";
+import { View, viewToPath, pathToView } from "@/lib/routing";
 
-// ─── View types ───────────────────────────────────────────────────────────────
+// Re-export types and utilities for seamless backward-compatibility
+export type { View };
+export { viewToPath, pathToView };
 
-export type View =
-  | { type: "home" }
-  | { type: "department"; slug: string; section?: string }
-  | { type: "events" }
-  | { type: "admissions" }
-  | { type: "about"; section?: string }
-  | { type: "academic"; section?: string }
-  | { type: "student-activities"; section?: string }
-  | { type: "iqac"; section?: string }
-  | { type: "examination"; section?: string }
-  | { type: "autonomous"; section?: string }
-  | { type: "library"; section?: string }
-  | { type: "nirf" }
-  | { type: "alumni"; section?: string }
-  | { type: "contact" }
-  | { type: "facilities" }
-  | { type: "gallery" }
-  | { type: "placements" }
-  | { type: "news" };
-
-type NavContextValue = {
+export type NavContextValue = {
   view: View;
-  navigate: (view: View) => void;
+  navigate: (view: View, replace?: boolean) => void;
   goHome: () => void;
   goDepartment: (slug: string, section?: string) => void;
   goEvents: () => void;
   goAdmissions: () => void;
   goAbout: (section?: string) => void;
   goAcademic: (section?: string) => void;
+  goCourses: (section?: string) => void;
   goStudentActivities: (section?: string) => void;
   goIqac: (section?: string) => void;
   goExamination: (section?: string) => void;
@@ -45,6 +29,8 @@ type NavContextValue = {
   goGallery: () => void;
   goPlacements: () => void;
   goNews: () => void;
+  goClubs: (slug?: string, section?: string) => void;
+  goNotices: () => void;
 };
 
 const NavContext = createContext<NavContextValue | null>(null);
@@ -56,13 +42,53 @@ export function useNav() {
 }
 
 export function NavProvider({ children }: { children: ReactNode }) {
-  const [view, setView] = useState<View>({ type: "home" });
+  // Initialize view from browser location when available
+  const [view, setView] = useState<View>(() => {
+    if (typeof window !== "undefined") {
+      const initialPath = window.location.pathname;
+      // If currently on admin routes, default view to home for public components
+      if (initialPath.startsWith("/admin")) {
+        return { type: "home" };
+      }
+      return pathToView(initialPath, window.location.hash);
+    }
+    return { type: "home" };
+  });
 
-  const navigate = useCallback((v: View) => {
+  const navigate = useCallback((v: View, replace = false) => {
     setView(v);
     if (typeof window !== "undefined") {
-      window.scrollTo({ top: 0, behavior: "smooth" });
+      const targetPath = viewToPath(v);
+      const currentPath = window.location.pathname + window.location.hash;
+
+      if (targetPath !== currentPath && !window.location.pathname.startsWith("/admin")) {
+        if (replace) {
+          window.history.replaceState({ view: v }, "", targetPath);
+        } else {
+          window.history.pushState({ view: v }, "", targetPath);
+        }
+      }
+
+      const sec = (v as any).section;
+      if (!sec) {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
     }
+  }, []);
+
+  // Sync state on browser back/forward buttons (popstate)
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const handlePopState = () => {
+      const currentPath = window.location.pathname;
+      if (currentPath.startsWith("/admin")) return;
+      const v = pathToView(currentPath, window.location.hash);
+      setView(v);
+    };
+
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
   }, []);
 
   const goHome                = useCallback(() => navigate({ type: "home" }), [navigate]);
@@ -71,6 +97,7 @@ export function NavProvider({ children }: { children: ReactNode }) {
   const goAdmissions          = useCallback(() => navigate({ type: "admissions" }), [navigate]);
   const goAbout               = useCallback((section?: string) => navigate({ type: "about", section }), [navigate]);
   const goAcademic            = useCallback((section?: string) => navigate({ type: "academic", section }), [navigate]);
+  const goCourses             = useCallback((section?: string) => navigate({ type: "courses", section }), [navigate]);
   const goStudentActivities   = useCallback((section?: string) => navigate({ type: "student-activities", section }), [navigate]);
   const goIqac                = useCallback((section?: string) => navigate({ type: "iqac", section }), [navigate]);
   const goExamination         = useCallback((section?: string) => navigate({ type: "examination", section }), [navigate]);
@@ -83,6 +110,8 @@ export function NavProvider({ children }: { children: ReactNode }) {
   const goGallery             = useCallback(() => navigate({ type: "gallery" }), [navigate]);
   const goPlacements          = useCallback(() => navigate({ type: "placements" }), [navigate]);
   const goNews                = useCallback(() => navigate({ type: "news" }), [navigate]);
+  const goClubs               = useCallback((slug?: string, section?: string) => navigate({ type: "clubs", slug, section }), [navigate]);
+  const goNotices             = useCallback(() => navigate({ type: "notices" }), [navigate]);
 
   // Smooth-scroll to section when navigating with a section target
   useEffect(() => {
@@ -99,9 +128,9 @@ export function NavProvider({ children }: { children: ReactNode }) {
   return (
     <NavContext.Provider value={{
       view, navigate, goHome, goDepartment, goEvents, goAdmissions,
-      goAbout, goAcademic, goStudentActivities, goIqac, goExamination,
+      goAbout, goAcademic, goCourses, goStudentActivities, goIqac, goExamination,
       goAutonomous, goLibrary, goNirf, goAlumni, goContact,
-      goFacilities, goGallery, goPlacements, goNews,
+      goFacilities, goGallery, goPlacements, goNews, goClubs, goNotices,
     }}>
       {children}
     </NavContext.Provider>
