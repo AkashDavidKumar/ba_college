@@ -27,3 +27,4 @@ export * from './navigation-menu.model';
 export * from './media-asset.model';
 export * from './form.model';
 export * from './form-submission.model';
+export * from './alumni.model';

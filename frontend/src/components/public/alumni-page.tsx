@@ -99,6 +99,8 @@ const CHAPTERS = [
 export function AlumniPage({ section }: { section?: string }) {
   const [activeTab, setActiveTab] = useState<string>(section || "events");
   const [submitted, setSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
@@ -113,13 +115,75 @@ export function AlumniPage({ section }: { section?: string }) {
     mentorship: true,
   });
 
+  const [publicAlumni, setPublicAlumni] = useState<any[]>([]);
+  const [directoryLoading, setDirectoryLoading] = useState(false);
+  const [directorySearch, setDirectorySearch] = useState("");
+  const [directoryBatch, setDirectoryBatch] = useState("all");
+
   useEffect(() => {
     if (section) setActiveTab(section);
   }, [section]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  useEffect(() => {
+    if (activeTab === "directory") {
+      setDirectoryLoading(true);
+      const params = new URLSearchParams();
+      if (directorySearch) params.append("search", directorySearch);
+      if (directoryBatch !== "all") params.append("graduationYear", directoryBatch);
+      fetch(`/api/alumni/directory?${params.toString()}`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.success && data.data?.items) {
+            setPublicAlumni(data.data.items);
+          } else {
+            setPublicAlumni([]);
+          }
+        })
+        .catch(() => setPublicAlumni([]))
+        .finally(() => setDirectoryLoading(false));
+    }
+  }, [activeTab, directorySearch, directoryBatch]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitted(true);
+    setIsSubmitting(true);
+    setSubmitError(null);
+    try {
+      const parts = formData.fullName.trim().split(" ");
+      const firstName = parts[0] || "Alumnus";
+      const lastName = parts.slice(1).join(" ") || "Member";
+      const payload = {
+        firstName,
+        lastName,
+        personalEmail: formData.email.trim(),
+        phoneNumber: formData.phone.trim(),
+        graduationYear: Number(formData.batchYear) || 2020,
+        degree: formData.degree,
+        departmentId: "general",
+        currentCompany: formData.company || undefined,
+        designation: formData.currentRole || undefined,
+        city: formData.city || undefined,
+        country: formData.country || "India",
+        linkedInUrl: formData.linkedin || undefined,
+        isWillingToMentor: formData.mentorship,
+        isPublicDirectoryOptIn: true,
+      };
+
+      const res = await fetch("/api/alumni/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const result = await res.json();
+      if (!res.ok) {
+        throw new Error(result.message || "Registration failed");
+      }
+      setSubmitted(true);
+    } catch (err) {
+      setSubmitError(err instanceof Error ? err.message : "Failed to submit registration");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -153,6 +217,7 @@ export function AlumniPage({ section }: { section?: string }) {
         <div className="flex flex-wrap gap-2 p-1.5 bg-white rounded-2xl border border-slate-200 shadow-sm mb-10">
           {[
             { id: "events", label: "Alumni Events & Reunions", icon: Calendar },
+            { id: "directory", label: "Alumni Directory", icon: Users },
             { id: "registration", label: "Alumni Registration", icon: UserCheck },
             { id: "association", label: "Association & Chapters", icon: Globe2 },
             { id: "hall-of-fame", label: "Distinguished Alumni", icon: Award },
@@ -229,6 +294,112 @@ export function AlumniPage({ section }: { section?: string }) {
                 Submit Memories
               </PremiumButton>
             </div>
+          </div>
+        )}
+
+        {/* Tab: Verified Alumni Directory */}
+        {activeTab === "directory" && (
+          <div className="space-y-6">
+            <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm flex flex-col sm:flex-row gap-4 items-center justify-between">
+              <div className="w-full sm:w-72">
+                <input
+                  type="text"
+                  placeholder="Search by name, company, role..."
+                  value={directorySearch}
+                  onChange={(e) => setDirectorySearch(e.target.value)}
+                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-navy focus:outline-none"
+                />
+              </div>
+              <div className="flex items-center gap-2 w-full sm:w-auto">
+                <label className="text-xs font-semibold text-slate-500 whitespace-nowrap">Graduation Batch:</label>
+                <select
+                  value={directoryBatch}
+                  onChange={(e) => setDirectoryBatch(e.target.value)}
+                  className="px-3 py-2 rounded-xl border border-slate-200 text-sm bg-white focus:outline-none"
+                >
+                  <option value="all">All Batches</option>
+                  {Array.from({ length: 25 }, (_, i) => 2026 - i).map((yr) => (
+                    <option key={yr} value={String(yr)}>
+                      Class of {yr}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {directoryLoading ? (
+              <div className="text-center py-16 text-sm text-slate-500">Loading verified alumni directory...</div>
+            ) : publicAlumni.length === 0 ? (
+              <div className="text-center py-16 bg-white rounded-3xl border border-slate-200/80 p-8 space-y-3">
+                <GraduationCap className="w-10 h-10 text-slate-300 mx-auto" />
+                <h4 className="font-bold text-slate-700">No verified alumni profiles found</h4>
+                <p className="text-xs text-slate-500 max-w-sm mx-auto">
+                  Only alumni who have undergone institutional verification and opted into the public directory are displayed here.
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {publicAlumni.map((alum) => (
+                  <div
+                    key={alum._id || alum.id}
+                    className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm flex flex-col justify-between space-y-4 hover:shadow-md transition-shadow"
+                  >
+                    <div className="space-y-3">
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <h4 className="font-bold text-base text-navy">{alum.fullName || `${alum.firstName} ${alum.lastName}`}</h4>
+                          <p className="text-xs text-gold-dark font-medium">{alum.degree} • Class of {alum.graduationYear}</p>
+                        </div>
+                        {alum.isFeatured && (
+                          <span className="p-1.5 rounded-lg bg-gold/15 text-gold-dark" title="Featured Alumnus">
+                            <Award className="w-4 h-4" />
+                          </span>
+                        )}
+                      </div>
+
+                      {(alum.currentCompany || alum.designation) && (
+                        <div className="text-xs text-slate-600 space-y-0.5">
+                          {alum.designation && <div className="font-semibold text-slate-800">{alum.designation}</div>}
+                          {alum.currentCompany && <div className="text-slate-500">{alum.currentCompany}</div>}
+                        </div>
+                      )}
+
+                      {alum.city && (
+                        <div className="text-xs text-slate-500 flex items-center gap-1">
+                          <MapPin className="w-3 h-3 text-slate-400" />
+                          <span>{alum.city}{alum.country ? `, ${alum.country}` : ""}</span>
+                        </div>
+                      )}
+
+                      {alum.testimonial && (
+                        <p className="text-xs text-slate-600 italic bg-slate-50 p-3 rounded-xl border border-slate-100 line-clamp-3">
+                          "{alum.testimonial}"
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+                      {alum.isWillingToMentor ? (
+                        <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                          <CheckCircle2 className="w-3 h-3" /> Student Mentor
+                        </span>
+                      ) : <span />}
+
+                      {alum.linkedInUrl && (
+                        <a
+                          href={alum.linkedInUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-navy font-semibold hover:text-gold-dark flex items-center gap-1"
+                        >
+                          LinkedIn
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 
@@ -392,11 +563,18 @@ export function AlumniPage({ section }: { section?: string }) {
                   </label>
                 </div>
 
+                {submitError && (
+                  <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-700">
+                    {submitError}
+                  </div>
+                )}
+
                 <button
                   type="submit"
-                  className="w-full py-3.5 bg-navy text-white font-semibold rounded-xl text-sm hover:bg-navy-dark transition-colors flex items-center justify-center gap-2 cursor-pointer"
+                  disabled={isSubmitting}
+                  className="w-full py-3.5 bg-navy text-white font-semibold rounded-xl text-sm hover:bg-navy-dark transition-colors flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
                 >
-                  <Send className="w-4 h-4 text-gold" /> Complete Alumni Registration
+                  <Send className="w-4 h-4 text-gold" /> {isSubmitting ? "Submitting..." : "Complete Alumni Registration"}
                 </button>
               </form>
             )}

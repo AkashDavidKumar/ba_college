@@ -7,7 +7,7 @@ import { PageHeader } from "@/components/admin/core/page-header";
 import { ConfirmationDialog } from "@/components/admin/core/confirmation-dialog";
 import { 
   Users, CheckCircle2, XCircle, Search, Mail, 
-  Phone, Globe, Building2, Linkedin, Download, ShieldCheck, Eye 
+  Phone, Globe, Building2, Linkedin, Download, ShieldCheck, Eye, AlertTriangle 
 } from "lucide-react";
 
 export function AlumniCMS() {
@@ -15,7 +15,9 @@ export function AlumniCMS() {
   const [selectedAlumni, setSelectedAlumni] = useState<AlumniMember | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [filterBatch, setFilterBatch] = useState<string>("all");
+  const [filterStatus, setFilterStatus] = useState<"all" | "pending" | "verified" | "rejected" | "duplicates">("all");
   const [verifyTarget, setVerifyTarget] = useState<{ id: string; name: string; verify: boolean } | null>(null);
+  const [rejectionReason, setRejectionReason] = useState("");
 
   const batches = useMemo(() => {
     const list = Array.from(new Set(alumni.map((a) => a.passingYear))).sort().reverse();
@@ -26,16 +28,29 @@ export function AlumniCMS() {
     return alumni.filter((a) => {
       if (!canAccessDepartment(a.departmentSlug)) return false;
       if (filterBatch !== "all" && a.passingYear !== filterBatch) return false;
+      if (filterStatus === "pending" && (a.verificationStatus ? a.verificationStatus !== "pending" : a.verified)) return false;
+      if (filterStatus === "verified" && (a.verificationStatus ? a.verificationStatus !== "verified" : !a.verified)) return false;
+      if (filterStatus === "rejected" && a.verificationStatus !== "rejected") return false;
+      if (filterStatus === "duplicates" && !a.flaggedAsPotentialDuplicate) return false;
       return true;
     });
-  }, [alumni, canAccessDepartment, filterBatch]);
+  }, [alumni, canAccessDepartment, filterBatch, filterStatus]);
 
-  const handleConfirmVerify = () => {
+  const handleConfirmVerify = async () => {
     if (!verifyTarget) return;
-    verifyAlumni(verifyTarget.id, verifyTarget.verify);
-    setVerifyTarget(null);
-    if (selectedAlumni && selectedAlumni.id === verifyTarget.id) {
-      setSelectedAlumni({ ...selectedAlumni, verified: verifyTarget.verify });
+    try {
+      await verifyAlumni(verifyTarget.id, verifyTarget.verify, verifyTarget.verify ? "Approved by admin" : rejectionReason || "Rejected by administrator");
+      if (selectedAlumni && selectedAlumni.id === verifyTarget.id) {
+        setSelectedAlumni({
+          ...selectedAlumni,
+          verified: verifyTarget.verify,
+          verificationStatus: verifyTarget.verify ? "verified" : "rejected",
+          rejectionReason: verifyTarget.verify ? undefined : rejectionReason,
+        });
+      }
+    } finally {
+      setVerifyTarget(null);
+      setRejectionReason("");
     }
   };
 
@@ -204,6 +219,60 @@ export function AlumniCMS() {
         }
       />
 
+      {/* Status Filter Tabs */}
+      <div className="flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-2">
+        <button
+          onClick={() => setFilterStatus("all")}
+          className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-colors ${
+            filterStatus === "all"
+              ? "bg-slate-900 text-white dark:bg-amber-600"
+              : "text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800"
+          }`}
+        >
+          All Records ({alumni.length})
+        </button>
+        <button
+          onClick={() => setFilterStatus("pending")}
+          className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-colors ${
+            filterStatus === "pending"
+              ? "bg-amber-600 text-white"
+              : "text-amber-700 hover:bg-amber-50 dark:text-amber-400 dark:hover:bg-slate-800"
+          }`}
+        >
+          Pending Verification ({alumni.filter((a) => (a.verificationStatus ? a.verificationStatus === "pending" : !a.verified)).length})
+        </button>
+        <button
+          onClick={() => setFilterStatus("verified")}
+          className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-colors ${
+            filterStatus === "verified"
+              ? "bg-emerald-600 text-white"
+              : "text-emerald-700 hover:bg-emerald-50 dark:text-emerald-400 dark:hover:bg-slate-800"
+          }`}
+        >
+          Verified ({alumni.filter((a) => (a.verificationStatus ? a.verificationStatus === "verified" : a.verified)).length})
+        </button>
+        <button
+          onClick={() => setFilterStatus("rejected")}
+          className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-colors ${
+            filterStatus === "rejected"
+              ? "bg-rose-600 text-white"
+              : "text-rose-700 hover:bg-rose-50 dark:text-rose-400 dark:hover:bg-slate-800"
+          }`}
+        >
+          Rejected ({alumni.filter((a) => a.verificationStatus === "rejected").length})
+        </button>
+        <button
+          onClick={() => setFilterStatus("duplicates")}
+          className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-colors ${
+            filterStatus === "duplicates"
+              ? "bg-orange-600 text-white"
+              : "text-orange-700 hover:bg-orange-50 dark:text-orange-400 dark:hover:bg-slate-800"
+          }`}
+        >
+          Potential Duplicates ({alumni.filter((a) => a.flaggedAsPotentialDuplicate).length})
+        </button>
+      </div>
+
       {/* Batch Filters */}
       <div className="flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-2 overflow-x-auto">
         <button
@@ -257,6 +326,11 @@ export function AlumniCMS() {
                           Verified Member
                         </span>
                       )}
+                      {selectedAlumni.verificationStatus === "rejected" && (
+                        <span className="text-[10px] font-bold bg-rose-100 text-rose-800 px-2 py-0.5 rounded-full">
+                          Rejected
+                        </span>
+                      )}
                     </h3>
                     <p className="text-xs text-slate-500">Class of {selectedAlumni.passingYear} • {selectedAlumni.degree}</p>
                   </div>
@@ -269,6 +343,22 @@ export function AlumniCMS() {
                   ✕
                 </button>
               </div>
+
+              {selectedAlumni.flaggedAsPotentialDuplicate && (
+                <div className="p-3 bg-amber-50 dark:bg-amber-950/60 border border-amber-300 dark:border-amber-800 rounded-xl text-xs text-amber-800 dark:text-amber-200 flex items-start gap-2">
+                  <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                  <div>
+                    <div className="font-bold">Potential Duplicate Profile Detected</div>
+                    <div>{selectedAlumni.duplicateMatchDetails || "A record with matching personal identifiers already exists in the system."}</div>
+                  </div>
+                </div>
+              )}
+
+              {selectedAlumni.rejectionReason && (
+                <div className="p-3 bg-rose-50 dark:bg-rose-950/60 border border-rose-300 dark:border-rose-800 rounded-xl text-xs text-rose-800 dark:text-rose-200">
+                  <span className="font-bold">Rejection Reason:</span> {selectedAlumni.rejectionReason}
+                </div>
+              )}
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
                 <div className="p-4 rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 space-y-2">

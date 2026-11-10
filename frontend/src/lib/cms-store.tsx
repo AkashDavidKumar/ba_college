@@ -177,12 +177,14 @@ export type AdmissionApplication = {
 export type AlumniMember = {
   id: string;
   fullName: string;
+  firstName?: string;
+  lastName?: string;
   gender: string;
   degree: string;
   departmentSlug: string;
   registerNumber: string;
   passingYear: string;
-  employmentType: "Salaried" | "Entrepreneur" | "Homemaker" | "Yet to be Placed" | "Higher Studies";
+  employmentType: "Salaried" | "Entrepreneur" | "Homemaker" | "Yet to be Placed" | "Higher Studies" | "Other";
   presentEmployer?: string;
   designation?: string;
   workCity?: string;
@@ -196,8 +198,18 @@ export type AlumniMember = {
   country: string;
   linkedin?: string;
   verified: boolean;
+  verificationStatus?: "pending" | "verified" | "rejected";
+  rejectionReason?: string;
+  verifiedBy?: string;
+  verifiedAt?: string;
   registeredAt: string;
   avatarUrl?: string;
+  isFeatured?: boolean;
+  isPublicDirectoryOptIn?: boolean;
+  isWillingToMentor?: boolean;
+  flaggedAsPotentialDuplicate?: boolean;
+  duplicateMatchDetails?: string;
+  internalNotes?: string;
 };
 
 export type CollegeNotice = {
@@ -822,8 +834,8 @@ type CMSStoreContextType = {
 
   // Alumni
   alumni: AlumniMember[];
-  verifyAlumni: (id: string, verified: boolean) => void;
-  saveAlumni: (member: Partial<AlumniMember>, isNew?: boolean) => void;
+  verifyAlumni: (id: string, verified: boolean, remarks?: string) => Promise<void> | void;
+  saveAlumni: (member: Partial<AlumniMember>, isNew?: boolean) => Promise<void> | void;
 
   // Notices
   notices: CollegeNotice[];
@@ -887,12 +899,12 @@ export function CMSStoreProvider({ children }: { children: React.ReactNode }) {
   const [menuItems, setMenuItems] = useState<MenuItem[]>(() => loadState("menus", []));
   const [mediaAssets, setMediaAssets] = useState<MediaAsset[]>(() => loadState("media", []));
   const [forms, setForms] = useState<CMSForm[]>(() => loadState("forms", INITIAL_FORMS));
-  // Privacy & Data Protection: Applicant submissions contain PII and internal counselor remarks.
-  // Never persist real submission payloads to browser localStorage. Kept strictly in controlled React memory.
+  // Privacy & Data Protection: Applicant submissions and alumni records contain PII.
+  // Never persist real submission or alumni payloads to browser localStorage. Kept strictly in controlled React memory.
   const [formSubmissions, setFormSubmissions] = useState<CMSFormSubmission[]>([]);
   const [documents, setDocuments] = useState<CollegeDocument[]>(() => loadState("documents", INITIAL_DOCUMENTS));
   const [applications, setApplications] = useState<AdmissionApplication[]>(() => loadState("applications", INITIAL_APPLICATIONS));
-  const [alumni, setAlumni] = useState<AlumniMember[]>(() => loadState("alumni", INITIAL_ALUMNI));
+  const [alumni, setAlumni] = useState<AlumniMember[]>([]);
   const [notices, setNotices] = useState<CollegeNotice[]>(() => loadState("notices", INITIAL_NOTICES));
   const [clubs, setClubs] = useState<ClubItem[]>(() => loadState("clubs", INITIAL_CLUBS));
   const [enquiries, setEnquiries] = useState<ContactEnquiry[]>(() => loadState("enquiries", []));
@@ -910,16 +922,16 @@ export function CMSStoreProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => { localStorage.setItem(STORAGE_PREFIX + "menus", JSON.stringify(menuItems)); }, [menuItems]);
   useEffect(() => { localStorage.setItem(STORAGE_PREFIX + "media", JSON.stringify(mediaAssets)); }, [mediaAssets]);
   useEffect(() => { localStorage.setItem(STORAGE_PREFIX + "forms", JSON.stringify(forms)); }, [forms]);
-  // Note: formSubmissions is strictly NOT written to localStorage for applicant privacy protection.
+  // Note: formSubmissions and alumni records are strictly NOT written to localStorage for applicant and alumni privacy protection.
   useEffect(() => {
-    // Proactively clear any legacy submissions cache from browser localStorage
+    // Proactively clear any legacy submissions and alumni cache from browser localStorage
     try {
       localStorage.removeItem(STORAGE_PREFIX + "form_submissions");
+      localStorage.removeItem(STORAGE_PREFIX + "alumni");
     } catch {}
   }, []);
   useEffect(() => { localStorage.setItem(STORAGE_PREFIX + "documents", JSON.stringify(documents)); }, [documents]);
   useEffect(() => { localStorage.setItem(STORAGE_PREFIX + "applications", JSON.stringify(applications)); }, [applications]);
-  useEffect(() => { localStorage.setItem(STORAGE_PREFIX + "alumni", JSON.stringify(alumni)); }, [alumni]);
   useEffect(() => { localStorage.setItem(STORAGE_PREFIX + "notices", JSON.stringify(notices)); }, [notices]);
   useEffect(() => { localStorage.setItem(STORAGE_PREFIX + "clubs", JSON.stringify(clubs)); }, [clubs]);
   useEffect(() => { localStorage.setItem(STORAGE_PREFIX + "enquiries", JSON.stringify(enquiries)); }, [enquiries]);
@@ -945,8 +957,11 @@ export function CMSStoreProvider({ children }: { children: React.ReactNode }) {
           });
         }
       } catch {
-        // Backend offline or unauthenticated; clear sensitive submission memory
-        if (active) setFormSubmissions([]);
+        // Backend offline or unauthenticated; clear sensitive submission and alumni memory
+        if (active) {
+          setFormSubmissions([]);
+          setAlumni([]);
+        }
       }
     }
     verifyLiveSession();
@@ -1362,17 +1377,95 @@ export function CMSStoreProvider({ children }: { children: React.ReactNode }) {
       }
     }
 
+    async function fetchLiveAlumni() {
+      // Permission check: only fetch sensitive alumni records if authorized
+      const hasAlumniPermission =
+        currentUser.role === "master_admin" ||
+        currentUser.role === "sub_admin" ||
+        currentUser.permissions.includes("alumni:read") ||
+        currentUser.permissions.includes("alumni:manage") ||
+        currentUser.permissions.includes("all") ||
+        currentUser.permissions.includes("*");
+
+      if (!hasAlumniPermission) {
+        if (active) setAlumni([]);
+        return;
+      }
+
+      try {
+        let allAlumni: any[] = [];
+        let currentPage = 1;
+        let totalPages = 1;
+
+        do {
+          const res = await apiClient.get<any>(`/admin/alumni?limit=100&page=${currentPage}`);
+          const list = res?.data?.items || res?.data || (Array.isArray(res) ? res : []);
+          if (Array.isArray(list)) {
+            allAlumni = allAlumni.concat(list);
+          }
+          totalPages = res?.data?.pagination?.totalPages || res?.totalPages || 1;
+          currentPage++;
+        } while (currentPage <= totalPages && active);
+
+        if (active) {
+          const mapped: AlumniMember[] = allAlumni.map((doc: any) => ({
+            id: String(doc._id || doc.id),
+            fullName: doc.fullName || `${doc.firstName || ""} ${doc.lastName || ""}`.trim(),
+            firstName: doc.firstName,
+            lastName: doc.lastName,
+            gender: doc.gender || "Other",
+            degree: doc.degree || "",
+            departmentSlug: doc.departmentId || doc.departmentSlug || "",
+            registerNumber: doc.registerNumber || "",
+            passingYear: String(doc.graduationYear || ""),
+            employmentType: doc.employmentType || "Salaried",
+            presentEmployer: doc.currentCompany || "",
+            designation: doc.designation || "",
+            workCity: doc.city || "",
+            workCountry: doc.country || "India",
+            higherStudiesStatus: doc.higherStudiesStatus || "None",
+            higherStudiesUniversity: doc.higherStudiesUniversity || "",
+            specialAchievements: doc.testimonial || "",
+            mobile: doc.phoneNumber || "",
+            email: doc.personalEmail || "",
+            city: doc.city || "",
+            country: doc.country || "India",
+            linkedin: doc.linkedInUrl || "",
+            verified: doc.verificationStatus === "verified",
+            verificationStatus: doc.verificationStatus || "pending",
+            rejectionReason: doc.rejectionReason,
+            verifiedBy: doc.verifiedBy?.name,
+            verifiedAt: doc.verifiedAt ? new Date(doc.verifiedAt).toLocaleString("en-IN") : undefined,
+            registeredAt: doc.createdAt ? new Date(doc.createdAt).toISOString().split("T")[0] : "",
+            avatarUrl: doc.avatarUrl,
+            isFeatured: Boolean(doc.isFeatured),
+            isPublicDirectoryOptIn: Boolean(doc.isPublicDirectoryOptIn),
+            isWillingToMentor: Boolean(doc.isWillingToMentor),
+            flaggedAsPotentialDuplicate: Boolean(doc.flaggedAsPotentialDuplicate),
+            duplicateMatchDetails: doc.duplicateMatchDetails,
+            internalNotes: doc.internalNotes,
+          }));
+          setAlumni(mapped);
+        }
+      } catch {
+        // Clear sensitive alumni data on failure or session expiry to protect PII
+        if (active) setAlumni([]);
+      }
+    }
+
     fetchLiveMenus();
     fetchLiveMediaAssets();
     fetchLiveForms();
     fetchLiveSubmissions();
+    fetchLiveAlumni();
     return () => { active = false; };
   }, [currentUser]);
 
   // ── Switch User ─────────────────────────────────────────────────────────────
   const switchUser = useCallback((identifier: string) => {
-    // Instantly purge sensitive in-memory applicant submissions on user switch / logout
+    // Instantly purge sensitive in-memory applicant submissions and alumni on user switch / logout
     setFormSubmissions([]);
+    setAlumni([]);
     const found = users.find((u) => u.email === identifier || u.role === identifier || u.id === identifier);
     if (found) {
       setCurrentUser(found);
@@ -2178,25 +2271,56 @@ export function CMSStoreProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   // ── Alumni ──────────────────────────────────────────────────────────────────
-  const verifyAlumni = useCallback((id: string, verified: boolean) => {
-    setAlumni((prev) => prev.map((a) => (a.id === id ? { ...a, verified } : a)));
+  const verifyAlumni = useCallback(async (id: string, verified: boolean, remarks?: string) => {
+    const previous = alumni;
+    setAlumni((prev) =>
+      prev.map((a) =>
+        a.id === id
+          ? {
+              ...a,
+              verified,
+              verificationStatus: verified ? "verified" : "rejected",
+              rejectionReason: verified ? undefined : remarks || "Administrative rejection",
+            }
+          : a
+      )
+    );
+
     logAction({
       action: "UPDATE",
       module: "Alumni",
       recordId: id,
-      recordTitle: verified ? "Verified alumni registration" : "Revoked alumni verification",
+      recordTitle: verified ? "Verified alumni registration" : "Rejected alumni verification",
     });
-  }, [logAction]);
 
-  const saveAlumni = useCallback((member: Partial<AlumniMember>, isNew = false) => {
+    try {
+      if (verified) {
+        await apiClient.post(`/admin/alumni/${id}/verify`, { remarks });
+      } else {
+        await apiClient.post(`/admin/alumni/${id}/reject`, {
+          rejectionReason: remarks || "Verification rejected by administrator",
+        });
+      }
+    } catch (err) {
+      // Rollback on failure
+      setAlumni(previous);
+      throw err;
+    }
+  }, [alumni, logAction]);
+
+  const saveAlumni = useCallback(async (member: Partial<AlumniMember>, isNew = false) => {
+    const previous = alumni;
     if (isNew) {
+      const tempId = "alum-" + Date.now();
       const newMember: AlumniMember = {
-        id: "alum-" + Date.now(),
-        fullName: member.fullName || "Alumnus",
-        gender: member.gender || "Male",
+        id: tempId,
+        fullName: member.fullName || `${member.firstName || ""} ${member.lastName || ""}`.trim() || "Alumnus",
+        firstName: member.firstName,
+        lastName: member.lastName,
+        gender: member.gender || "Other",
         degree: member.degree || "B.Sc Computer Science",
         departmentSlug: member.departmentSlug || "computer-science",
-        registerNumber: member.registerNumber || "BAC" + Math.floor(1000 + Math.random() * 9000),
+        registerNumber: member.registerNumber || "",
         passingYear: member.passingYear || "2020",
         employmentType: member.employmentType || "Salaried",
         mobile: member.mobile || "",
@@ -2204,14 +2328,70 @@ export function CMSStoreProvider({ children }: { children: React.ReactNode }) {
         city: member.city || "Coimbatore",
         country: member.country || "India",
         verified: false,
+        verificationStatus: "pending",
         registeredAt: new Date().toISOString().split("T")[0],
         ...member,
       };
       setAlumni((prev) => [newMember, ...prev]);
+
+      try {
+        const payload = {
+          firstName: member.firstName || (member.fullName ? member.fullName.split(" ")[0] : "Alumnus"),
+          lastName: member.lastName || (member.fullName ? member.fullName.split(" ").slice(1).join(" ") || "Member" : "Member"),
+          personalEmail: member.email,
+          phoneNumber: member.mobile,
+          degree: member.degree || "B.Sc Computer Science",
+          departmentId: member.departmentSlug || "computer-science",
+          graduationYear: Number(member.passingYear) || 2020,
+          registerNumber: member.registerNumber || undefined,
+          currentCompany: member.presentEmployer,
+          designation: member.designation,
+          city: member.city || member.workCity,
+          country: member.country || member.workCountry || "India",
+          linkedInUrl: member.linkedin,
+          isPublicDirectoryOptIn: Boolean(member.isPublicDirectoryOptIn),
+          isWillingToMentor: Boolean(member.isWillingToMentor),
+        };
+        const res = await apiClient.post<any>("/alumni/register", payload);
+        const liveId = res?.data?.id || res?.id;
+        if (liveId) {
+          setAlumni((prev) => prev.map((a) => (a.id === tempId ? { ...a, id: String(liveId) } : a)));
+        }
+      } catch (err) {
+        setAlumni(previous);
+        throw err;
+      }
     } else {
       setAlumni((prev) => prev.map((a) => (a.id === member.id ? { ...a, ...member } : a)));
+      if (member.id) {
+        try {
+          const payload = {
+            firstName: member.firstName,
+            lastName: member.lastName,
+            personalEmail: member.email,
+            phoneNumber: member.mobile,
+            degree: member.degree,
+            departmentId: member.departmentSlug,
+            graduationYear: member.passingYear ? Number(member.passingYear) : undefined,
+            registerNumber: member.registerNumber,
+            currentCompany: member.presentEmployer,
+            designation: member.designation,
+            city: member.city || member.workCity,
+            country: member.country || member.workCountry,
+            linkedInUrl: member.linkedin,
+            isFeatured: member.isFeatured,
+            isPublicDirectoryOptIn: member.isPublicDirectoryOptIn,
+            isWillingToMentor: member.isWillingToMentor,
+            internalNotes: member.internalNotes,
+          };
+          await apiClient.put(`/admin/alumni/${member.id}`, payload);
+        } catch (err) {
+          setAlumni(previous);
+          throw err;
+        }
+      }
     }
-  }, []);
+  }, [alumni]);
 
   // ── Notices ─────────────────────────────────────────────────────────────────
   const saveNotice = useCallback((notice: Partial<CollegeNotice>, isNew = false) => {

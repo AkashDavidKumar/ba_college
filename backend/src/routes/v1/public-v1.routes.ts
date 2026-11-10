@@ -30,9 +30,14 @@ import { getPublicPageBySlug } from '../../controllers/dynamic-page.controller';
 import { getPublicNavigationMenus } from '../../controllers/navigation-menu.controller';
 import { getPublicMedia } from '../../controllers/media-asset.controller';
 import { getPublicFormBySlug, submitFormAnswers } from '../../controllers/form.controller';
+import {
+  getPublicDirectory,
+  getPublicFeatured,
+  registerAlumni,
+} from '../../controllers/alumni.controller';
 import { strictRateLimit } from '../../middleware/rate-limit';
 import { validateBody } from '../../validations/auth.validation';
-import { submitAnswersSchema } from '../../validations';
+import { submitAnswersSchema, registerAlumniSchema } from '../../validations';
 
 const publicV1Router = Router();
 
@@ -86,6 +91,16 @@ publicV1Router.post(
   strictRateLimit,
   validateBody(submitAnswersSchema),
   submitFormAnswers
+);
+
+// ── 11. Alumni Directory & Registration ─────────────────────────────────────
+publicV1Router.get('/alumni/directory', getPublicDirectory);
+publicV1Router.get('/alumni/featured', getPublicFeatured);
+publicV1Router.post(
+  '/alumni/register',
+  strictRateLimit,
+  validateBody(registerAlumniSchema),
+  registerAlumni
 );
 
 export default publicV1Router;

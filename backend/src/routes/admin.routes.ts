@@ -17,6 +17,7 @@ import * as dynamicPageController from '../controllers/dynamic-page.controller';
 import * as navigationMenuController from '../controllers/navigation-menu.controller';
 import * as mediaAssetController from '../controllers/media-asset.controller';
 import * as formController from '../controllers/form.controller';
+import * as alumniController from '../controllers/alumni.controller';
 import {
   updateSiteContentSchema,
   updateAboutPageSchema,
@@ -51,6 +52,9 @@ import {
   createFormSchema,
   updateFormSchema,
   updateInquiryStatusSchema,
+  updateAlumniSchema,
+  rejectAlumniSchema,
+  verifyAlumniSchema,
 } from '../validations';
 
 export const adminRouter = Router();
@@ -735,6 +739,66 @@ adminRouter.delete(
   requireAuth,
   requireAnyPermission('forms:manage', 'all'),
   formController.deleteAdminInquiry
+);
+
+// ── 22. Alumni Directory & Verification Administration ─────────────────────
+// List alumni profiles with verification and search filters
+adminRouter.get(
+  '/admin/alumni',
+  requireAuth,
+  requireAnyPermission('alumni:read', 'alumni:manage', 'all'),
+  alumniController.listAdminAlumni
+);
+
+// Get single alumni detail including private and administrative fields
+adminRouter.get(
+  '/admin/alumni/:id',
+  requireAuth,
+  requireAnyPermission('alumni:read', 'alumni:manage', 'all'),
+  alumniController.getAdminAlumniById
+);
+
+// Update alumni profile
+adminRouter.put(
+  '/admin/alumni/:id',
+  requireAuth,
+  requireAnyPermission('alumni:update', 'alumni:manage', 'all'),
+  validateBody(updateAlumniSchema),
+  alumniController.updateAdminAlumni
+);
+
+adminRouter.patch(
+  '/admin/alumni/:id',
+  requireAuth,
+  requireAnyPermission('alumni:update', 'alumni:manage', 'all'),
+  validateBody(updateAlumniSchema),
+  alumniController.updateAdminAlumni
+);
+
+// Verify alumni profile (records actor and timestamp)
+adminRouter.post(
+  '/admin/alumni/:id/verify',
+  requireAuth,
+  requireAnyPermission('alumni:verify', 'alumni:manage', 'all'),
+  validateBody(verifyAlumniSchema),
+  alumniController.verifyAlumni
+);
+
+// Reject alumni profile with reason
+adminRouter.post(
+  '/admin/alumni/:id/reject',
+  requireAuth,
+  requireAnyPermission('alumni:verify', 'alumni:manage', 'all'),
+  validateBody(rejectAlumniSchema),
+  alumniController.rejectAlumni
+);
+
+// Soft-delete / archive alumni profile
+adminRouter.delete(
+  '/admin/alumni/:id',
+  requireAuth,
+  requireAnyPermission('alumni:delete', 'alumni:manage', 'all'),
+  alumniController.deleteAdminAlumni
 );
 
 export default adminRouter;
