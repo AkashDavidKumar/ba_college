@@ -437,6 +437,29 @@ export function SiteDataProvider({ children }: { children: React.ReactNode }) {
         apiClient.get<any>("/news").catch(() => ({ articles: [], config: defaultNewsEventsConfig })),
       ]);
 
+      const normalizedEvents = (eventsData.events || []).map((e: any) => {
+        const rawDate = e.dateISO || e.startDate || e.date;
+        let dateISO = "";
+        if (rawDate) {
+          const parsed = new Date(rawDate);
+          dateISO = !isNaN(parsed.getTime()) ? parsed.toISOString().split("T")[0] : String(rawDate);
+        }
+        return {
+          ...e,
+          id: String(e.id || e.slug || e._id || `event-${Math.random().toString(36).slice(2, 7)}`),
+          title: e.title || "Campus Event",
+          category: e.category || "Seminars",
+          image: e.image || e.coverImage || "/placeholder-event.jpg",
+          date: e.date || dateISO || "TBA",
+          dateISO: dateISO || new Date().toISOString().split("T")[0],
+          venue: e.venue || "Campus Main Hall",
+          participants: typeof e.participants === "number" ? e.participants : 0,
+          prizePool: e.prizePool || "—",
+          description: e.description || "",
+          speakers: Array.isArray(e.speakers) ? e.speakers : [],
+        };
+      });
+
       setData({
         logo: content.logo || { text1: "Bishop Ambrose", text2: "College", image: "" },
         hero: content.hero,
@@ -444,9 +467,9 @@ export function SiteDataProvider({ children }: { children: React.ReactNode }) {
         about: content.about,
         footer: content.footer,
         departments: departments,
-        events: eventsData.events,
-        guestSpeakers: eventsData.guestSpeakers,
-        eventGallery: eventsData.eventGallery,
+        events: normalizedEvents,
+        guestSpeakers: eventsData.guestSpeakers || [],
+        eventGallery: eventsData.eventGallery || [],
         erpModules: content.erpModules || {}, // Filled from seed
         admissionsPortalFeatures: content.admissionsPortalFeatures || [],
         statistics: content.statistics || defaultHomepageStatistics,

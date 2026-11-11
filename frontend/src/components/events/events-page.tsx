@@ -60,7 +60,14 @@ export function EventsPage() {
 
   const featuredEvent = universityEvents[0];
   const upcomingEvents = useMemo(
-    () => [...universityEvents].sort((a, b) => a.dateISO.localeCompare(b.dateISO)).slice(0, 6),
+    () =>
+      [...universityEvents]
+        .sort((a, b) => {
+          const dateA = a.dateISO || a.date || "";
+          const dateB = b.dateISO || b.date || "";
+          return String(dateA).localeCompare(String(dateB));
+        })
+        .slice(0, 6),
     []
   );
 

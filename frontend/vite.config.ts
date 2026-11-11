@@ -57,6 +57,12 @@ export default defineConfig({
   },
   server: {
     port: 3000,
+    host: "localhost",
+    hmr: {
+      host: "localhost",
+      protocol: "ws",
+      port: 3000,
+    },
     // API proxy — forwards /api and /uploads requests to the backend dev server.
     // Backend must be running on port 5001 (cd backend && npm run dev).
     proxy: {

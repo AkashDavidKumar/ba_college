@@ -90,6 +90,25 @@ export function serializeEvent(eventDoc: Record<string, unknown>): Record<string
     clean['image'] = clean['coverImage'];
   }
 
+  // Ensure dateISO is present for frontend sorting and calendar display
+  if (!clean['dateISO']) {
+    if (clean['startDate'] instanceof Date) {
+      clean['dateISO'] = clean['startDate'].toISOString().split('T')[0];
+    } else if (typeof clean['startDate'] === 'string' && clean['startDate']) {
+      const parsed = new Date(clean['startDate']);
+      clean['dateISO'] = !isNaN(parsed.getTime())
+        ? parsed.toISOString().split('T')[0]
+        : clean['startDate'];
+    } else if (typeof clean['date'] === 'string' && clean['date']) {
+      const parsed = new Date(clean['date']);
+      clean['dateISO'] = !isNaN(parsed.getTime())
+        ? parsed.toISOString().split('T')[0]
+        : clean['date'];
+    } else {
+      clean['dateISO'] = new Date().toISOString().split('T')[0];
+    }
+  }
+
   return clean;
 }
 

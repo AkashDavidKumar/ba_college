@@ -141,9 +141,16 @@ export function NewsEventsSection() {
   const allArticles = (data?.news && data.news.length > 0 ? data.news : FALLBACK_NEWS)
     .filter((a) => a.published);
 
-  const allEvents = (data?.events && data.events.length > 0 ? data.events : universityEvents)
-    .sort((a, b) => a.dateISO.localeCompare(b.dateISO))
-    .slice(0, cfg.maxEventsVisible);
+  const allEvents = useMemo(() => {
+    const rawEvents = data?.events && data.events.length > 0 ? data.events : universityEvents;
+    return [...rawEvents]
+      .sort((a, b) => {
+        const dateA = a.dateISO || (a as any).startDate || a.date || "";
+        const dateB = b.dateISO || (b as any).startDate || b.date || "";
+        return String(dateA).localeCompare(String(dateB));
+      })
+      .slice(0, cfg.maxEventsVisible);
+  }, [data?.events, cfg.maxEventsVisible]);
 
   // Featured article
   const featured = allArticles.find((a) => a.id === cfg.featuredArticleId && a.featured)
@@ -408,10 +415,14 @@ function NewsCard({ article, onReadMore }: { article: NewsArticle; onReadMore: (
 // ─── Event Card ───────────────────────────────────────────────────────────────
 
 function EventCard({ event, onView }: { event: any; onView: () => void }) {
-  // Parse day/month from dateISO
-  const d = new Date(event.dateISO);
-  const day = d.getDate().toString().padStart(2, "0");
-  const month = d.toLocaleString("en-US", { month: "short" }).toUpperCase();
+  // Parse day/month safely from dateISO, startDate, or date
+  const rawDate = event.dateISO || event.startDate || event.date;
+  const parsedDate = rawDate ? new Date(rawDate) : null;
+  const isValidDate = parsedDate && !isNaN(parsedDate.getTime());
+  const day = isValidDate ? parsedDate.getDate().toString().padStart(2, "0") : "--";
+  const month = isValidDate
+    ? parsedDate.toLocaleString("en-US", { month: "short" }).toUpperCase()
+    : "EVENT";
   const badgeCls = EVENT_CATEGORY_COLORS[event.category] || "bg-navy text-white";
 
   return (
@@ -419,8 +430,8 @@ function EventCard({ event, onView }: { event: any; onView: () => void }) {
       {/* Top strip with date box */}
       <div className="relative h-40 overflow-hidden">
         <img
-          src={event.image}
-          alt={event.title}
+          src={event.image || event.coverImage || "/placeholder-event.jpg"}
+          alt={event.title || "Campus Event"}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
@@ -433,7 +444,7 @@ function EventCard({ event, onView }: { event: any; onView: () => void }) {
 
         {/* Category badge */}
         <div className={cn("absolute top-4 right-4 text-[10px] font-bold px-2.5 py-1 rounded-full shadow-sm", badgeCls)}>
-          {event.category}
+          {event.category || "General"}
         </div>
       </div>
 
@@ -445,15 +456,15 @@ function EventCard({ event, onView }: { event: any; onView: () => void }) {
         <div className="space-y-1.5 mb-3">
           <div className="flex items-center gap-2 text-xs text-[#374151] font-medium">
             <MapPin className="w-3.5 h-3.5 text-[#166534] shrink-0" />
-            <span className="truncate">{event.venue}</span>
+            <span className="truncate">{event.venue || "Campus Main Hall"}</span>
           </div>
           <div className="flex items-center gap-2 text-xs text-[#374151] font-medium">
             <Clock className="w-3.5 h-3.5 text-[#166534] shrink-0" />
-            {event.date}
+            {event.date || event.time || "Schedule TBA"}
           </div>
         </div>
         <p className="text-[#374151] text-xs leading-relaxed line-clamp-2 flex-1">
-          {event.description}
+          {event.description || ""}
         </p>
         <button
           onClick={onView}
