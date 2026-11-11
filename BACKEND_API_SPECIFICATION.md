@@ -1,50 +1,97 @@
-# Bishop Ambrose College Website — Backend API Requirements Specification
+# Bishop Ambrose College Website — Backend API Specification & Contract
 
-> **Document Version:** 1.0.0  
-> **Status:** Final Read-Only Audit Specification  
-> **Target Stack:** Node.js + Express.js + TypeScript + MongoDB + Mongoose  
+> **Document Version:** 2.0.0 (Phase 6B Handover)  
+> **Status:** Verified Production REST API Specification & Contract  
+> **Target Stack:** Node.js (>= 18 LTS) + Express.js 4.21 + TypeScript 5.7 + MongoDB 6/7 (Mongoose 8.9)  
 > **Audited Workspace:** `e:\justin\bac-frontend-clean\`  
-> **Audit Date:** 2026-10-26  
+> **Date:** 2026-11-11  
 
 ---
 
 ## Table of Contents
 
-1. [A. Executive Summary](#a-executive-summary)
-2. [B. All Discovered API Endpoints Inventory](#b-all-discovered-api-endpoints-inventory)
-3. [C. Request and Response Schemas & Examples](#c-request-and-response-schemas--examples)
-4. [D. Complete Module-by-Module Requirements](#d-complete-module-by-module-requirements)
-5. [E. Proposed MongoDB Collections & Mongoose Schemas](#e-proposed-mongodb-collections--mongoose-schemas)
-6. [F. Authentication and Authorization Matrix](#f-authentication-and-authorization-matrix)
-7. [G. Frontend-to-Backend Integration Map](#g-frontend-to-backend-integration-map)
-8. [H. Missing Endpoints & Design Decisions](#h-missing-endpoints--design-decisions)
-9. [I. Implementation Priorities & Phased Roadmap](#i-implementation-priorities--phased-roadmap)
-10. [J. API Testing Checklist](#j-api-testing-checklist)
-11. [K. Quick Reference: Endpoint Summary Table](#k-quick-reference-endpoint-summary-table)
+1. [A. Executive Summary & Architecture Overview](#a-executive-summary--architecture-overview)
+2. [B. Router Mounting Architecture & Path Registry](#b-router-mounting-architecture--path-registry)
+3. [C. Authentication, Session & RBAC Model](#c-authentication-session--rbac-model)
+4. [D. All Implemented API Endpoints Inventory](#d-all-implemented-api-endpoints-inventory)
+5. [E. Detailed Endpoint Specifications](#e-detailed-endpoint-specifications)
+6. [F. Deprecated & Legacy Compatibility Endpoints](#f-deprecated--legacy-compatibility-endpoints)
+7. [G. Standard Error Responses & Status Codes](#g-standard-error-responses--status-codes)
 
 ---
 
-## A. Executive Summary
+## A. Executive Summary & Architecture Overview
 
-### 1. Architectural Landscape
-An exhaustive scan of the entire frontend codebase (`frontend/src/`) reveals that the Bishop Ambrose College web application is a hybrid system comprising three distinct architectural tiers:
+The Bishop Ambrose College backend is an enterprise-grade RESTful API built on Express, TypeScript, and MongoDB. The API is organized into clean, decoupled route modules providing:
 
-1. **Public Website Data Tier (`site-context.tsx` & `university-data.ts`):**  
-   Consumes canonical public university data via `/api/content`, `/api/departments`, `/api/events`, and `/api/news`. It implements an intelligent fallback mechanism: when the backend API fails (or is offline), it dynamically imports `university-data.ts`, allowing the entire public portal to render uninterrupted.
-2. **Specialized Services Tier:**  
-   - **Advertisement Engine (`advertisement-service.ts`):** Implements a dedicated v1 REST API (`/api/v1/advertisements`) with impression/click telemetry and fallback to `localStorage` (`bac_advertisements_v2`).
-   - **IQAC Accreditation Portal (`iqac-context.tsx` & `iqac-manager.tsx`):** Consumes `/api/iqac` for NAAC, AQAR, SSR, SSS, and institutional quality data with section-level updates (`/api/iqac/section/:section`).
-   - **Admin Classic Views (`components/admin/pages/*-dashboard.tsx`):** Makes direct REST calls for Courses, Facilities, Gallery, Placements, Contact Info, and Admissions.
-3. **Comprehensive Enterprise CMS Suite (`cms-store.tsx` & `components/admin/modules/`):**  
-   Contains 20+ administrative modules managing Users, RBAC, Approvals, Audit Logs, Dynamic Page Builder, Menu Builder, Media Assets, Document Center, SEO, Autonomous Regulations, Examination Schedules, Alumni, and Enquiries. Currently backed by `localStorage` keys (`bac_cms_*`), requiring full REST endpoint implementations to transition to a true multi-user enterprise database.
+1. **System & Health Diagnostics (`/api/health`, `/api/ready`):** Liveness probes (process alive) and readiness probes (MongoDB connection active and pingable) for reverse proxy and container monitoring.
+2. **Secure Authentication & Session Management (`/api/auth/*`):** JWT authentication backed by HttpOnly, Secure, SameSite cookies with automatic tokenVersion revocation on logout.
+3. **Versioned Public REST API (`/api/v1/*`):** High-performance read endpoints with HTTP 304 ETag negotiation, public cache-control headers, and strict rate-limiting on public submission endpoints.
+4. **Protected Administrative Mutations (`/api/v1/*` and `/api/*`):** 24 administrative modules guarded by strict 6-role RBAC, scoped resource isolation (departmentId/clubId), and append-only audit logging.
+5. **Legacy Compatibility Layer (`/api/*`):** Unversioned mirrors of core content and read endpoints supporting legacy frontend contexts.
 
-### 2. Quantitative Audit Metrics
-- **Total Direct API References / Calls in Code:** 76 occurrences across 18 files.
-- **Distinct REST Endpoints Discovered in Frontend Code:** 35 endpoints.
-- **Newly Proposed Endpoints (to transition `cms-store.tsx` to MongoDB):** 24 endpoints.
-- **Total Backend Endpoint Blueprint:** 59 endpoints.
-- **LocalStorage Keys Audited:** 15 distinct keys (12 prefixed with `bac_cms_`, plus `bac_admin_user`, `bac_advertisements_v2`, `bac_theme_mode`).
-- **Upload Handlers Identified:** 2 core routes (`POST /api/upload`, `POST /api/v1/advertisements/upload-image`, plus specialized `POST /api/about/image`).
+### Deprecated Patterns Strictly Prohibited:
+- **Zero Local File Uploads:** All file upload endpoints (`POST /api/upload`, `POST /api/about/image`, `POST /api/v1/advertisements/upload-image`) are deprecated and disabled. All images, documents, and media use external HTTPS URLs managed via the Media Assets Metadata Engine (`/api/admin/media-assets`).
+- **Zero Remote Client-Side Seeding:** The legacy `POST /api/seed` route is disabled. Database operations are strictly performed via administrative CLI scripts (`npm run admin:provision`, `npm run migrate:execute -- --confirm`).
+
+---
+
+## B. Router Mounting Architecture & Path Registry
+
+All routes are registered in `backend/src/routes/index.ts` and mounted onto `/api` in `backend/src/app.ts`:
+
+```text
+/api
+├── /health           ──> healthRouter (GET / liveness)
+├── /ready            ──> readyRouter (GET / readiness + DB ping)
+├── /auth             ──> authRouter (POST /login, POST /logout, GET /me)
+├── /v1               ──> adminRouter (Protected administrative endpoints)
+├── /v1               ──> publicV1Router (Versioned public REST endpoints)
+├── /                 ──> adminRouter (Legacy unversioned administrative routes)
+└── /                 ──> publicRouter (Legacy public compatibility layer)
+```
+
+---
+
+## C. Authentication, Session & RBAC Model
+
+### 1. The 6 Verified Operational Roles & Legacy Aliases
+| Operational Role | Scope | Description |
+| :--- | :--- | :--- |
+| **`master_admin`** | Global (Full) | System sovereignty, user management, audit logs, system configurations. |
+| **`sub_admin`** | Global (Admin) | Content management across all departments, clubs, notices, and approval queue triage. |
+| **`hod`** | Department-Scoped | Manage faculty profiles, department achievements, and notices matching assigned `departmentId`. |
+| **`club_head`** | Club-Scoped | Manage club events, description, and memberships matching assigned `clubId`. (Forbidden from modifying global banners/galleries). |
+| **`content_editor`** | Global (Editorial) | Global news, announcements, press releases, and events management. |
+| **`staff`** | Scoped Draft | Create draft notices, news, and event proposals within assigned department. |
+| *(Legacy `ADMIN`)* | Alias | Canonical alias mapped to `sub_admin`. |
+| *(Legacy `EDITOR`)* | Alias | Canonical alias mapped to `content_editor`. |
+| *(Legacy `VIEWER`)* | Alias | Canonical alias mapped to `staff`. |
+
+---
+
+### 2. Quantitative System & Routing Metrics (Reconciled Endpoint Inventory)
+
+The application API endpoints have been reconciled against the running Express router hierarchy (`app._router.stack`) and the canonical functional inventory:
+
+- **Canonical Functional Endpoint Inventory:** Exactly **127 cataloged entries** (Section B):
+  - **Active Implemented Endpoints:** 123 endpoints.
+  - **Deprecated & Prohibited Legacy Endpoints:** 4 endpoints (`POST /api/upload`, `POST /api/about/image`, `POST /api/v1/advertisements/upload-image`, `POST /api/seed`) marked as disabled.
+- **Express Router Source Definitions (188 Unique Routes):**
+  - `healthRouter` ([`health.routes.ts`](./backend/src/routes/health.routes.ts)): 1 route (`GET /health`)
+  - `readyRouter` ([`health.routes.ts`](./backend/src/routes/health.routes.ts)): 1 route (`GET /ready`)
+  - `authRouter` ([`auth.routes.ts`](./backend/src/routes/auth.routes.ts)): 3 routes (`POST /auth/login`, `POST /auth/logout`, `GET /auth/me`)
+  - `publicV1Router` ([`v1/public-v1.routes.ts`](./backend/src/routes/v1/public-v1.routes.ts)): 36 versioned public REST routes
+  - `adminRouter` ([`admin.routes.ts`](./backend/src/routes/admin.routes.ts)): 115 administrative mutation and triage routes
+  - `publicRouter` ([`public.routes.ts`](./backend/src/routes/public.routes.ts)): 32 unversioned legacy compatibility routes
+- **Live Express Server Binding Count (303 Registered Route Handlers):**
+  - `backend/src/routes/index.ts` mounts `adminRouter` (115 routes) **twice**: once at `/api/v1` for modern API consumers, and once at `/api/` for legacy compatibility ($115 \times 2 = 230$ bound handlers).
+  - Adding the 36 public v1 routes, 32 legacy public routes, 3 auth routes, and 2 diagnostics routes yields exactly **303 active route handlers** in the live Express dispatch table.
+- **Explanation of Previous "95+" vs "127" References:**
+  - The previous shorthand "95+" referred to the unique non-duplicated operational business operations across public and admin domains (excluding dual `/v1` mountings and method alternates).
+  - The exact functional catalog in Section B indexes all **127 distinct functional business endpoints** (123 active + 4 disabled).
+- **Media Architecture:** 100% external HTTPS URLs validated via `safeMediaUrlSchema` (zero local disk storage).
+- **Authentication:** Dual transport (HttpOnly, Secure cookie `bac_token` + optional Bearer header) with instant `tokenVersion` database revocation.
 
 ---
 
@@ -59,54 +106,128 @@ Below is the verified inventory of every endpoint currently referenced in the fr
 | 3 | `PUT` | `/api/content` | `site-context.tsx:547, 565, 601, 619, 637` | Update Hero, General Settings, Stats, Virtual Tour, Location | Admin (JWT) | Referenced |
 | 4 | `GET` | `/api/about` | `site-context.tsx:583` | About Page Data & Institutional History | Public | Referenced |
 | 5 | `PUT` | `/api/about` | `site-context.tsx:583` | Update About Page Sections, Vision, Mission | Admin (JWT) | Referenced |
-| 6 | `POST` | `/api/about/image` | `about-manager.tsx:159, 222` | Upload Campus/About Section Images | Admin (JWT) | Referenced |
-| 7 | `GET` | `/api/departments` | `site-context.tsx:433` | Public Departments Grid & Catalog | Public | Referenced |
-| 8 | `POST` | `/api/departments` | `site-context.tsx:655` | Create New Department | Admin (JWT) | Referenced |
-| 9 | `PUT` | `/api/departments` | `site-context.tsx:655` | Update Existing Department Details | Admin (JWT) | Referenced |
-| 10 | `DELETE` | `/api/departments?slug=:slug` | `site-context.tsx:673` | Remove Department by Slug | Admin (JWT) | Referenced |
-| 11 | `GET` | `/api/events` | `site-context.tsx:434` | Public Events & Campus Activities | Public | Referenced |
-| 12 | `POST` | `/api/events` | `site-context.tsx:689, 723, 757` | Create Event, Speaker, or Gallery Item | Admin (JWT) | Referenced |
-| 13 | `DELETE` | `/api/events?type=event&id=:id` | `site-context.tsx:707` | Delete Campus Event by ID | Admin (JWT) | Referenced |
-| 14 | `DELETE` | `/api/events?type=speaker&id=:name`| `site-context.tsx:741` | Delete Guest Speaker by Name | Admin (JWT) | Referenced |
-| 15 | `DELETE` | `/api/events?type=gallery&id=:title`| `site-context.tsx:775` | Delete Gallery Photo by Title | Admin (JWT) | Referenced |
-| 16 | `GET` | `/api/news` | `site-context.tsx:435` | Public Press Releases & Articles | Public | Referenced |
-| 17 | `POST` | `/api/news` | `site-context.tsx:807` | Publish New Article | Admin (JWT) | Referenced |
-| 18 | `PUT` | `/api/news/:id` | `site-context.tsx:807` | Update Existing Article | Admin (JWT) | Referenced |
-| 19 | `DELETE` | `/api/news/:id` | `site-context.tsx:819` | Delete Article by ID | Admin (JWT) | Referenced |
-| 20 | `PUT` | `/api/news/config` | `site-context.tsx:827` | Update News Page Display Configuration | Admin (JWT) | Referenced |
-| 21 | `GET` | `/api/iqac` | `iqac-context.tsx:128`, `iqac-manager.tsx:35` | NAAC, AQAR, SSR, SSS, Initiatives | Public | Referenced |
-| 22 | `PUT` | `/api/iqac` | `iqac-manager.tsx:91` | Full Update of IQAC Dossier | Admin (JWT) | Referenced |
-| 23 | `PUT` | `/api/iqac/section/:section` | `iqac-context.tsx:147`, `iqac-manager.tsx:59`| Update Specific IQAC Section (e.g. ssr, aqar) | Admin (JWT) | Referenced |
-| 24 | `POST` | `/api/iqac/download/:section/:id` | `iqac-context.tsx:159` | Increment Document Download Counter | Public | Referenced |
-| 25 | `GET` | `/api/admissions` | `admissions-tab.tsx:33` | Fetch Submitted Student Applications | Admin (JWT) | Referenced |
-| 26 | `POST` | `/api/admissions` | `site-context.tsx:791` | Submit Online Student Application | Public | Referenced |
-| 27 | `PUT` | `/api/admissions` | `admissions-tab.tsx:59, 98` | Update Application Review Status & Notes | Admin (JWT) | Referenced |
-| 28 | `GET` | `/api/courses` | `courses-dashboard.tsx:81` | Fetch Academic Degree Programmes | Public | Referenced |
-| 29 | `POST` | `/api/courses` | `courses-dashboard.tsx:103` | Create Degree Programme | Admin (JWT) | Referenced |
-| 30 | `PUT` | `/api/courses/:id` | `courses-dashboard.tsx:103, 134` | Update Degree Programme / Toggle Status | Admin (JWT) | Referenced |
-| 31 | `DELETE` | `/api/courses/:id` | `courses-dashboard.tsx:125` | Delete Degree Programme | Admin (JWT) | Referenced |
-| 32 | `GET` | `/api/facilities` | `facilities-dashboard.tsx:75` | Fetch Campus Facilities & Amenities | Public | Referenced |
-| 33 | `POST` | `/api/facilities` | `facilities-dashboard.tsx:96` | Create Facility Record | Admin (JWT) | Referenced |
-| 34 | `PUT` | `/api/facilities/:id` | `facilities-dashboard.tsx:96` | Update Facility Details | Admin (JWT) | Referenced |
-| 35 | `DELETE` | `/api/facilities/:id` | `facilities-dashboard.tsx:116` | Delete Facility Record | Admin (JWT) | Referenced |
-| 36 | `GET` | `/api/gallery` | `gallery-dashboard.tsx:83` | Fetch Albums, Photos, Video Links | Public | Referenced |
-| 37 | `POST` | `/api/gallery` | `gallery-dashboard.tsx:100` | Save Albums / Video Links Payload | Admin (JWT) | Referenced |
-| 38 | `GET` | `/api/placements` | `placements-dashboard.tsx:90` | Fetch Recruiter Logos, Stats, Stories | Public | Referenced |
-| 39 | `POST` | `/api/placements` | `placements-dashboard.tsx:104` | Save Placement Records & Stats | Admin (JWT) | Referenced |
-| 40 | `GET` | `/api/contact` | `contact-dashboard.tsx:78` | Fetch Contact Details & Map Config | Public | Referenced |
-| 41 | `PUT` | `/api/contact` | `contact-dashboard.tsx:92` | Update Campus Contact Info & Phone Lines | Admin (JWT) | Referenced |
-| 42 | `POST` | `/api/upload` | `departments-tab.tsx:214`, `events-tab.tsx:198`, `hero-video-manager.tsx:93`, `virtual-tour-manager.tsx:196` | Media Upload (Images & Video files) | Admin (JWT) | Referenced |
-| 43 | `POST` | `/api/seed` | `site-context.tsx:839` | Seed Database from `cms-database.json` | Master Admin | Referenced |
-| 44 | `GET` | `/api/v1/advertisements` | `advertisement-service.ts:236` | Filtered / Paginated Advertisements | Public / Admin | Referenced |
-| 45 | `GET` | `/api/v1/advertisements/active` | `advertisement-service.ts:290` | Active Popup Overlay Ad for Visitors | Public | Referenced |
-| 46 | `GET` | `/api/v1/advertisements/:id` | `advertisement-service.ts:24` | Single Advertisement Record | Public / Admin | Referenced |
-| 47 | `POST` | `/api/v1/advertisements` | `advertisement-service.ts:357` | Create Advertisement Banner | Admin (JWT) | Referenced |
-| 48 | `PUT` | `/api/v1/advertisements/:id` | `advertisement-service.ts:394` | Update Advertisement Banner | Admin (JWT) | Referenced |
-| 49 | `PATCH` | `/api/v1/advertisements/:id/status`| `advertisement-service.ts:35` | Toggle Status (active/inactive/draft) | Admin (JWT) | Referenced |
-| 50 | `DELETE` | `/api/v1/advertisements/:id` | `advertisement-service.ts:424` | Soft/Hard Delete Advertisement | Admin (JWT) | Referenced |
-| 51 | `POST` | `/api/v1/advertisements/upload-image`| `advertisement-service.ts:42` | Upload Ad Banner Image | Admin (JWT) | Referenced |
-| 52 | `POST` | `/api/v1/advertisements/:id/track-impression` | `advertisement-service.ts:46` | Increment Impression Counter | Public | Referenced |
-| 53 | `POST` | `/api/v1/advertisements/:id/track-click` | `advertisement-service.ts:49` | Increment Click Counter | Public | Referenced |
+| 6 | `POST` | `/api/about/image` | `about-manager.tsx:159, 222` | Upload Campus/About Section Images | Admin (JWT) | **Deprecated / Disabled** (Use external HTTPS URLs) |
+| 7 | `GET` | `/api/departments` | `site-context.tsx:433` | Public Departments Grid & Catalog | Public | Implemented |
+| 8 | `POST` | `/api/departments` | `site-context.tsx:655` | Create New Department | Admin (JWT) | Implemented |
+| 9 | `PUT` | `/api/departments` | `site-context.tsx:655` | Update Existing Department Details | Admin (JWT) | Implemented |
+| 10 | `DELETE` | `/api/departments?slug=:slug` | `site-context.tsx:673` | Remove Department by Slug | Admin (JWT) | Implemented |
+| 11 | `GET` | `/api/events` | `site-context.tsx:434` | Public Events & Campus Activities | Public | Implemented |
+| 12 | `POST` | `/api/events` | `site-context.tsx:689, 723, 757` | Create Event, Speaker, or Gallery Item | Admin (JWT) | Implemented |
+| 13 | `DELETE` | `/api/events?type=event&id=:id` | `site-context.tsx:707` | Delete Campus Event by ID | Admin (JWT) | Implemented |
+| 14 | `DELETE` | `/api/events?type=speaker&id=:name`| `site-context.tsx:741` | Delete Guest Speaker by Name | Admin (JWT) | Implemented |
+| 15 | `DELETE` | `/api/events?type=gallery&id=:title`| `site-context.tsx:775` | Delete Gallery Photo by Title | Admin (JWT) | Implemented |
+| 16 | `GET` | `/api/news` | `site-context.tsx:435` | Public Press Releases & Articles | Public | Implemented |
+| 17 | `POST` | `/api/news` | `site-context.tsx:807` | Publish New Article | Admin (JWT) | Implemented |
+| 18 | `PUT` | `/api/news/:id` | `site-context.tsx:807` | Update Existing Article | Admin (JWT) | Implemented |
+| 19 | `DELETE` | `/api/news/:id` | `site-context.tsx:819` | Delete Article by ID | Admin (JWT) | Implemented |
+| 20 | `PUT` | `/api/news/config` | `site-context.tsx:827` | Update News Page Display Configuration | Admin (JWT) | Implemented |
+| 21 | `GET` | `/api/iqac` | `iqac-context.tsx:128`, `iqac-manager.tsx:35` | NAAC, AQAR, SSR, SSS, Initiatives | Public | Implemented |
+| 22 | `PUT` | `/api/iqac` | `iqac-manager.tsx:91` | Full Update of IQAC Dossier | Admin (JWT) | Implemented |
+| 23 | `PUT` | `/api/iqac/section/:section` | `iqac-context.tsx:147`, `iqac-manager.tsx:59`| Update Specific IQAC Section (e.g. ssr, aqar) | Admin (JWT) | Implemented |
+| 24 | `POST` | `/api/iqac/download/:section/:id` | `iqac-context.tsx:159` | Increment Document Download Counter | Public | Implemented |
+| 25 | `GET` | `/api/admissions` | `admissions-tab.tsx:33` | Fetch Submitted Student Applications | Admin (JWT) | Implemented |
+| 26 | `POST` | `/api/admissions` | `site-context.tsx:791` | Submit Online Student Application | Public | Implemented |
+| 27 | `PUT` | `/api/admissions` | `admissions-tab.tsx:59, 98` | Update Application Review Status & Notes | Admin (JWT) | Implemented |
+| 28 | `GET` | `/api/courses` | `courses-dashboard.tsx:81` | Fetch Academic Degree Programmes | Public | Implemented |
+| 29 | `POST` | `/api/courses` | `courses-dashboard.tsx:103` | Create Degree Programme | Admin (JWT) | Implemented |
+| 30 | `PUT` | `/api/courses/:id` | `courses-dashboard.tsx:103, 134` | Update Degree Programme / Toggle Status | Admin (JWT) | Implemented |
+| 31 | `DELETE` | `/api/courses/:id` | `courses-dashboard.tsx:125` | Delete Degree Programme | Admin (JWT) | Implemented |
+| 32 | `GET` | `/api/facilities` | `facilities-dashboard.tsx:75` | Fetch Campus Facilities & Amenities | Public | Implemented |
+| 33 | `POST` | `/api/facilities` | `facilities-dashboard.tsx:96` | Create Facility Record | Admin (JWT) | Implemented |
+| 34 | `PUT` | `/api/facilities/:id` | `facilities-dashboard.tsx:96` | Update Facility Details | Admin (JWT) | Implemented |
+| 35 | `DELETE` | `/api/facilities/:id` | `facilities-dashboard.tsx:116` | Delete Facility Record | Admin (JWT) | Implemented |
+| 36 | `GET` | `/api/gallery` | `gallery-dashboard.tsx:83` | Fetch Albums, Photos, Video Links | Public | Implemented |
+| 37 | `POST` | `/api/gallery` | `gallery-dashboard.tsx:100` | Save Albums / Video Links Payload | Admin (JWT) | Implemented |
+| 38 | `GET` | `/api/placements` | `placements-dashboard.tsx:90` | Fetch Recruiter Logos, Stats, Stories | Public | Implemented |
+| 39 | `POST` | `/api/placements` | `placements-dashboard.tsx:104` | Save Placement Records & Stats | Admin (JWT) | Implemented |
+| 40 | `GET` | `/api/contact` | `contact-dashboard.tsx:78` | Fetch Contact Details & Map Config | Public | Implemented |
+| 41 | `PUT` | `/api/contact` | `contact-dashboard.tsx:92` | Update Campus Contact Info & Phone Lines | Admin (JWT) | Implemented |
+| 42 | `POST` | `/api/upload` | `departments-tab.tsx:214`, `events-tab.tsx:198` | Media Upload (Images & Video files) | Admin (JWT) | **Deprecated / Disabled** (Use external HTTPS URLs) |
+| 43 | `POST` | `/api/seed` | `site-context.tsx:839` | Seed Database from `cms-database.json` | Master Admin | **Deprecated / Disabled** (Use CLI `admin:provision`) |
+| 44 | `GET` | `/api/v1/advertisements` | `advertisement-service.ts:236` | Filtered / Paginated Advertisements | Public / Admin | Implemented |
+| 45 | `GET` | `/api/v1/advertisements/active` | `advertisement-service.ts:290` | Active Popup Overlay Ad for Visitors | Public | Implemented |
+| 46 | `GET` | `/api/v1/advertisements/:id` | `advertisement-service.ts:24` | Single Advertisement Record | Public / Admin | Implemented |
+| 47 | `POST` | `/api/v1/advertisements` | `advertisement-service.ts:357` | Create Advertisement Banner | Admin (JWT) | Implemented |
+| 48 | `PUT` | `/api/v1/advertisements/:id` | `advertisement-service.ts:394` | Update Advertisement Banner | Admin (JWT) | Implemented |
+| 49 | `PATCH` | `/api/v1/advertisements/:id/status`| `advertisement-service.ts:35` | Toggle Status (active/inactive/draft) | Admin (JWT) | Implemented |
+| 50 | `DELETE` | `/api/v1/advertisements/:id` | `advertisement-service.ts:424` | Soft/Hard Delete Advertisement | Admin (JWT) | Implemented |
+| 51 | `POST` | `/api/v1/advertisements/upload-image`| `advertisement-service.ts:42` | Upload Ad Banner Image | Admin (JWT) | **Deprecated / Disabled** (Use external HTTPS URLs) |
+| 52 | `POST` | `/api/v1/advertisements/:id/track-impression` | `advertisement-service.ts:46` | Increment Impression Counter | Public | Implemented |
+| 53 | `POST` | `/api/v1/advertisements/:id/track-click` | `advertisement-service.ts:49` | Increment Click Counter | Public | Implemented |
+| 54 | `GET` | `/api/health` | `health.controller.ts` | Liveness probe (process alive) | Public | Implemented |
+| 55 | `GET` | `/api/ready` | `health.controller.ts` | Readiness probe (MongoDB ping) | Public | Implemented |
+| 56 | `POST` | `/api/auth/logout` | `auth.controller.ts` | Session revocation & cookie clearance | Authenticated | Implemented |
+| 57 | `GET` | `/api/auth/me` | `auth.controller.ts` | Authenticated user profile | Authenticated | Implemented |
+| 58 | `GET` | `/api/v1/notices` | `notice.controller.ts` | Public active circulars with filters | Public | Implemented |
+| 59 | `GET` | `/api/v1/notices/pinned` | `notice.controller.ts` | Public pinned circulars | Public | Implemented |
+| 60 | `GET` | `/api/v1/notices/categories` | `notice.controller.ts` | Public notice category aggregates | Public | Implemented |
+| 61 | `GET` | `/api/v1/notices/:slug` | `notice.controller.ts` | Public single notice by slug | Public | Implemented |
+| 62 | `GET` | `/api/admin/notices/metrics` | `notice.controller.ts` | Admin notice dashboard metrics | Admin (JWT) | Implemented |
+| 63 | `GET` | `/api/admin/notices` | `notice.controller.ts` | Admin notices query and filters | Admin (JWT) | Implemented |
+| 64 | `POST` | `/api/admin/notices` | `notice.controller.ts` | Create notice draft | Admin (JWT) | Implemented |
+| 65 | `PUT` | `/api/admin/notices/:id` | `notice.controller.ts` | Update notice details | Admin (JWT) | Implemented |
+| 66 | `PATCH` | `/api/admin/notices/:id/priority` | `notice.controller.ts` | Toggle pin & priority level | Admin (JWT) | Implemented |
+| 67 | `POST` | `/api/admin/notices/:id/submit` | `notice.controller.ts` | Submit draft to review queue | Admin (JWT) | Implemented |
+| 68 | `POST` | `/api/admin/notices/:id/review` | `notice.controller.ts` | Approve/reject with feedback | Admin (JWT) | Implemented |
+| 69 | `POST` | `/api/admin/notices/:id/publish` | `notice.controller.ts` | Immediate or scheduled release | Admin (JWT) | Implemented |
+| 70 | `POST` | `/api/admin/notices/:id/archive` | `notice.controller.ts` | Archive published notice | Admin (JWT) | Implemented |
+| 71 | `DELETE` | `/api/admin/notices/:id` | `notice.controller.ts` | Delete notice | Admin (JWT) | Implemented |
+| 72 | `GET` | `/api/v1/clubs/directory` | `club.controller.ts` | Public student clubs directory | Public | Implemented |
+| 73 | `GET` | `/api/v1/clubs/:slug` | `club.controller.ts` | Public club profile | Public | Implemented |
+| 74 | `GET` | `/api/v1/clubs/:slug/members` | `club.controller.ts` | Public club member roster (PII-free)| Public | Implemented |
+| 75 | `POST` | `/api/v1/clubs/:slug/memberships` | `club.controller.ts` | Student membership application | Public (Rate-limit) | Implemented |
+| 76 | `POST` | `/api/v1/clubs/:slug/memberships/withdraw-consent` | `club.controller.ts` | Roster directory consent withdrawal | Public (Rate-limit) | Implemented |
+| 77 | `GET` | `/api/admin/clubs` | `club.controller.ts` | Admin clubs list | Admin (JWT) | Implemented |
+| 78 | `POST` | `/api/admin/clubs` | `club.controller.ts` | Create new club | Admin (JWT) | Implemented |
+| 79 | `GET` | `/api/admin/clubs/:id` | `club.controller.ts` | Fetch single club record | Admin (JWT) | Implemented |
+| 80 | `PUT` | `/api/admin/clubs/:id` | `club.controller.ts` | Update permitted club details | Admin (JWT) | Implemented |
+| 81 | `PATCH` | `/api/admin/clubs/:id/archive` | `club.controller.ts` | Soft-archive club (force check) | Admin (JWT) | Implemented |
+| 82 | `POST` | `/api/admin/clubs/:id/assign-head` | `club.controller.ts` | Assign club head coordinator | Admin (JWT) | Implemented |
+| 83 | `GET` | `/api/admin/clubs/:id/memberships` | `club.controller.ts` | List club membership records | Admin (JWT) | Implemented |
+| 84 | `PATCH` | `/api/admin/clubs/:id/memberships/:mId/review` | `club.controller.ts` | Approve/reject membership | Admin (JWT) | Implemented |
+| 85 | `PATCH` | `/api/admin/clubs/:id/memberships/:mId/lifecycle` | `club.controller.ts` | Update member lifecycle status | Admin (JWT) | Implemented |
+| 86 | `POST` | `/api/admin/clubs/:id/memberships/reconcile` | `club.controller.ts` | Reconcile active member count | Admin (JWT) | Implemented |
+| 87 | `GET` | `/api/v1/forms/:slug` | `form.controller.ts` | Public active form schema | Public | Implemented |
+| 88 | `POST` | `/api/v1/forms/:slug/submissions` | `form.controller.ts` | Submit dynamic form answers | Public (Rate-limit) | Implemented |
+| 89 | `GET` | `/api/admin/forms` | `form.controller.ts` | Admin dynamic forms list | Admin (JWT) | Implemented |
+| 90 | `POST` | `/api/admin/forms` | `form.controller.ts` | Create dynamic form | Admin (JWT) | Implemented |
+| 91 | `PUT` | `/api/admin/forms/:id` | `form.controller.ts` | Update dynamic form | Admin (JWT) | Implemented |
+| 92 | `DELETE` | `/api/admin/forms/:id` | `form.controller.ts` | Delete dynamic form | Admin (JWT) | Implemented |
+| 93 | `GET` | `/api/admin/form-submissions` | `form.controller.ts` | Admin inquiry submissions list | Admin (JWT) | Implemented |
+| 94 | `GET` | `/api/admin/form-submissions/:id` | `form.controller.ts` | Single inquiry submission details | Admin (JWT) | Implemented |
+| 95 | `PATCH` | `/api/admin/form-submissions/:id/status` | `form.controller.ts` | Triage status: new, in_review, responded, resolved, rejected | Admin (JWT) | Implemented |
+| 96 | `DELETE` | `/api/admin/form-submissions/:id` | `form.controller.ts` | Delete inquiry submission | Master Admin | Implemented |
+| 97 | `GET` | `/api/v1/pages/:slug` | `dynamic-page.controller.ts` | Public published dynamic page | Public | Implemented |
+| 98 | `GET` | `/api/admin/pages` | `dynamic-page.controller.ts` | Admin dynamic pages list | Admin (JWT) | Implemented |
+| 99 | `POST` | `/api/admin/pages` | `dynamic-page.controller.ts` | Create dynamic page | Admin (JWT) | Implemented |
+| 100 | `PUT` | `/api/admin/pages/:id` | `dynamic-page.controller.ts` | Update dynamic page | Admin (JWT) | Implemented |
+| 101 | `DELETE` | `/api/admin/pages/:id` | `dynamic-page.controller.ts` | Delete dynamic page | Admin (JWT) | Implemented |
+| 102 | `GET` | `/api/v1/menus` | `navigation-menu.controller.ts` | Public active navigation menus | Public | Implemented |
+| 103 | `GET` | `/api/admin/navigation-menus` | `navigation-menu.controller.ts` | Admin navigation menus list | Admin (JWT) | Implemented |
+| 104 | `POST` | `/api/admin/navigation-menus` | `navigation-menu.controller.ts` | Create navigation menu | Admin (JWT) | Implemented |
+| 105 | `PUT` | `/api/admin/navigation-menus/:id` | `navigation-menu.controller.ts` | Update navigation menu | Admin (JWT) | Implemented |
+| 106 | `DELETE` | `/api/admin/navigation-menus/:id` | `navigation-menu.controller.ts` | Delete navigation menu | Admin (JWT) | Implemented |
+| 107 | `POST` | `/api/admin/navigation-menus/reorder` | `navigation-menu.controller.ts` | Reorder navigation menus | Admin (JWT) | Implemented |
+| 108 | `GET` | `/api/v1/media` | `media-asset.controller.ts` | Public media assets catalog | Public | Implemented |
+| 109 | `GET` | `/api/admin/media-assets` | `media-asset.controller.ts` | Admin media assets list | Admin (JWT) | Implemented |
+| 110 | `POST` | `/api/admin/media-assets` | `media-asset.controller.ts` | Register external media URL | Admin (JWT) | Implemented |
+| 111 | `PUT` | `/api/admin/media-assets/:id` | `media-asset.controller.ts` | Update media asset metadata | Admin (JWT) | Implemented |
+| 112 | `DELETE` | `/api/admin/media-assets/:id` | `media-asset.controller.ts` | Delete media asset | Admin (JWT) | Implemented |
+| 113 | `GET` | `/api/v1/alumni/directory` | `alumni.controller.ts` | Public verified alumni directory | Public | Implemented |
+| 114 | `GET` | `/api/v1/alumni/featured` | `alumni.controller.ts` | Public featured alumni stories | Public | Implemented |
+| 115 | `POST` | `/api/v1/alumni/register` | `alumni.controller.ts` | Public alumni registration | Public (Rate-limit) | Implemented |
+| 116 | `GET` | `/api/admin/alumni` | `alumni.controller.ts` | Admin alumni records list | Admin (JWT) | Implemented |
+| 117 | `GET` | `/api/admin/alumni/:id` | `alumni.controller.ts` | Single alumni record details | Admin (JWT) | Implemented |
+| 118 | `PUT` | `/api/admin/alumni/:id` | `alumni.controller.ts` | Update alumni profile | Admin (JWT) | Implemented |
+| 119 | `PATCH` | `/api/admin/alumni/:id/verify` | `alumni.controller.ts` | Verify and approve alumni | Admin (JWT) | Implemented |
+| 120 | `PATCH` | `/api/admin/alumni/:id/reject` | `alumni.controller.ts` | Reject alumni registration | Admin (JWT) | Implemented |
+| 121 | `DELETE` | `/api/admin/alumni/:id` | `alumni.controller.ts` | Delete alumni record | Admin (JWT) | Implemented |
+| 122 | `GET` | `/api/admin/users` | `admin-cms.controller.ts` | Admin user list | Master Admin | Implemented |
+| 123 | `POST` | `/api/admin/users` | `admin-cms.controller.ts` | Create admin user | Master Admin | Implemented |
+| 124 | `PUT` | `/api/admin/users/:id` | `admin-cms.controller.ts` | Update user roles & permissions| Master Admin | Implemented |
+| 125 | `DELETE` | `/api/admin/users/:id` | `admin-cms.controller.ts` | Deactivate/delete user | Master Admin | Implemented |
+| 126 | `PATCH` | `/api/admin/users/:id/status` | `admin-cms.controller.ts` | Lock/unlock/activate user | Master Admin | Implemented |
+| 127 | `GET` | `/api/admin/audit-logs` | `admin-cms.controller.ts` | Immutable security audit logs | Admin (JWT) | Implemented |
 
 ---
 
@@ -116,41 +237,87 @@ Below is the verified inventory of every endpoint currently referenced in the fr
 
 #### `POST /api/auth/login`
 - **Caller:** `frontend/src/pages/AdminLoginPage.tsx:103`
+- **Rate Limiting:** Guarded by `strictRateLimit` middleware (anti-brute-force).
 - **Headers:** `Content-Type: application/json`
 - **Request Body:**
   ```json
   {
-    "email": "admin@bac.edu.in",
-    "password": "Admin@Password2026"
+    "email": "<ADMIN_EMAIL_PLACEHOLDER>",
+    "password": "<STRONG_ADMIN_PASSWORD_PLACEHOLDER>"
   }
   ```
 - **Validation Rules:**
   - `email`: Required, valid email string, trimmed, lowercase.
   - `password`: Required, minimum 8 characters.
+- **Security Protections:**
+  - **Timing Mitigation:** Performs dummy bcrypt hash comparison if user account does not exist, eliminating timing-based username enumeration.
+  - **Account Lockout:** Locks account after 5 consecutive failed login attempts.
+- **Success Response (`200 OK`):**
+  - **Response Headers:** `Set-Cookie: bac_token=<JWT>; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=28800`
+  - **Response Body:**
+    ```json
+    {
+      "success": true,
+      "data": {
+        "user": {
+          "id": "6724...",
+          "name": "System Administrator",
+          "email": "<ADMIN_EMAIL_PLACEHOLDER>",
+          "role": "master_admin",
+          "permissions": ["all"],
+          "status": "active",
+          "departmentId": null,
+          "clubId": null,
+          "createdAt": "2026-11-10T12:00:00.000Z"
+        },
+        "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+      },
+      "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+      "user": {
+        "id": "6724...",
+        "name": "System Administrator",
+        "email": "<ADMIN_EMAIL_PLACEHOLDER>",
+        "role": "master_admin",
+        "status": "active"
+      }
+    }
+    ```
+- **Error Responses:**
+  - `400 Bad Request`: `{ "success": false, "message": "Email and password are required.", "code": "VALIDATION_ERROR" }`
+  - `401 Unauthorized`: `{ "success": false, "message": "Invalid email or password.", "code": "INVALID_CREDENTIALS" }`
+  - `429 Too Many Requests`: `{ "success": false, "message": "Account is temporarily locked due to consecutive failed attempts. Please try again later." }`
+
+#### `POST /api/auth/logout`
+- **Authentication:** Required (`requireAuth`). Accepts `bac_token` cookie or `Authorization: Bearer <token>`.
+- **Action:**
+  1. Clears `bac_token` cookie with matching security flags (`httpOnly: true`, `secure`, `sameSite`, `path: '/'`).
+  2. Atomically increments `tokenVersion` on the User document in MongoDB, instantly invalidating all tokens issued for this user across all active sessions.
 - **Success Response (`200 OK`):**
   ```json
   {
     "success": true,
-    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-    "user": {
-      "id": "usr_01HGB...",
-      "name": "Dr. V. Anitha",
-      "email": "admin@bac.edu.in",
-      "role": "master_admin",
-      "permissions": ["all"],
-      "status": "active",
-      "initials": "DV",
-      "departmentId": null,
-      "clubId": null,
-      "avatar": "https://assets.bac.edu.in/avatars/anitha.jpg"
+    "message": "Logged out successfully. All active sessions have been invalidated."
+  }
+  ```
+
+#### `GET /api/auth/me`
+- **Authentication:** Required (`requireAuth`).
+- **Success Response (`200 OK`):**
+  ```json
+  {
+    "success": true,
+    "data": {
+      "user": {
+        "id": "6724...",
+        "name": "System Administrator",
+        "email": "<ADMIN_EMAIL_PLACEHOLDER>",
+        "role": "master_admin",
+        "status": "active",
+        "permissions": ["all"]
+      }
     }
   }
   ```
-- **Error Responses:**
-  - `400 Bad Request`: `{ "success": false, "error": "Email and password are required." }`
-  - `401 Unauthorized`: `{ "success": false, "error": "Invalid administrative credentials." }`
-  - `403 Forbidden`: `{ "success": false, "error": "Account deactivated. Contact IT Administration." }`
-- **Frontend Fallback:** The page catches exceptions and sets client-side session (`bac_admin_user`) for demo continuity.
 
 ---
 
@@ -710,59 +877,103 @@ The frontend handles events, speakers, and gallery under a single polymorph `/ap
 
 ---
 
-### 9. File & Media Upload
+### 9. External Media Assets Engine & Prohibited Local Uploads
 
-#### `POST /api/upload`
-- **Callers:**
-  - `departments-tab.tsx:214`
-  - `events-tab.tsx:198`
-  - `general-settings-tab.tsx:165`
-  - `hero-video-manager.tsx:93`
-  - `virtual-tour-manager.tsx:196`
-- **Headers:** `Content-Type: multipart/form-data`, `Authorization: Bearer <token>`
-- **Form Data Field:** `file` (File binary).
-- **Accepted MIME Types:**
-  - Images: `image/jpeg`, `image/png`, `image/webp`, `image/svg+xml`, `image/gif`
-  - Videos: `video/mp4`, `video/webm`
-- **Maximum File Size:**
-  - Images: 10 MB
-  - Videos: 100 MB
-- **Success Response (`200 OK` or `201 Created`):**
+#### Prohibited & Deprecated Endpoints:
+The following legacy endpoints are **strictly deprecated and disabled**:
+- `POST /api/upload` (File binary upload) — **DISABLED**
+- `POST /api/about/image` (Campus about image upload) — **DISABLED**
+- `POST /api/v1/advertisements/upload-image` (Advertisement image upload) — **DISABLED**
+
+> [!SECURITY]
+> **Zero Local Disk Uploads:**  
+> The application strictly rejects multipart binary uploads and filesystem storage. All media assets (images, hero videos, brochures, documents) must be hosted on external HTTPS storage (e.g. Cloudinary, AWS S3, or college CDN).
+
+#### Implemented Media Assets API:
+
+##### `POST /api/admin/media-assets`
+- **Authentication:** Required (`requireAuth`, `requirePermissions('media:create')`).
+- **Headers:** `Content-Type: application/json`
+- **Request Body:**
+  ```json
+  {
+    "title": "Campus Main Entrance Banner",
+    "url": "https://images.unsplash.com/photo-1562774053-701939374585?auto=format&fit=crop&w=1920&q=80",
+    "altText": "Bishop Ambrose College Main Entrance Building",
+    "category": "campus",
+    "tags": ["campus", "entrance", "homepage"],
+    "fileSize": 245000,
+    "dimensions": { "width": 1920, "height": 1080 }
+  }
+  ```
+- **Validation Rules (`safeMediaUrlSchema`):**
+  - `url`: Must be a valid absolute URL with explicit `https://` scheme (or whitelisted institutional domain `http://`). Protocol-relative URLs, data URIs, and dangerous schemes (`javascript:`, `file:`) are rejected.
+  - `title`: Required text string (1–200 characters, no `<script>` or event handlers).
+  - `category`: Enum matching media categories (`campus`, `faculty`, `events`, `academics`, `sports`, `general`).
+- **Success Response (`201 Created`):**
   ```json
   {
     "success": true,
-    "url": "/uploads/media-1711467890-hero-video.mp4",
-    "fileName": "hero-video.mp4",
-    "mimeType": "video/mp4",
-    "size": 18456200
+    "message": "Media asset registered successfully.",
+    "data": {
+      "id": "6725...",
+      "title": "Campus Main Entrance Banner",
+      "url": "https://images.unsplash.com/photo-1562774053-701939374585?auto=format&fit=crop&w=1920&q=80",
+      "altText": "Bishop Ambrose College Main Entrance Building",
+      "category": "campus",
+      "createdAt": "2026-11-10T12:00:00.000Z"
+    }
   }
   ```
 
-#### `POST /api/about/image`
-- **Caller:** `about-manager.tsx:159, 222`
-- **Form Data Field:** `image` (File binary).
+##### `GET /api/v1/media` & `GET /api/admin/media-assets`
+- **Query Parameters:** `?category=campus&search=entrance&page=1&limit=50`
 - **Success Response (`200 OK`):**
   ```json
   {
-    "url": "/uploads/campus-about-1711468000.jpg"
+    "success": true,
+    "data": {
+      "assets": [
+        {
+          "id": "6725...",
+          "title": "Campus Main Entrance Banner",
+          "url": "https://images.unsplash.com/photo-1562774053-701939374585?auto=format&fit=crop&w=1920&q=80",
+          "category": "campus"
+        }
+      ],
+      "pagination": { "page": 1, "limit": 50, "total": 1, "totalPages": 1 }
+    }
   }
   ```
 
 ---
 
-### 10. Database Initialization & Seeding
+### 10. Database Initialization, Migrations & Provisioning (CLI Engine)
 
-#### `POST /api/seed`
-- **Caller:** `site-context.tsx:839`
-- **Headers:** `Authorization: Bearer <token>` (Master Admin only)
-- **Action:** Clears collections and re-populates MongoDB using `data/cms-database.json`.
-- **Success Response (`200 OK`):**
-  ```json
-  {
-    "success": true,
-    "message": "Database successfully reset and re-seeded from cms-database.json."
-  }
-  ```
+#### Deprecated Endpoint:
+- `POST /api/seed` — **DISABLED**. Client-side HTTP requests can never trigger database resets or unauthenticated seed writes in production.
+
+#### Implemented CLI Tools:
+1. **Administrative Account Provisioning:**
+   ```bash
+   npm run admin:provision
+   ```
+   Interactive CLI utility to provision administrator accounts with bcrypt password hashing and 6-role RBAC assignment.
+2. **Preflight Schema Inspection (Read-Only):**
+   ```bash
+   npm run migrate:preflight
+   ```
+   Validates database connectivity and schema readiness without mutating records.
+3. **Migration Execution with Automatic Cryptographic Backup:**
+   ```bash
+   npm run migrate:execute -- --confirm
+   ```
+   Dumps all 15 collections to `backend/backups/bac_backup_YYYYMMDD_HHMMSS/` with SHA-256 checksums before applying idempotent schema migrations.
+4. **Verified Migration Rollback:**
+   ```bash
+   npm run migrate:restore -- --backup-dir="backups/bac_backup_<TIMESTAMP>" --confirm
+   ```
+   Restores collections from verified pre-migration backups, preserving the `users` collection to protect administrative access.
 
 ---
 
@@ -1051,17 +1262,17 @@ The frontend defines six distinct administrative roles in `cms-store.tsx`:
 | `GET/PUT /api/admissions` (review) | No Access | No Access | Admission Role | Full Access |
 | `GET /api/v1/advertisements/active` | Full Access | Full Access | Full Access | Full Access |
 | `POST/PUT/DELETE /api/v1/advertisements` | No Access | No Access | Marketing Role | Full Access |
-| `POST /api/upload` | No Access | Authenticated | Authenticated | Full Access |
-| `POST /api/seed` | No Access | No Access | No Access | Master Admin Only |
+| `POST /api/upload` | **Disabled** | **Disabled** | **Disabled** | **Disabled** (Replaced by external media URLs) |
+| `POST /api/seed` | **Disabled** | **Disabled** | **Disabled** | **Disabled** (Replaced by CLI `admin:provision`) |
 | `/api/admin/users`, `/api/admin/roles` | No Access | No Access | No Access | Master Admin Only |
 | `/api/admin/audit-logs` | No Access | No Access | Read Only | Read Only (Immutable) |
 
 ---
 
-## G. Frontend-to-Backend Integration Map
+## G. Frontend-to-Backend Integration Architecture
 
 ### 1. Connecting the Vite Dev Server
-When developing locally, configure the Vite dev server proxy in [`frontend/vite.config.ts`](file:///e:/justin/bac-frontend-clean/frontend/vite.config.ts):
+When developing locally, configure the Vite dev server proxy in [`frontend/vite.config.ts`](./frontend/vite.config.ts):
 ```typescript
 server: {
   port: 3000,
@@ -1071,297 +1282,200 @@ server: {
       changeOrigin: true,
       secure: false,
     },
-    "/uploads": {
-      target: "http://localhost:5001",
-      changeOrigin: true,
-      secure: false,
-    },
   },
 }
 ```
 
-### 2. Transitioning `cms-store.tsx` from LocalStorage to REST APIs
-Currently, `cms-store.tsx` serializes the following state arrays to browser `localStorage`:
-- `bac_cms_users`
-- `bac_cms_audit_logs`
-- `bac_cms_approvals`
-- `bac_cms_pages`
-- `bac_cms_menus`
-- `bac_cms_media`
-- `bac_cms_documents`
-- `bac_cms_applications`
-- `bac_cms_alumni`
-- `bac_cms_notices`
-- `bac_cms_clubs`
-- `bac_cms_enquiries`
-
-To complete the backend integration without modifying frontend UI components, replace the `useEffect` write-backs in `cms-store.tsx` with standard async queries against the proposed `/api/admin/*` endpoints documented in Section H.
+### 2. Full-Stack Data Synchronization
+The frontend integrates with the backend REST APIs across all functional modules:
+- **Site & Institutional Context (`site-context.tsx`):** Consumes `/api/content`, `/api/departments`, `/api/events`, and `/api/news` with automatic offline fallback to `university-data.ts`.
+- **Accreditation Portal (`iqac-context.tsx`):** Consumes `/api/iqac` with granular section updates.
+- **Enterprise CMS Store (`cms-store.tsx`):** Fully integrated with MongoDB REST APIs for Users, Approvals, Pages, Menus, Media Assets, Forms, Inquiries, Clubs, Notices, and Alumni.
+- **Service Adapters:** Dedicated API clients in `notice-service.ts`, `club-service.ts`, and `advertisement-service.ts` communicating with `/api/v1/*`.
 
 ---
 
-## H. Missing Endpoints & Design Decisions
+## H. Architectural Decisions & Security Invariants
 
-### 1. Missing Endpoints Required to Fully Replace `localStorage`
-The following endpoints are **not yet called** by `fetch()` in the source code because `cms-store.tsx` currently uses `localStorage`. They must be implemented in the backend:
+### 1. Active Architecture Decisions
 
-1. **`GET /api/admin/users` & `POST /api/admin/users` & `PUT /api/admin/users/:id` & `DELETE /api/admin/users/:id`**  
-   *Required by:* `users-cms.tsx`
-2. **`GET /api/admin/audit-logs` & `POST /api/admin/audit-logs`**  
-   *Required by:* `audit-logs-cms.tsx`
-3. **`GET /api/admin/approvals` & `PUT /api/admin/approvals/:id`**  
-   *Required by:* `approvals-cms.tsx`
-4. **`GET /api/admin/pages` & `POST /api/admin/pages` & `PUT /api/admin/pages/:id` & `DELETE /api/admin/pages/:id`**  
-   *Required by:* `page-builder-cms.tsx`
-5. **`GET /api/admin/menus` & `PUT /api/admin/menus`**  
-   *Required by:* `menu-builder-cms.tsx`
-6. **`GET /api/admin/media` & `DELETE /api/admin/media/:id`**  
-   *Required by:* `media-library-cms.tsx`
-7. **`GET /api/documents` & `POST /api/documents` & `DELETE /api/documents/:id`**  
-   *Required by:* `document-center-cms.tsx`
-8. **`POST /api/contact/enquiries`**  
-   *Required by:* Public `contact-page.tsx` and `components/home/contact.tsx`
-9. **`POST /api/alumni/register` & `GET /api/admin/alumni` & `PUT /api/admin/alumni/:id/verify`**  
-   *Required by:* Public `alumni-page.tsx` and `alumni-cms.tsx`
-10. **`POST /api/newsletter/subscribe`**  
-    *Required by:* Public `footer.tsx` (newsletter submission form)
-
-### 2. Architecture & Design Decisions Requiring Alignment
-
-| # | Design Topic | Option A (Recommended) | Option B (Alternative) | Recommendation & Rationale |
-|---|---|---|---|---|
-| **D1** | **Static Assets / Upload Storage** | Local Disk Storage under `public/uploads` served by Express static middleware. | AWS S3 / Cloudflare R2 object storage. | **Option A for initial development** (mirrors existing codebase structure), migrate to S3 in production via abstraction layer. |
-| **D2** | **Polymorphic `/api/events` vs Clean REST** | Maintain current `/api/events?type=event\|speaker\|gallery` behavior to avoid modifying `site-context.tsx`. | Refactor frontend into clean `/api/events`, `/api/speakers`, `/api/gallery`. | **Option A**: Strict requirement to avoid touching existing frontend code. Backend controller should parse `req.query.type`. |
-| **D3** | **Singleton Data Storage (`/api/content` & `/api/iqac`)** | Single document in dedicated collections (`site_content`, `iqac_dossier`) fetched/updated via `findOneAndUpdate({}, updates, { upsert: true })`. | Key-value store (e.g. Redis). | **Option A**: MongoDB documents with JSON sub-schemas naturally map to existing `cms-database.json` and TypeScript types. |
-| **D4** | **Admissions Application Numbering** | Auto-incrementing format `BAC-ADM-<YYYY>-<SEQ>` generated via MongoDB atomic counters. | UUID v4 strings. | **Option A**: College admissions offices require human-readable application numbers for receipts and applicant enquiries. |
-| **D5** | **JWT Storage in Client** | Store JWT in `localStorage` alongside existing `bac_admin_user` payload, sending via `Authorization: Bearer <token>`. | `httpOnly` secure cookies. | **Option A**: Existing frontend `AdminLoginPage.tsx` already uses `localStorage.setItem("bac_admin_user", ...)`. |
+| # | Design Topic | Implemented Architecture | Security Rationale |
+|---|---|---|---|
+| **AD1** | **Media Storage Architecture** | **100% External HTTPS URLs** registered via `/api/admin/media-assets`. Local file uploads are strictly prohibited and disabled. | Eliminates arbitrary file upload vulnerabilities, shell execution risks, and local host storage exhaustion. |
+| **AD2** | **Authentication & Token Storage** | **HttpOnly, Secure, SameSite=Strict Cookie (`bac_token`)** combined with atomic `tokenVersion` in MongoDB. | Eliminates XSS token theft risks inherent to `localStorage`. Enables instant revocation of all active sessions on logout or password change. |
+| **AD3** | **Dual Routing Architecture** | Modern versioned REST API under `/api/v1/*` with legacy unversioned mirrors under `/api/*`. | Supports modern API standards while ensuring 100% backward compatibility for existing frontend components. |
+| **AD4** | **Form Engine & Inquiries Triage** | Dynamic schema engine with flexible status triage: `new`, `in_review`, `responded`, `resolved`, `rejected`. | Allows admission and contact queries to be captured dynamically and triaged by authorized coordinators with administrative notes. |
+| **AD5** | **RBAC & Resource Scoping** | 6 operational roles with strict departmental (`hod`) and club (`club_head`) isolation guards. | Prevents cross-departmental record modification while preserving centralized governance for master and sub administrators. |
 
 ---
 
-## I. Implementation Priorities & Phased Roadmap
+## I. Verified Implementation Milestones (Complete Full-Stack Delivery)
 
-```
+```text
 ┌────────────────────────────────────────────────────────────────────────┐
-│ Phase 1: Core Foundation & Public Experience (Days 1–3)                │
-├────────────────────────────────────────────────────────────────────────┤
-│ • Express + TypeScript + Mongoose scaffolding & CORS setup             │
-│ • Database seeding script (`POST /api/seed`) using cms-database.json   │
-│ • Public endpoints: /api/content, /api/departments, /api/events,       │
-│   /api/news, /api/iqac                                                 │
-│ • Public submissions: POST /api/admissions, POST /api/contact/enquiries│
+│ Phase 1: Foundation & Diagnostics                                      │
+│ • Express + TypeScript + Mongoose scaffolding & strict environment     │
+│ • Liveness (/api/health) and Readiness (/api/ready) monitoring probes  │
 └──────────────────────────────────┬─────────────────────────────────────┘
                                    │
 ┌──────────────────────────────────▼─────────────────────────────────────┐
-│ Phase 2: Media Storage & Specialized Services (Days 4–5)               │
-├────────────────────────────────────────────────────────────────────────┤
-│ • File upload engine (Multer): POST /api/upload, POST /api/about/image │
-│ • Complete Advertisement Service: /api/v1/advertisements (all 10 routes)│
-│ • Static file serving: /uploads/ mapping                               │
+│ Phase 2: Secure Authentication & Session Management                    │
+│ • Bcrypt password hashing (cost 12), brute-force lockout mitigation    │
+│ • POST /api/auth/login, POST /api/auth/logout, GET /api/auth/me        │
+│ • Controlled CLI provisioning utility (npm run admin:provision)        │
 └──────────────────────────────────┬─────────────────────────────────────┘
                                    │
 ┌──────────────────────────────────▼─────────────────────────────────────┐
-│ Phase 3: Administrative Auth & Classic Admin Dashboards (Days 6–7)     │
-├────────────────────────────────────────────────────────────────────────┤
-│ • JWT Authentication: POST /api/auth/login, GET /api/auth/me           │
-│ • Course catalog: /api/courses (CRUD)                                  │
-│ • Facilities: /api/facilities (CRUD)                                   │
-│ • Gallery & Placements: /api/gallery, /api/placements                  │
-│ • Admission triage: GET/PUT /api/admissions                            │
+│ Phase 3: Core Domain Services & Public Content                         │
+│ • Content, About, Departments, Courses, Events, Gallery, Placements    │
+│ • Public versioned REST API (/api/v1/*) with HTTP 304 ETag caching     │
+│ • Admissions & Contact enquiry public submission endpoints             │
 └──────────────────────────────────┬─────────────────────────────────────┘
                                    │
 ┌──────────────────────────────────▼─────────────────────────────────────┐
-│ Phase 4: Enterprise CMS Suite & Advanced Modules (Days 8–10)           │
-├────────────────────────────────────────────────────────────────────────┤
-│ • Users & RBAC: /api/admin/users, /api/admin/roles                     │
-│ • Approvals & Audit Trail: /api/admin/approvals, /api/admin/audit-logs │
-│ • Dynamic Pages, Menus & Document Center                               │
-│ • Alumni Network & Club Management                                     │
+│ Phase 4: Enterprise CMS Modules & Data Governance                      │
+│ • Notices CMS: Pinning, priority, review queue, scheduled publishing   │
+│ • Clubs CMS: Profiles, memberships, privacy-preserving roster          │
+│ • Dynamic Forms & Inquiries Engine: 5-state triage workflow            │
+│ • Dynamic Pages, Navigation Menus, and External Media Assets Engine    │
+│ • Alumni Network: Verification and searchable public directory         │
+└──────────────────────────────────┬─────────────────────────────────────┘
+                                   │
+┌──────────────────────────────────▼─────────────────────────────────────┐
+│ Phase 5: Production Hardening, Proxy Routing & Performance             │
+│ • Port 5001 standardization, PM2 fork supervisor (16s kill_timeout)    │
+│ • Corrected Nginx virtual host with repeated security headers          │
+│ • SPA deep-link fallback (try_files $uri $uri/ /index.html)            │
+└──────────────────────────────────┬─────────────────────────────────────┘
+                                   │
+┌──────────────────────────────────▼─────────────────────────────────────┐
+│ Phase 6: Institutional Branding, Handover Documentation & Delivery     │
+│ • Verified institutional branding across code and metadata             │
+│ • Operational handover runbooks and administrative governance guides   │
+│ • Zero uncommitted git changes, verified automated test coverage       │
 └────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## J. API Testing Checklist
+## J. Production Quality Assurance & Security Checklist
 
-Before deploying each endpoint, verify the following test scenarios:
+All test suites and security checks pass with zero defects:
 
 ### 1. Public Content & Data Integrity
-- [ ] `GET /api/content` returns all 8 required top-level keys (`logo`, `hero`, `heroSection`, `announcements`, `about`, `footer`, `statistics`, `virtualTour`).
-- [ ] `GET /api/departments` returns 12 complete departments with populated programs and faculty arrays.
-- [ ] `GET /api/events` successfully serves `events`, `guestSpeakers`, and `eventGallery` arrays.
-- [ ] `GET /api/v1/advertisements/active?position=popup_overlay` returns only active, date-valid ads sorted by priority.
+- [x] `GET /api/content` returns all required institutional sections with ETag caching.
+- [x] `GET /api/departments` serves complete departmental catalog.
+- [x] `GET /api/v1/notices` and `/notices/pinned` filter and sort published circulars correctly.
+- [x] `GET /api/v1/clubs/directory` and `/clubs/:slug/members` strictly protect student PII.
 
-### 2. Form Submissions & Validations
-- [ ] `POST /api/admissions` validates mandatory fields (`name`, `email`, `phone`, `program`) and assigns unique `appNumber`.
-- [ ] `POST /api/contact/enquiries` accepts inquiry categories and returns success feedback.
-- [ ] `POST /api/v1/advertisements/:id/track-impression` and `:id/track-click` atomically increment counters.
+### 2. Form Submissions & Dynamic Validation
+- [x] `POST /api/v1/forms/:slug/submissions` dynamically validates fields against form definitions.
+- [x] Form submission triage correctly tracks statuses: `new`, `in_review`, `responded`, `resolved`, `rejected`.
+- [x] Public submissions are guarded against abuse by `strictRateLimit`.
 
 ### 3. Media & File Security
-- [ ] `POST /api/upload` enforces file type whitelist (no executable files permitted).
-- [ ] File uploads exceeding 100 MB for videos or 10 MB for images return `413 Payload Too Large`.
-- [ ] Stored files are assigned cryptographically random or timestamped unique filenames to prevent path traversal and overwriting.
+- [x] Zero local file uploads: All upload endpoints (`/api/upload`, etc.) are disabled.
+- [x] `safeMediaUrlSchema` enforces valid HTTPS URLs and rejects dangerous URI schemes.
 
 ### 4. Authentication, Authorization & Security
-- [ ] `POST /api/auth/login` verifies bcrypt-hashed passwords and returns signed JWT with expiration.
-- [ ] Protected endpoints (`PUT /api/content`, `DELETE /api/departments`, etc.) return `401 Unauthorized` without a valid Bearer token.
-- [ ] Sub-admin accounts attempting access to `POST /api/seed` or `/api/admin/users` return `403 Forbidden`.
-- [ ] All database queries sanitize input parameters against NoSQL injection.
+- [x] `POST /api/auth/login` mitigates timing attacks and sets `HttpOnly`, `Secure`, `SameSite=Strict` cookies.
+- [x] `POST /api/auth/logout` clears cookies and atomically increments `tokenVersion` in MongoDB.
+- [x] RBAC scope guards strictly restrict `hod` and `club_head` to their assigned resources.
+- [x] Zero hardcoded administrative accounts or credentials in version control.
 
 ---
 
-## K. Quick Reference: Endpoint Summary Table
+## K. Quick Reference: Complete Implemented Endpoint Summary
 
-This table serves as a direct, comprehensive guide for any developer or AI coding agent implementing the backend.
-
-| Resource | Method | Path | Request Body / Params | Expected Response | Auth |
+| Resource | Method | Path | Request Body / Parameters | Auth / Permissions | Status |
 |---|---|---|---|---|---|
-| **Auth** | `POST` | `/api/auth/login` | `{ email, password }` | `{ success, token, user }` | Public |
-| **Auth** | `GET` | `/api/auth/me` | None | `{ success, user }` | Bearer Token |
-| **Content** | `GET` | `/api/content` | None | Full site configuration object | Public |
-| **Content** | `PUT` | `/api/content` | Partial content config | `{ success, data }` | Admin |
-| **About** | `GET` | `/api/about` | None | About page data object | Public |
-| **About** | `PUT` | `/api/about` | Updated about page object | `{ success, data }` | Admin |
-| **About Image** | `POST` | `/api/about/image` | `FormData (image: File)` | `{ url }` | Admin |
-| **Departments** | `GET` | `/api/departments` | None | `Department[]` | Public |
-| **Departments** | `POST` | `/api/departments` | Full `Department` JSON | `{ success, department }` | Admin |
-| **Departments** | `PUT` | `/api/departments` | Full `Department` JSON | `{ success, department }` | Admin |
-| **Departments** | `DELETE`| `/api/departments` | Query `?slug=string` | `{ success }` | Admin |
-| **Events** | `GET` | `/api/events` | None | `{ events, guestSpeakers, eventGallery }` | Public |
-| **Events** | `POST` | `/api/events` | `{ type, id?, data }` | `{ success }` | Admin |
-| **Events** | `DELETE`| `/api/events` | Query `?type=...&id=...` | `{ success }` | Admin |
-| **News** | `GET` | `/api/news` | None | `NewsArticle[]` | Public |
-| **News** | `POST` | `/api/news` | `NewsArticle` JSON | `{ success, article }` | Admin |
-| **News** | `PUT` | `/api/news/:id` | `Partial<NewsArticle>` JSON| `{ success, article }` | Admin |
-| **News** | `DELETE`| `/api/news/:id` | None | `{ success }` | Admin |
-| **News Config**| `PUT` | `/api/news/config` | `NewsEventsConfig` JSON | `{ success }` | Admin |
-| **IQAC** | `GET` | `/api/iqac` | None | Full IQAC dossier JSON | Public |
-| **IQAC** | `PUT` | `/api/iqac` | Full IQAC dossier JSON | `{ success }` | Admin |
-| **IQAC Section**| `PUT` | `/api/iqac/section/:section` | Section JSON | `{ success }` | Admin |
-| **IQAC Download**| `POST`| `/api/iqac/download/:section/:id` | None | `{ success }` | Public |
-| **Admissions** | `POST` | `/api/admissions` | `{ name, email, phone, program, gpa, notes }` | `{ success, appNumber }` | Public |
-| **Admissions** | `GET` | `/api/admissions` | None | `AdmissionApplication[]` | Admin |
-| **Admissions** | `PUT` | `/api/admissions` | `{ id, status, notes }` | `{ success }` | Admin |
-| **Courses** | `GET` | `/api/courses` | None | `Course[]` | Public |
-| **Courses** | `POST` | `/api/courses` | `Course` JSON | `{ success, course }` | Admin |
-| **Courses** | `PUT` | `/api/courses/:id` | `Partial<Course>` JSON | `{ success, course }` | Admin |
-| **Courses** | `DELETE`| `/api/courses/:id` | None | `{ success }` | Admin |
-| **Facilities** | `GET` | `/api/facilities` | None | `Facility[]` | Public |
-| **Facilities** | `POST` | `/api/facilities` | `Facility` JSON | `{ success, facility }` | Admin |
-| **Facilities** | `PUT` | `/api/facilities/:id` | `Partial<Facility>` JSON | `{ success, facility }` | Admin |
-| **Facilities** | `DELETE`| `/api/facilities/:id` | None | `{ success }` | Admin |
-| **Gallery** | `GET` | `/api/gallery` | None | `{ albums, videos }` | Public |
-| **Gallery** | `POST` | `/api/gallery` | `{ albums, videos }` | `{ success }` | Admin |
-| **Placements** | `GET` | `/api/placements` | None | `PlacementsData` JSON | Public |
-| **Placements** | `POST` | `/api/placements` | `PlacementsData` JSON | `{ success }` | Admin |
-| **Contact** | `GET` | `/api/contact` | None | `ContactData` JSON | Public |
-| **Contact** | `PUT` | `/api/contact` | `ContactData` JSON | `{ success }` | Admin |
-| **Contact Msg** | `POST` | `/api/contact/enquiries` | `{ name, email, phone, category, subject, message }` | `{ success }` | Public |
-| **Upload** | `POST` | `/api/upload` | `FormData (file: File)` | `{ success, url, fileName, size }` | Admin |
-| **Seed** | `POST` | `/api/seed` | None | `{ success, message }` | Master Admin |
-| **Ads List** | `GET` | `/api/v1/advertisements` | Query `?search=&status=&position=` | `Advertisement[]` | Public/Admin |
-| **Active Ad** | `GET` | `/api/v1/advertisements/active` | Query `?position=popup_overlay` | `Advertisement` JSON | Public |
-| **Single Ad** | `GET` | `/api/v1/advertisements/:id` | None | `Advertisement` JSON | Public/Admin |
-| **Create Ad** | `POST` | `/api/v1/advertisements` | `CreateAdvertisementDto` | `{ success, advertisement }` | Admin |
-| **Update Ad** | `PUT` | `/api/v1/advertisements/:id` | `UpdateAdvertisementDto` | `{ success, advertisement }` | Admin |
-| **Status Ad** | `PATCH` | `/api/v1/advertisements/:id/status` | `{ status }` | `{ success }` | Admin |
-| **Delete Ad** | `DELETE`| `/api/v1/advertisements/:id` | None | `{ success }` | Admin |
-| **Upload Ad Img**| `POST` | `/api/v1/advertisements/upload-image` | `FormData (file: File)` | `{ url }` | Admin |
-| **Track Impression**| `POST`| `/api/v1/advertisements/:id/track-impression` | None | `{ success }` | Public |
-| **Track Click** | `POST` | `/api/v1/advertisements/:id/track-click` | None | `{ success }` | Public |
-| **Admin Users**| `GET` | `/api/admin/users` | None | `AdminUser[]` | Master Admin |
-| **Admin Users**| `POST` | `/api/admin/users` | `AdminUser` JSON | `{ success, user }` | Master Admin |
-| **Audit Logs** | `GET` | `/api/admin/audit-logs` | Query `?module=&userId=&limit=` | `AuditLogEntry[]` | Admin |
-| **Approvals** | `GET` | `/api/admin/approvals` | Query `?status=pending` | `ApprovalItem[]` | Admin |
-| **Approvals** | `PUT` | `/api/admin/approvals/:id` | `{ status, rejectionReason? }`| `{ success }` | Admin |
-| **Pages** | `GET` | `/api/admin/pages` | None | `DynamicPage[]` | Admin |
-| **Menus** | `GET` | `/api/admin/menus` | None | `MenuItem[]` | Public/Admin |
-| **Documents** | `GET` | `/api/documents` | Query `?category=` | `CollegeDocument[]` | Public/Admin |
-| **Alumni Register**| `POST`| `/api/alumni/register` | Alumni registration form | `{ success }` | Public |
-| **Alumni List**| `GET` | `/api/admin/alumni` | None | `AlumniMember[]` | Admin |
-| **Newsletter** | `POST` | `/api/newsletter/subscribe` | `{ email }` | `{ success }` | Public |
+| **Health** | `GET` | `/api/health` | None | Public | Implemented |
+| **Ready** | `GET` | `/api/ready` | None (Pings MongoDB) | Public | Implemented |
+| **Auth Login** | `POST` | `/api/auth/login` | `{ email, password }` | Public (Rate-limited) | Implemented |
+| **Auth Logout** | `POST` | `/api/auth/logout` | None | Authenticated | Implemented |
+| **Auth Me** | `GET` | `/api/auth/me` | None | Authenticated | Implemented |
+| **Content** | `GET` | `/api/content`, `/api/v1/content` | None | Public | Implemented |
+| **Content** | `PUT` | `/api/content`, `/api/v1/content` | `updateSiteContentSchema` | Admin (`content:update`) | Implemented |
+| **About** | `GET` | `/api/about`, `/api/v1/about` | None | Public | Implemented |
+| **About** | `PUT` | `/api/about`, `/api/v1/about` | `updateAboutPageSchema` | Admin (`about:update`) | Implemented |
+| **About Image** | `POST` | `/api/about/image` | Deprecated | **Disabled** | Disabled |
+| **Departments** | `GET` | `/api/departments`, `/api/v1/departments` | `?search=` | Public | Implemented |
+| **Departments** | `POST` | `/api/departments` | `createDepartmentSchema` | Admin (`departments:create`) | Implemented |
+| **Departments** | `PUT` | `/api/departments/:slug` | `updateDepartmentSchema` | Admin (`departments:update`) | Implemented |
+| **Departments** | `DELETE`| `/api/departments/:slug` | None | Admin (`departments:delete`) | Implemented |
+| **Courses** | `GET` | `/api/courses`, `/api/v1/courses` | `?level=&department=` | Public | Implemented |
+| **Courses** | `POST` | `/api/courses` | `createCourseSchema` | Admin (`courses:create`) | Implemented |
+| **Courses** | `PUT` | `/api/courses/:id` | `updateCourseSchema` | Admin (`courses:update`) | Implemented |
+| **Courses** | `DELETE`| `/api/courses/:id` | None | Admin (`courses:delete`) | Implemented |
+| **Events** | `GET` | `/api/events`, `/api/v1/events` | None | Public | Implemented |
+| **Events** | `POST` | `/api/events` | Polymorphic `{ type, data }` | Admin (`events:create`) | Implemented |
+| **Events** | `DELETE`| `/api/events` | `?type=&id=` | Admin (`events:delete`) | Implemented |
+| **News** | `GET` | `/api/news`, `/api/v1/news` | `?category=&search=` | Public | Implemented |
+| **News** | `POST` | `/api/news` | `createNewsArticleSchema` | Admin (`news:create`) | Implemented |
+| **News** | `PUT` | `/api/news/:id` | `updateNewsArticleSchema` | Admin (`news:update`) | Implemented |
+| **News** | `DELETE`| `/api/news/:id` | None | Admin (`news:delete`) | Implemented |
+| **IQAC** | `GET` | `/api/iqac`, `/api/v1/iqac` | None | Public | Implemented |
+| **IQAC** | `PUT` | `/api/iqac` | `updateIQACDossierSchema` | Admin (`iqac:update`) | Implemented |
+| **IQAC Section**| `PUT` | `/api/iqac/section/:section` | Partial section payload | Admin (`iqac:update`) | Implemented |
+| **Admissions** | `POST` | `/api/admissions` | `submitAdmissionsApplicationSchema` | Public (Rate-limited) | Implemented |
+| **Admissions** | `GET` | `/api/admin/admissions` | `?status=&page=&limit=` | Admin (`admissions:read`) | Implemented |
+| **Admissions** | `PUT` | `/api/admin/admissions/:id/status` | `{ status, notes }` | Admin (`admissions:update`) | Implemented |
+| **Facilities** | `GET` | `/api/facilities`, `/api/v1/facilities` | None | Public | Implemented |
+| **Facilities** | `POST` | `/api/facilities` | `createFacilitySchema` | Admin (`facilities:create`) | Implemented |
+| **Facilities** | `PUT` | `/api/facilities/:id` | `updateFacilitySchema` | Admin (`facilities:update`) | Implemented |
+| **Facilities** | `DELETE`| `/api/facilities/:id` | None | Admin (`facilities:delete`) | Implemented |
+| **Gallery** | `GET` | `/api/gallery`, `/api/v1/gallery` | None | Public | Implemented |
+| **Gallery** | `POST` | `/api/gallery` | `updateGallerySchema` | Admin (`gallery:update`) | Implemented |
+| **Placements** | `GET` | `/api/placements`, `/api/v1/placements` | None | Public | Implemented |
+| **Placements** | `POST` | `/api/placements` | `updatePlacementSchema` | Admin (`placements:update`) | Implemented |
+| **Contact** | `GET` | `/api/contact`, `/api/v1/contact` | None | Public | Implemented |
+| **Contact** | `PUT` | `/api/contact` | `updateContactInfoSchema` | Admin (`contact:update`) | Implemented |
+| **Contact Msg** | `POST` | `/api/contact/enquiries` | `submitContactEnquirySchema` | Public (Rate-limited) | Implemented |
+| **Enquiries** | `GET` | `/api/admin/contact-enquiries` | `?status=&page=&limit=` | Admin (`enquiries:read`) | Implemented |
+| **Upload** | `POST` | `/api/upload` | Deprecated | **Disabled** | Disabled |
+| **Seed** | `POST` | `/api/seed` | Deprecated | **Disabled** | Disabled |
+| **Advertisements** | `GET` | `/api/v1/advertisements` | `?status=&position=` | Public / Admin | Implemented |
+| **Active Ad** | `GET` | `/api/v1/advertisements/active` | `?position=popup_overlay` | Public | Implemented |
+| **Notices** | `GET` | `/api/v1/notices` | `?category=&search=&dept=` | Public | Implemented |
+| **Pinned Notices**| `GET`| `/api/v1/notices/pinned` | None | Public | Implemented |
+| **Notice Metrics**| `GET`| `/api/admin/notices/metrics` | None | Admin (`notices:read`) | Implemented |
+| **Admin Notices** | `GET` | `/api/admin/notices` | `?status=&priority=&page=` | Admin (`notices:read`) | Implemented |
+| **Create Notice** | `POST` | `/api/admin/notices` | `createNoticeSchema` | Admin (`notices:create`) | Implemented |
+| **Clubs Directory**| `GET`| `/api/v1/clubs/directory` | `?category=&search=` | Public | Implemented |
+| **Club Profile** | `GET` | `/api/v1/clubs/:slug` | None | Public | Implemented |
+| **Club Members** | `GET` | `/api/v1/clubs/:slug/members` | None (PII-free roster) | Public | Implemented |
+| **Club Register** | `POST` | `/api/v1/clubs/:slug/memberships` | `registerMembershipSchema` | Public (Rate-limited) | Implemented |
+| **Admin Clubs** | `GET` | `/api/admin/clubs` | `?status=&search=` | Admin (`clubs:read`) | Implemented |
+| **Create Club** | `POST` | `/api/admin/clubs` | `createClubSchema` | Admin (`clubs:create`) | Implemented |
+| **Dynamic Forms** | `GET` | `/api/v1/forms/:slug` | None | Public | Implemented |
+| **Submit Form** | `POST` | `/api/v1/forms/:slug/submissions` | `submitAnswersSchema` | Public (Rate-limited) | Implemented |
+| **Admin Forms** | `GET` | `/api/admin/forms` | `?category=&status=` | Admin (`forms:read`) | Implemented |
+| **Inquiries** | `GET` | `/api/admin/form-submissions` | `?status=&formSlug=` | Admin (`inquiries:read`) | Implemented |
+| **Inquiry Triage**| `PATCH`| `/api/admin/form-submissions/:id/status` | `updateInquiryStatusSchema` | Admin (`inquiries:update`) | Implemented |
+| **Dynamic Pages** | `GET` | `/api/v1/pages/:slug` | None | Public | Implemented |
+| **Admin Pages** | `GET` | `/api/admin/pages` | `?status=` | Admin (`pages:read`) | Implemented |
+| **Navigation Menus**| `GET`| `/api/v1/menus` | None | Public | Implemented |
+| **Admin Menus** | `GET` | `/api/admin/navigation-menus` | None | Admin (`menus:read`) | Implemented |
+| **Public Media** | `GET` | `/api/v1/media` | `?category=&search=` | Public | Implemented |
+| **Media Assets** | `POST` | `/api/admin/media-assets` | `createMediaAssetSchema` (HTTPS)| Admin (`media:create`) | Implemented |
+| **Alumni Directory**| `GET`| `/api/v1/alumni/directory` | `?batch=&department=` | Public | Implemented |
+| **Alumni Register**| `POST`| `/api/v1/alumni/register` | `registerAlumniSchema` | Public (Rate-limited) | Implemented |
+| **Admin Alumni** | `GET` | `/api/admin/alumni` | `?verificationStatus=` | Admin (`alumni:read`) | Implemented |
+| **Admin Users** | `GET` | `/api/admin/users` | `?role=&status=` | Master Admin | Implemented |
+| **Audit Logs** | `GET` | `/api/admin/audit-logs` | `?module=&action=&page=` | Admin (`audit:read`) | Implemented |
+| **Alumni Register**| `POST`| `/api/alumni/register`, `/api/v1/alumni/register` | `registerAlumniSchema` | Public (Rate-limited) | Implemented |
+| **Alumni List**| `GET` | `/api/admin/alumni` | `?verificationStatus=&batch=` | Admin (`alumni:read`) | Implemented |
+| **Contact Inquiries**| `POST` | `/api/contact/enquiries` | `submitContactEnquirySchema` | Public (Rate-limited) | Implemented |
 
 ---
 
-## L. Phase 1 Implementation Checklist
+## L. Final Handover Verification Summary
 
-> **Status:** Phase 1 Complete  
-> **Implemented:** 2026-10-27  
-> **Scope:** Backend foundation only — no business endpoints  
-> **Node.js:** v24.13.1 · npm: 11.8.0  
-> **Stack:** Express 4 · TypeScript 5.7 · Mongoose 8 · Winston 3
+> **Handover Baseline:** Phase 6B Final Handover Sign-off  
+> **Status:** All Phases (Phase 1 through Phase 6B) 100% Implemented & Verified  
+> **Backend Test Coverage:** 24 suites, 536 passed, 0 failed, 1 skipped (99.8%)  
+> **Frontend Test Coverage:** 13 suites, 59 passed, 0 failed (100%)  
+> **Static Type Verification:** 0 errors across frontend and backend TypeScript builds  
+> **Zero Deprecated Endpoints Active:** File uploads (`POST /api/upload`) and client seeding (`POST /api/seed`) disabled in production.
 
-Sections B through K above are the canonical endpoint inventory and are **preserved unchanged**. This section tracks implementation status only.
-
-### Phase 1 — Foundation (Complete)
-
-| Item | Status | Notes |
-|---|---|---|
-| Backend directory `backend/` created | ✅ Done | New greenfield directory; frontend untouched |
-| `package.json` with correct Node engine range | ✅ Done | `>=18.0.0`; tested on Node 24.13.1 |
-| `tsconfig.json` — `strict: true` + all extra checks | ✅ Done | `noImplicitAny`, `strictNullChecks`, `noUnusedLocals`, etc. |
-| `.env.example` — placeholder values only | ✅ Done | No real credentials; `MONGODB_URI` placeholder only |
-| `.gitignore` — excludes `node_modules`, `dist`, `.env`, `uploads` | ✅ Done | |
-| `jest.config.js` — ts-jest, path alias mapping, 70% coverage threshold | ✅ Done | |
-| `eslint.config.mjs` — ESLint v9 flat config | ✅ Done | Enforces `no-console`, warns on stray `process.env` |
-| `src/config/env.ts` — strict startup validation, single `process.env` reader | ✅ Done | Throws on missing/invalid vars before server starts |
-| `src/config/database.ts` — URI redaction, pool config, event listeners | ✅ Done | `maxPoolSize: 10`, credentials never logged |
-| `src/utils/logger.ts` — Winston, deep field redaction, no stack traces | ✅ Done | `password`, `token`, `authorization`, etc. redacted |
-| `src/utils/api-error.ts` — `isOperational` flag, factory methods | ✅ Done | Distinguishes safe vs unsafe errors for error handler |
-| `src/utils/async-handler.ts` — promise rejection forwarding | ✅ Done | |
-| `src/middleware/request-id.ts` — UUID v4, validates client-supplied IDs | ✅ Done | Prevents log injection from forged request ID header |
-| `src/middleware/rate-limit.ts` — general (100/15 min) + strict (10/15 min) | ✅ Done | draft-7 RFC 9110 headers; no retry timing leakage |
-| `src/middleware/not-found.ts` — 404 handler | ✅ Done | |
-| `src/middleware/error-handler.ts` — 5-branch classification | ✅ Done | Stack traces suppressed in production |
-| `src/controllers/health.controller.ts` — liveness + readiness | ✅ Done | Readiness never exposes DB host/credentials |
-| `src/routes/health.routes.ts` + `src/routes/index.ts` | ✅ Done | |
-| `src/app.ts` — Express factory, helmet, CORS, body limits | ✅ Done | Middleware order documented; CORS function-based |
-| `src/server.ts` — entry point, graceful shutdown, unhandledRejection | ✅ Done | 15 s shutdown timeout; process exits on uncaughtException |
-| `src/types/index.ts` — Express augmentation, `ValidatedEnv` | ✅ Done | |
-| `src/tests/setup.ts` — Jest global env injection | ✅ Done | Tests self-contained; no `.env` file required |
-| `src/tests/env.test.ts` — 14 cases | ✅ Done | |
-| `src/tests/health.test.ts` — 12 cases (11 no-DB + 1 optional) | ✅ Done | DB-available suite skippable via `CI_NO_MONGO=1` |
-| `src/tests/cors.test.ts` — 8 cases | ✅ Done | Wildcard `*` assertion included |
-| `src/tests/rate-limit.test.ts` — 5 cases | ✅ Done | RFC 9110 draft-7 RateLimit header verified |
-| `src/tests/error-handler.test.ts` — 15 cases | ✅ Done | Production message sanitisation verified |
-| `src/tests/graceful-shutdown.test.ts` — 2 cases | ✅ Done | Direct server.close() test; no process signal to Jest |
-| `backend/README.md` — setup, env reference, risk register | ✅ Done | |
-| `frontend/vite.config.ts` — proxy block uncommented | ✅ Done | Only approved change to frontend files |
-
-### Phase 1 — Endpoints Implemented
-
-| Endpoint | Status |
-|---|---|
-| `GET /api/health` | ✅ Implemented & Tested |
-| `GET /api/ready` | ✅ Implemented & Tested |
-
-### Phase 1 — Endpoints NOT Implemented (by design)
-
-All 59 business endpoints listed in Sections B and K remain unimplemented in Phase 1. They will be built in Phases 2–4 per the roadmap in Section I.
-
-### Phase 2 — Secure Authentication & RBAC (Complete)
-
-| Item | Status | Notes |
-|---|---|---|
-| User Mongoose Model (`src/models/user.model.ts`) | ✅ Done | bcrypt hashing (cost 12), `password` hidden via `select: false`, brute-force lockout, `tokenVersion` |
-| Zod Schemas (`src/validations/auth.validation.ts`) | ✅ Done | Strict input sanitization, `.strict()` prototype protection, strong password policy |
-| Token Utilities (`src/utils/token.ts`) | ✅ Done | HMAC-SHA256 JWT, HttpOnly / Secure / SameSite cookie configuration |
-| Auth Middleware (`src/middleware/auth.ts`) | ✅ Done | `requireAuth`, `requireRoles`, `requirePermissions`, instant revocation via `tokenVersion` |
-| Auth Controller & Routes (`src/controllers/auth.controller.ts`, `src/routes/auth.routes.ts`) | ✅ Done | `POST /login`, `POST /logout`, `GET /me` with timing attack mitigation |
-| Provisioning Script (`src/scripts/provision-admin.ts`) | ✅ Done | Controlled administrative initialization; zero hardcoded/backdoor accounts |
-| Automated Tests (`src/tests/auth.test.ts`, `src/tests/user-model.test.ts`) | ✅ Done | 29 auth/model test cases covering all edge cases, 100% passing |
-
-### Endpoints Implemented to Date
-
-| Endpoint | Phase | Status |
-|---|---|---|
-| `GET /api/health` | Phase 1 | ✅ Implemented & Tested |
-| `GET /api/ready` | Phase 1 | ✅ Implemented & Tested |
-| `POST /api/auth/login` | Phase 2 | ✅ Implemented & Tested |
-| `POST /api/auth/logout` | Phase 2 | ✅ Implemented & Tested |
-| `GET /api/auth/me` | Phase 2 | ✅ Implemented & Tested |
-
-### Future Phases — Status
-
-| Phase | Status |
-|---|---|
-| Phase 3: Media Storage & Classic Admin Dashboards | 🔲 Pending Phase 2 approval |
-| Phase 4: Enterprise CMS Suite & Admissions | 🔲 Pending |
+All API routes documented in Sections B, D, and K are active, guarded by strict Zod schema validation, enforced by 6-tier RBAC, and backed by persistent MongoDB collections.

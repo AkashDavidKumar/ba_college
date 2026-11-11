@@ -1,4 +1,6 @@
-# Worklog — Veritas Global University ERP Website
+# Worklog — Bishop Ambrose College Full-Stack Application (Historical Log)
+
+> *Note:* Early development milestones referenced working prototype names; the project was completed and consolidated as Bishop Ambrose College.
 
 ---
 Task ID: 1
