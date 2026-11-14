@@ -236,10 +236,11 @@ export function Hero() {
         <div className="absolute bottom-10 right-1/4 w-[450px] h-[450px] rounded-full bg-[#86EFAC]/20 blur-[100px] pointer-events-none" />
 
         {/* ── Main Hero Two-Column Grid ──────────────────────────────── */}
-        <div className="relative z-10 container mx-auto px-4 sm:px-6">
-          <div className="grid lg:grid-cols-12 gap-8 lg:gap-10 items-center">
+        <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8">
+          {/* 45% left / 55% right with 48px gap, vertically centred */}
+          <div className="grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)] gap-10 lg:gap-12 items-center">
             {/* ── Left Column: Motto, Heading, Subtitle, CTAs ────────── */}
-            <div className="lg:col-span-6 xl:col-span-6">
+            <div className="max-w-[540px] w-full">
               {/* College Motto Pill */}
               <motion.div
                 initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 20 }}
@@ -265,7 +266,7 @@ export function Hero() {
                   delay: shouldReduceMotion ? 0 : 0.15,
                   ease: "easeOut",
                 }}
-                className="font-serif font-bold text-[#14532D] text-4xl sm:text-5xl lg:text-[3.4rem] xl:text-[3.7rem] leading-[1.12] tracking-tight mb-3.5 sm:mb-5"
+                className="font-serif font-bold text-[#14532D] text-[clamp(2.5rem,4vw,3.5rem)] leading-[1.12] tracking-tight mb-3.5 sm:mb-5"
               >
                 {hero.title || "Bishop Ambrose College"}
               </motion.h1>
@@ -279,7 +280,7 @@ export function Hero() {
                   delay: shouldReduceMotion ? 0 : 0.3,
                   ease: "easeOut",
                 }}
-                className="text-[#374151] text-base sm:text-lg lg:text-xl leading-relaxed mb-6 sm:mb-8 max-w-xl font-normal"
+                className="text-[#374151] text-base sm:text-lg lg:text-xl leading-relaxed mb-6 sm:mb-8 max-w-[480px] font-normal"
               >
                 {hero.subtitle ||
                   "Empowering students through excellence in education, character, and service since 1994."}
@@ -298,7 +299,7 @@ export function Hero() {
                   delay: shouldReduceMotion ? 0 : 0.45,
                   ease: "easeOut",
                 }}
-                className="flex flex-wrap items-center gap-3.5 sm:gap-4"
+                className="flex flex-wrap items-center gap-3 sm:gap-3.5"
               >
                 {/* Apply Now Primary Pill Button */}
                 <button
@@ -330,7 +331,7 @@ export function Hero() {
             </div>
 
             {/* ── Right Column: Campus Image Carousel Card ───────────── */}
-            <div className="lg:col-span-6 xl:col-span-6 relative mt-6 lg:mt-0">
+            <div className="w-full relative mt-8 lg:mt-0">
               {/* Floating NAAC A++ Accredited Badge (Top-Left) */}
               <motion.div
                 initial={{ opacity: 0, y: shouldReduceMotion ? 0 : -20 }}
