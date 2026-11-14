@@ -246,17 +246,17 @@ export function Header() {
         <div className="container mx-auto px-4 sm:px-6">
           <div className={cn(
             "flex items-center justify-between transition-all duration-300",
-            scrolled ? "h-16" : "h-16 lg:h-22"
+            scrolled ? "h-14 lg:h-16" : "h-16 lg:h-18"
           )}>
             <Logo variant="dark" onClick={goHome} />
 
             {/* Desktop nav */}
-            <nav className="hidden lg:flex items-center gap-1">
+            <nav className="hidden lg:flex items-center gap-0 xl:gap-1 overflow-hidden">
               {navItems.map((item) => (
                 <button
                   key={item.label}
                   className={cn(
-                    "relative px-4 py-2.5 text-sm font-semibold transition-colors rounded-full",
+                    "relative px-2 xl:px-4 py-2.5 text-xs xl:text-sm font-semibold transition-colors rounded-full whitespace-nowrap shrink-0",
                     isActive(item)
                       ? "text-gold-dark"
                       : "text-navy hover:text-gold-dark",

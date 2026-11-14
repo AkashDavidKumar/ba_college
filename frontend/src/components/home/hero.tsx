@@ -236,10 +236,10 @@ export function Hero() {
         <div className="absolute bottom-10 right-1/4 w-[450px] h-[450px] rounded-full bg-[#86EFAC]/20 blur-[100px] pointer-events-none" />
 
         {/* ── Main Hero Two-Column Grid ──────────────────────────────── */}
-        <div className="relative z-10 container mx-auto pl-2 sm:pl-3 lg:pl-4 pr-4 sm:pr-6 lg:pr-8">
-          <div className="grid lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+        <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid lg:grid-cols-2 gap-6 lg:gap-10 xl:gap-14 items-center">
             {/* ── Left Column: Motto, Heading, Subtitle, CTAs ────────── */}
-            <div className="lg:col-span-6 xl:col-span-6 lg:-ml-2">
+            <div className="min-w-0 max-w-full">
               {/* College Motto Pill */}
               <motion.div
                 initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 20 }}
@@ -330,8 +330,9 @@ export function Hero() {
             </div>
 
             {/* ── Right Column: Campus Image Carousel Card ───────────── */}
-            <div className="lg:col-span-6 xl:col-span-6 relative mt-6 lg:mt-0">
-              {/* Floating NAAC A++ Accredited Badge (Top-Left) */}
+            {/* pt-8 gives room for the NAAC badge that sits above the card */}
+            <div className="min-w-0 max-w-full relative pt-8 mt-2 lg:mt-0">
+              {/* Floating NAAC A++ Accredited Badge — sits in the pt-8 headroom above the card */}
               <motion.div
                 initial={{ opacity: 0, y: shouldReduceMotion ? 0 : -20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -340,7 +341,7 @@ export function Hero() {
                   delay: shouldReduceMotion ? 0 : 0.45,
                   ease: "easeOut",
                 }}
-                className="absolute -top-6 left-6 sm:left-10 bg-white/95 backdrop-blur-md px-4 sm:px-5 py-3 rounded-2xl shadow-[0_10px_25px_rgba(20,83,45,0.12)] border border-[#C8E6C9] flex items-center gap-3 z-30"
+                className="absolute top-0 left-4 sm:left-8 bg-white/95 backdrop-blur-md px-4 sm:px-5 py-3 rounded-2xl shadow-[0_10px_25px_rgba(20,83,45,0.12)] border border-[#C8E6C9] flex items-center gap-3 z-30"
               >
                 <div className="w-10 h-10 rounded-xl bg-[#E8F5E9] flex items-center justify-center text-[#166534] shrink-0">
                   <Sparkles className="w-5 h-5" />
@@ -355,7 +356,7 @@ export function Hero() {
                 </div>
               </motion.div>
 
-              {/* Main Rounded Showcase Card with Thick White Border */}
+              {/* Main Rounded Showcase Card — no overflow-hidden here so floating cards aren't clipped */}
               <motion.div
                 initial={{
                   opacity: 0,
@@ -368,10 +369,10 @@ export function Hero() {
                   delay: shouldReduceMotion ? 0 : 0.25,
                   ease: "easeOut",
                 }}
-                className="relative rounded-[2.25rem] overflow-hidden shadow-[0_20px_50px_rgba(20,83,45,0.14)] border-[8px] border-white bg-white group"
+                className="relative rounded-[2.25rem] shadow-[0_20px_50px_rgba(20,83,45,0.14)] border-[6px] border-white bg-white group w-full"
               >
-                {/* Carousel Image Area */}
-                <div className="relative h-[280px] xs:h-[340px] sm:h-[400px] lg:h-[450px] w-full overflow-hidden bg-slate-900">
+                {/* Carousel Image Area — overflow-hidden + border-radius lives here */}
+                <div className="relative h-[260px] xs:h-[320px] sm:h-[380px] lg:h-[430px] w-full overflow-hidden bg-slate-900 rounded-[1.75rem]">
                   <AnimatePresence mode="wait">
                     <motion.img
                       key={currentSlide}
@@ -433,7 +434,7 @@ export function Hero() {
                     delay: shouldReduceMotion ? 0 : 0.55,
                     ease: "easeOut",
                   }}
-                  className="absolute bottom-5 right-4 sm:bottom-6 sm:right-6 backdrop-blur-md bg-white/95 px-4 py-3 sm:py-3.5 rounded-2xl border border-white/90 shadow-[0_10px_30px_rgba(0,0,0,0.12)] max-w-[310px] z-20"
+                  className="absolute bottom-4 right-4 backdrop-blur-md bg-white/95 px-3 py-2.5 sm:px-4 sm:py-3 rounded-2xl border border-white/90 shadow-[0_10px_30px_rgba(0,0,0,0.12)] max-w-[260px] sm:max-w-[290px] z-20"
                 >
                   <div className="flex items-center gap-3">
                     <div className="w-12 h-12 rounded-full bg-[#14532D] flex items-center justify-center text-white font-bold text-base sm:text-lg shrink-0 shadow-sm">
