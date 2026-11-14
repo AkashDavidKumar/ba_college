@@ -236,8 +236,8 @@ export function Hero() {
         <div className="absolute bottom-10 right-1/4 w-[450px] h-[450px] rounded-full bg-[#86EFAC]/20 blur-[100px] pointer-events-none" />
 
         {/* ── Main Hero Two-Column Grid ──────────────────────────────── */}
-        <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+        <div className="relative z-10 container mx-auto px-4 sm:px-6">
+          <div className="grid lg:grid-cols-12 gap-8 lg:gap-10 items-center">
             {/* ── Left Column: Motto, Heading, Subtitle, CTAs ────────── */}
             <div className="lg:col-span-6 xl:col-span-6">
               {/* College Motto Pill */}
