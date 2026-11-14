@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import {
   ArrowRight,
@@ -9,14 +9,9 @@ import {
   Play,
   ChevronLeft,
   ChevronRight,
-  Users,
-  GraduationCap,
-  Trophy,
   Star,
 } from "lucide-react";
-import { heroStats } from "@/lib/university-data";
 import { useNav } from "@/components/site/nav-context";
-import { AnimatedCounter } from "@/components/site/primitives";
 import { useSiteData } from "@/lib/site-context";
 import { cn } from "@/lib/utils";
 import { VirtualTourModal } from "@/components/home/virtual-tour-modal";
@@ -44,14 +39,6 @@ const campusImages = [
     alt: "Vibrant Student Activities & Campus Life",
   },
 ];
-
-// ── Stat Icon Mapping ───────────────────────────────────────────────────────
-const statIcons: Record<string, React.ReactNode> = {
-  Students: <Users className="w-8 h-8 sm:w-9 sm:h-9 text-[#166534]" />,
-  "Faculty Members": <GraduationCap className="w-8 h-8 sm:w-9 sm:h-9 text-[#166534]" />,
-  Programs: <BookOpen className="w-8 h-8 sm:w-9 sm:h-9 text-[#166534]" />,
-  "Placement Rate": <Trophy className="w-8 h-8 sm:w-9 sm:h-9 text-[#166534]" />,
-};
 
 // ── Realistic Decorative Foliage SVG Elements ───────────────────────────────
 function FoliageDecoration() {
@@ -236,7 +223,7 @@ export function Hero() {
       {/* ════════════════════════════════════════════════════════════════════
           HERO MAIN SECTION
        ════════════════════════════════════════════════════════════════════ */}
-      <section className="relative min-h-[85vh] lg:min-h-[92vh] flex flex-col justify-between overflow-hidden pt-8 pb-12 sm:pt-12 sm:pb-16 lg:pt-14 lg:pb-16"
+      <section className="relative overflow-hidden pt-2 sm:pt-3 lg:pt-4 pb-6 sm:pb-8"
         style={{
           background: "linear-gradient(135deg, #EFF8F1 0%, #E2F3E6 50%, #D4EED9 100%)",
         }}
@@ -249,7 +236,7 @@ export function Hero() {
         <div className="absolute bottom-10 right-1/4 w-[450px] h-[450px] rounded-full bg-[#86EFAC]/20 blur-[100px] pointer-events-none" />
 
         {/* ── Main Hero Two-Column Grid ──────────────────────────────── */}
-        <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 my-auto">
+        <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-12 gap-8 lg:gap-12 items-center">
             {/* ── Left Column: Motto, Heading, Subtitle, CTAs ────────── */}
             <div className="lg:col-span-6 xl:col-span-6">
@@ -258,7 +245,7 @@ export function Hero() {
                 initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, ease: "easeOut" }}
-                className="inline-flex items-center gap-2 px-4 sm:px-5 py-2 sm:py-2.5 rounded-full bg-white/95 backdrop-blur-md border border-[#C8E6C9] shadow-[0_2px_10px_rgba(20,83,45,0.06)] text-xs sm:text-sm mb-6 sm:mb-8"
+                className="inline-flex items-center gap-2 px-4 sm:px-5 py-2 rounded-full bg-white/95 backdrop-blur-md border border-[#C8E6C9] shadow-[0_2px_10px_rgba(20,83,45,0.06)] text-xs sm:text-sm mb-4 sm:mb-5"
               >
                 <Star className="w-4 h-4 text-[#166534] shrink-0 fill-none stroke-[2]" />
                 <span className="text-[#374151] font-medium">
@@ -278,7 +265,7 @@ export function Hero() {
                   delay: shouldReduceMotion ? 0 : 0.15,
                   ease: "easeOut",
                 }}
-                className="font-serif font-bold text-[#14532D] text-4xl sm:text-5xl lg:text-[3.5rem] xl:text-[3.8rem] leading-[1.12] tracking-tight mb-5 sm:mb-7"
+                className="font-serif font-bold text-[#14532D] text-4xl sm:text-5xl lg:text-[3.4rem] xl:text-[3.7rem] leading-[1.12] tracking-tight mb-3.5 sm:mb-5"
               >
                 {hero.title || "Bishop Ambrose College"}
               </motion.h1>
@@ -292,7 +279,7 @@ export function Hero() {
                   delay: shouldReduceMotion ? 0 : 0.3,
                   ease: "easeOut",
                 }}
-                className="text-[#374151] text-base sm:text-lg lg:text-xl leading-relaxed mb-8 sm:mb-10 max-w-xl font-normal"
+                className="text-[#374151] text-base sm:text-lg lg:text-xl leading-relaxed mb-6 sm:mb-8 max-w-xl font-normal"
               >
                 {hero.subtitle ||
                   "Empowering students through excellence in education, character, and service since 1994."}
@@ -468,49 +455,6 @@ export function Hero() {
           </div>
         </div>
 
-        {/* ── Floating Stats Bar Container (Matches Reference Image) ─ */}
-        <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 mt-12 sm:mt-16">
-          <motion.div
-            initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 25 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{
-              duration: 0.6,
-              delay: shouldReduceMotion ? 0 : 0.55,
-              ease: "easeOut",
-            }}
-            className="bg-white/95 backdrop-blur-md rounded-3xl shadow-[0_12px_40px_rgba(20,83,45,0.08)] border border-white py-6 px-4 sm:px-8"
-          >
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-0 items-center">
-              {heroStats.map((stat, idx) => (
-                <React.Fragment key={stat.label}>
-                  <div className="flex items-center justify-center gap-3.5 sm:gap-4 px-2 sm:px-4">
-                    <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-[#E8F5E9] flex items-center justify-center shrink-0 shadow-xs">
-                      {statIcons[stat.label] || (
-                        <Users className="w-7 h-7 sm:w-8 sm:h-8 text-[#166534]" />
-                      )}
-                    </div>
-                    <div>
-                      <div className="font-serif font-bold text-2xl sm:text-3xl lg:text-4xl text-[#14532D] tracking-tight leading-none mb-1">
-                        <AnimatedCounter
-                          value={stat.value}
-                          suffix={stat.suffix}
-                        />
-                      </div>
-                      <div className="text-xs sm:text-sm text-[#374151] font-semibold tracking-wide">
-                        {stat.label}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Vertical Divider between stat columns on desktop */}
-                  {idx < heroStats.length - 1 && (
-                    <div className="hidden md:block w-[1px] h-12 bg-slate-200/80 mx-auto" />
-                  )}
-                </React.Fragment>
-              ))}
-            </div>
-          </motion.div>
-        </div>
       </section>
 
       {/* Virtual Tour Modal */}
