@@ -1,314 +1,520 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
-import { ArrowRight, Compass, Sparkles, Play, ChevronDown } from "lucide-react";
+import {
+  ArrowRight,
+  BookOpen,
+  Sparkles,
+  Play,
+  ChevronLeft,
+  ChevronRight,
+  Users,
+  GraduationCap,
+  Trophy,
+  Star,
+} from "lucide-react";
 import { heroStats } from "@/lib/university-data";
 import { useNav } from "@/components/site/nav-context";
-import { AnimatedCounter, PremiumButton } from "@/components/site/primitives";
-import { useSiteData, defaultHeroSectionConfig } from "@/lib/site-context";
+import { AnimatedCounter } from "@/components/site/primitives";
+import { useSiteData } from "@/lib/site-context";
 import { cn } from "@/lib/utils";
 import { VirtualTourModal } from "@/components/home/virtual-tour-modal";
+
+// ── Campus images for the carousel ──────────────────────────────────────────
+const campusImages = [
+  {
+    src: "https://images.unsplash.com/photo-1562774053-701939374585?auto=format&fit=crop&w=1200&q=80",
+    alt: "Bishop Ambrose College Main Academic Building",
+  },
+  {
+    src: "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=1200&q=80",
+    alt: "College Central Library and Learning Center",
+  },
+  {
+    src: "https://images.unsplash.com/photo-1523050854058-8df90110c476?auto=format&fit=crop&w=1200&q=80",
+    alt: "Lush Green College Campus & Quad",
+  },
+  {
+    src: "https://images.unsplash.com/photo-1592280771190-3e2e4d571952?auto=format&fit=crop&w=1200&q=80",
+    alt: "Modern Science Laboratories & Facilities",
+  },
+  {
+    src: "https://images.unsplash.com/photo-1580537659466-0a9bfa916a54?auto=format&fit=crop&w=1200&q=80",
+    alt: "Vibrant Student Activities & Campus Life",
+  },
+];
+
+// ── Stat Icon Mapping ───────────────────────────────────────────────────────
+const statIcons: Record<string, React.ReactNode> = {
+  Students: <Users className="w-8 h-8 sm:w-9 sm:h-9 text-[#166534]" />,
+  "Faculty Members": <GraduationCap className="w-8 h-8 sm:w-9 sm:h-9 text-[#166534]" />,
+  Programs: <BookOpen className="w-8 h-8 sm:w-9 sm:h-9 text-[#166534]" />,
+  "Placement Rate": <Trophy className="w-8 h-8 sm:w-9 sm:h-9 text-[#166534]" />,
+};
+
+// ── Realistic Decorative Foliage SVG Elements ───────────────────────────────
+function FoliageDecoration() {
+  return (
+    <div className="absolute inset-0 pointer-events-none overflow-hidden z-0 select-none">
+      {/* Top Right Corner Foliage */}
+      <svg
+        className="absolute -top-6 -right-6 w-56 h-56 sm:w-80 sm:h-80 opacity-40 lg:opacity-50 blur-[0.5px]"
+        viewBox="0 0 200 200"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M170 10C130 30 110 80 120 120C125 100 145 60 170 10Z"
+          fill="#166534"
+          fillOpacity="0.8"
+        />
+        <path
+          d="M190 40C160 65 140 105 155 145C165 125 185 85 190 40Z"
+          fill="#15803D"
+          fillOpacity="0.85"
+        />
+        <path
+          d="M140 20C110 50 100 95 115 135C125 110 140 70 140 20Z"
+          fill="#22C55E"
+          fillOpacity="0.65"
+        />
+        <path
+          d="M185 80C155 105 135 140 145 175C160 155 180 120 185 80Z"
+          fill="#166534"
+          fillOpacity="0.75"
+        />
+        <path
+          d="M120 60C95 90 90 130 105 160C115 135 130 100 120 60Z"
+          fill="#15803D"
+          fillOpacity="0.6"
+        />
+      </svg>
+
+      {/* Middle Left Leaf Accent */}
+      <svg
+        className="absolute top-1/3 -left-8 w-44 h-44 sm:w-64 sm:h-64 opacity-30 lg:opacity-45 blur-[0.8px]"
+        viewBox="0 0 200 200"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M10 80C50 65 95 70 130 100C105 95 65 95 10 80Z"
+          fill="#166534"
+          fillOpacity="0.7"
+        />
+        <path
+          d="M15 120C55 100 100 110 140 135C110 130 70 130 15 120Z"
+          fill="#15803D"
+          fillOpacity="0.6"
+        />
+        <path
+          d="M5 40C40 35 80 50 110 80C85 70 50 65 5 40Z"
+          fill="#22C55E"
+          fillOpacity="0.5"
+        />
+      </svg>
+
+      {/* Bottom Left Corner Foliage */}
+      <svg
+        className="absolute -bottom-10 -left-10 w-64 h-64 sm:w-96 sm:h-96 opacity-45 lg:opacity-60 blur-[0.5px]"
+        viewBox="0 0 200 200"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M10 180C45 140 95 125 145 135C120 120 70 125 10 180Z"
+          fill="#166534"
+          fillOpacity="0.8"
+        />
+        <path
+          d="M30 195C70 155 120 145 170 160C140 145 90 145 30 195Z"
+          fill="#15803D"
+          fillOpacity="0.85"
+        />
+        <path
+          d="M60 198C95 165 145 160 190 180C165 165 120 165 60 198Z"
+          fill="#22C55E"
+          fillOpacity="0.65"
+        />
+      </svg>
+
+      {/* Bottom Right Corner Foliage */}
+      <svg
+        className="absolute -bottom-12 -right-12 w-64 h-64 sm:w-96 sm:h-96 opacity-45 lg:opacity-60 blur-[0.5px]"
+        viewBox="0 0 200 200"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M190 180C155 140 105 125 55 135C80 120 130 125 190 180Z"
+          fill="#166534"
+          fillOpacity="0.8"
+        />
+        <path
+          d="M170 195C130 155 80 145 30 160C60 145 110 145 170 195Z"
+          fill="#15803D"
+          fillOpacity="0.85"
+        />
+        <path
+          d="M140 198C105 165 55 160 10 180C35 165 80 165 140 198Z"
+          fill="#22C55E"
+          fillOpacity="0.65"
+        />
+      </svg>
+    </div>
+  );
+}
 
 export function Hero() {
   const shouldReduceMotion = useReducedMotion();
   const { navigate } = useNav();
   const { data } = useSiteData();
   const [tourOpen, setTourOpen] = useState(false);
-  const [isVideoLoaded, setIsVideoLoaded] = useState(false);
-  const videoRef = useRef<HTMLVideoElement>(null);
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const hero = data?.hero || {
     badge: "Admissions Open 2026",
-    title: "Empowering Students for a Better Future Through Quality Education",
-    subtitle: "Educating leaders, advancing research, and building a better future through world-class academic excellence.",
+    title: "Bishop Ambrose College",
+    subtitle:
+      "Empowering students through excellence in education, character, and service since 1994.",
     ctaText: "Apply Now",
     ctaLink: "admissions",
     secondaryCtaText: "Explore Courses",
     secondaryCtaLink: "departments",
-    virtualTourUrl: "https://www.youtube.com/embed/91tSZsX0Bjg"
+    virtualTourUrl: "https://www.youtube.com/embed/91tSZsX0Bjg",
   };
 
-  const heroSection = data?.heroSection || defaultHeroSectionConfig;
+  // ── Auto-advance Carousel ─────────────────────────────────────────────────
+  const startAutoSlide = useCallback(() => {
+    if (intervalRef.current) clearInterval(intervalRef.current);
+    intervalRef.current = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % campusImages.length);
+    }, 5500);
+  }, []);
 
-  // Auto-play safety check on mount
   useEffect(() => {
-    if (videoRef.current && heroSection.enabled && heroSection.backgroundVideo) {
-      const playPromise = videoRef.current.play();
-      if (playPromise !== undefined) {
-        playPromise.catch((err) => {
-          // Ignore AbortError when component re-renders or unmounts media
-          if (err && err.name !== "AbortError") {
-            console.warn("Video auto-play suppressed by browser policy:", err);
-          }
-        });
-      }
-    }
-  }, [heroSection.backgroundVideo, heroSection.enabled]);
+    startAutoSlide();
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, [startAutoSlide]);
 
+  const goToSlide = (index: number) => {
+    setCurrentSlide(index);
+    startAutoSlide();
+  };
+
+  const prevSlide = () => {
+    setCurrentSlide((prev) =>
+      prev === 0 ? campusImages.length - 1 : prev - 1
+    );
+    startAutoSlide();
+  };
+
+  const nextSlide = () => {
+    setCurrentSlide((prev) => (prev + 1) % campusImages.length);
+    startAutoSlide();
+  };
+
+  // ── CTA Handlers ──────────────────────────────────────────────────────────
   const handleCta = (link: string) => {
     if (link === "admissions") {
       navigate({ type: "admissions" });
     } else if (link === "departments") {
-      document.getElementById("departments")?.scrollIntoView({ behavior: "smooth" });
+      document
+        .getElementById("departments")
+        ?.scrollIntoView({ behavior: "smooth" });
     } else {
       navigate({ type: "home" });
     }
   };
 
-  // Compute Blur: 80% intensity -> ~20px smooth blur
-  const blurIntensity = typeof heroSection.blurIntensity === "number" ? heroSection.blurIntensity : 80;
-  const blurPx = Math.round((blurIntensity / 100) * 24);
-
-  // Compute Overlay Opacity: 75% -> 0.75 alpha
-  const overlayOpacity = typeof heroSection.overlayOpacity === "number" ? heroSection.overlayOpacity : 75;
-  const overlayAlpha = (overlayOpacity / 100);
-
   return (
-    <section className="relative min-h-[80vh] sm:min-h-[88vh] lg:min-h-[92vh] flex items-center overflow-hidden bg-background pt-6 pb-12 sm:pt-10 sm:pb-20 lg:py-24">
-      {/* 
-        ========================================================================
-        BACKGROUND VIDEO LAYER (Full-Section Autoplaying Blurred Background)
-        ========================================================================
-      */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
-        {/* Fallback Image: Displayed while video is buffering or if video is disabled/fails */}
-        {heroSection.fallbackImage && (
-          <img
-            src={heroSection.fallbackImage}
-            alt="Campus Architecture Fallback"
-            className="absolute inset-0 w-full h-full object-cover transition-opacity duration-1000"
-            style={{
-              filter: `blur(${blurPx}px)`,
-              transform: "scale(1.08)"
-            }}
-          />
-        )}
+    <>
+      {/* ════════════════════════════════════════════════════════════════════
+          HERO MAIN SECTION
+       ════════════════════════════════════════════════════════════════════ */}
+      <section className="relative min-h-[85vh] lg:min-h-[92vh] flex flex-col justify-between overflow-hidden pt-8 pb-12 sm:pt-12 sm:pb-16 lg:pt-14 lg:pb-16"
+        style={{
+          background: "linear-gradient(135deg, #EFF8F1 0%, #E2F3E6 50%, #D4EED9 100%)",
+        }}
+      >
+        {/* Organic Corner Foliage Accents matching the reference design */}
+        <FoliageDecoration />
 
-        {/* Full-Screen Autoplaying Campus Background Video */}
-        {heroSection.enabled && heroSection.backgroundVideo && (
-          <video
-            ref={videoRef}
-            autoPlay
-            muted
-            loop
-            playsInline
-            preload="metadata"
-            onCanPlay={() => setIsVideoLoaded(true)}
-            onLoadedData={() => setIsVideoLoaded(true)}
-            className={cn(
-              "absolute inset-0 w-full h-full object-cover transition-opacity duration-1000",
-              isVideoLoaded ? "opacity-100" : "opacity-0"
-            )}
-            style={{
-              filter: `blur(${blurPx}px)`,
-              transform: "scale(1.08)"
-            }}
-          >
-            <source src={heroSection.backgroundVideo} type="video/mp4" />
-            <source src={heroSection.backgroundVideo} type="video/webm" />
-          </video>
-        )}
+        {/* Ambient Subtle Green Glows */}
+        <div className="absolute top-1/4 left-1/3 w-[500px] h-[500px] rounded-full bg-[#A7F3D0]/25 blur-[120px] pointer-events-none" />
+        <div className="absolute bottom-10 right-1/4 w-[450px] h-[450px] rounded-full bg-[#86EFAC]/20 blur-[100px] pointer-events-none" />
 
-        {/* Soft Light-Green Brand Overlay Matching BAC Global University Theme */}
-        <div
-          className="absolute inset-0 transition-all duration-300 pointer-events-none"
-          style={{
-            background: `linear-gradient(135deg, rgba(245, 251, 246, ${Math.min(0.96, overlayAlpha * 0.95)}) 0%, rgba(232, 245, 233, ${Math.min(0.92, overlayAlpha * 0.88)}) 50%, rgba(200, 230, 201, ${Math.min(0.85, overlayAlpha * 0.72)}) 100%)`
-          }}
-        />
-
-        {/* Elegant Subtle Pattern & Radial Ambient University Glows */}
-        <div className="absolute inset-0 pattern-grid opacity-20 pointer-events-none" />
-        <div className="absolute top-10 right-10 w-[500px] h-[500px] rounded-full bg-gold/30 blur-[100px] pointer-events-none" />
-        <div className="absolute bottom-10 left-10 w-[400px] h-[400px] rounded-full bg-navy-light/10 blur-[90px] pointer-events-none" />
-      </div>
-
-      {/* 
-        ========================================================================
-        CONTENT LAYER (Foreground: 100% Crisp, Sharp, Unblurred Glassmorphism)
-        ========================================================================
-      */}
-      <div className="relative z-10 container mx-auto px-4 sm:px-6">
-        <div className="grid lg:grid-cols-12 gap-8 lg:gap-8 items-center">
-          {/* Left Column: Heading, Motto Badge, Description, CTAs, Statistics */}
-          <div className="lg:col-span-7">
-            {/* College Motto Badge */}
-            {/* College Motto Badge */}
-            <motion.div
-              initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, ease: "easeOut" }}
-              className="inline-flex flex-wrap items-center gap-1.5 sm:gap-2 px-3.5 sm:px-4 py-2 rounded-full backdrop-blur-md bg-white/95 border border-[#14532D]/20 text-[#1F2937] text-[11px] xs:text-xs sm:text-sm font-semibold mb-4 sm:mb-6 shadow-sm max-w-full"
-            >
-              <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#166534] shrink-0" />
-              <span className="text-[#1F2937] font-semibold">College Motto:</span>
-              <span className="text-[#166534] font-bold tracking-wide break-words">Trust • Growth • Knowledge • Excellence</span>
-            </motion.div>
-
-            {/* Main Heading */}
-            <motion.h1
-              initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.65, delay: shouldReduceMotion ? 0 : 0.15, ease: "easeOut" }}
-              className="font-serif font-bold text-[#14532D] text-3xl sm:text-4xl md:text-5xl lg:text-6xl leading-[1.12] sm:leading-[1.1] tracking-tight mb-4 sm:mb-6 text-shadow-subtle break-words"
-            >
-              {hero.title || "BISHOP AMBROSE COLLEGE"}
-            </motion.h1>
-
-            {/* Description Text */}
-            <motion.p
-              initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 25 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.65, delay: shouldReduceMotion ? 0 : 0.3, ease: "easeOut" }}
-              className="text-[#374151] text-base sm:text-lg lg:text-xl leading-relaxed mb-6 sm:mb-8 max-w-2xl font-normal"
-            >
-              {hero.subtitle || "Educating leaders, advancing research, and building a better future through world-class academic excellence."}
-            </motion.p>
-
-            {/* Admission CTA Buttons (Scale + Fade entrance) */}
-            <motion.div
-              initial={{ opacity: 0, scale: shouldReduceMotion ? 1 : 0.95, y: shouldReduceMotion ? 0 : 15 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: shouldReduceMotion ? 0 : 0.45, ease: "easeOut" }}
-              className="flex flex-col xs:flex-row flex-wrap items-stretch xs:items-center gap-3 sm:gap-4 mb-8 sm:mb-12"
-            >
-              <PremiumButton
-                variant="primary"
-                size="lg"
-                onClick={() => handleCta(hero.ctaLink)}
-                icon={<ArrowRight className="w-4.5 h-4.5" />}
-                className="shadow-lg shadow-[#14532D]/25 hover:shadow-xl hover:shadow-[#14532D]/35 transition-all cursor-pointer w-full xs:w-auto hover:-translate-y-0.5 bg-[#14532D] text-white font-bold"
-              >
-                Apply Now
-              </PremiumButton>
-
-              <PremiumButton
-                variant="outline"
-                size="lg"
-                onClick={() => handleCta(hero.secondaryCtaLink)}
-                icon={<Compass className="w-4.5 h-4.5" />}
-                className="backdrop-blur-md bg-white/95 border-2 border-[#14532D]/30 text-[#14532D] hover:bg-white hover:border-[#14532D] shadow-sm cursor-pointer w-full xs:w-auto hover:-translate-y-0.5 font-bold"
-              >
-                Explore Courses
-              </PremiumButton>
-
-              <button
-                onClick={() => setTourOpen(true)}
-                className="inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-full backdrop-blur-md bg-white/95 border border-[#14532D]/30 text-[#14532D] font-bold text-sm hover:bg-white hover:border-[#14532D] shadow-sm hover:shadow-md transition-all cursor-pointer group min-h-[44px] w-full xs:w-auto hover:-translate-y-0.5"
-              >
-                <div className="w-6 h-6 rounded-full bg-[#14532D]/10 flex items-center justify-center group-hover:bg-[#14532D] group-hover:text-white transition-colors">
-                  <Play className="w-3.5 h-3.5 fill-current" />
-                </div>
-                Virtual Tour
-              </button>
-            </motion.div>
-
-            {/* Statistics Strip Cards (Semi-Transparent High-Contrast Accessible Cards) */}
-            <motion.div
-              initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 25 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: shouldReduceMotion ? 0 : 0.55, ease: "easeOut" }}
-              className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 pt-6 border-t border-[#14532D]/15"
-            >
-              {heroStats.map((stat, idx) => (
-                <motion.div
-                  key={stat.label}
-                  initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 15 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: shouldReduceMotion ? 0 : 0.6 + idx * 0.08, ease: "easeOut" }}
-                  whileHover={{ y: shouldReduceMotion ? 0 : -3, transition: { duration: 0.2 } }}
-                  className="card-image-overlay rounded-2xl p-3.5 sm:p-4 text-center transition-all duration-300 hover:border-[#166534]/50 hover:shadow-md group cursor-default"
-                >
-                  <div className="font-serif font-bold text-2xl sm:text-3xl lg:text-4xl text-[#166534] tracking-tight mb-1 text-shadow-accessible">
-                    <AnimatedCounter value={stat.value} suffix={stat.suffix} />
-                  </div>
-                  <div className="text-xs sm:text-sm text-[#1F2937] font-bold tracking-wide">{stat.label}</div>
-                </motion.div>
-              ))}
-            </motion.div>
-          </div>
-
-          {/* Right Column: Campus Showcase Card with Crisp Live Preview & Badges */}
-          <div className="lg:col-span-5 relative">
-            <motion.div
-              initial={{ opacity: 0, scale: shouldReduceMotion ? 1 : 0.96, y: shouldReduceMotion ? 0 : 25 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              transition={{ duration: 0.7, delay: shouldReduceMotion ? 0 : 0.25, ease: "easeOut" }}
-              className="relative rounded-3xl overflow-hidden shadow-2xl border-4 border-white bg-white/95 backdrop-blur-md group"
-            >
-              {/* Campus Video / Image Visual */}
-              <div className="relative h-[260px] xs:h-[320px] sm:h-[380px] lg:h-[460px] w-full overflow-hidden bg-slate-900">
-                <img
-                  src={heroSection.fallbackImage || "https://images.unsplash.com/photo-1562774053-701939374585?auto=format&fit=crop&w=1200&q=80"}
-                  alt="College Campus Architecture"
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                />
-                
-                {/* Subtle dark gradient for badge readability */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent pointer-events-none" />
-              </div>
-
-              {/* Student Success Visual Card (High Contrast 95% Opacity White Card) */}
+        {/* ── Main Hero Two-Column Grid ──────────────────────────────── */}
+        <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 my-auto">
+          <div className="grid lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+            {/* ── Left Column: Motto, Heading, Subtitle, CTAs ────────── */}
+            <div className="lg:col-span-6 xl:col-span-6">
+              {/* College Motto Pill */}
               <motion.div
                 initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: shouldReduceMotion ? 0 : 0.55, ease: "easeOut" }}
-                className="absolute bottom-3 left-3 right-3 sm:bottom-6 sm:left-6 sm:right-6 backdrop-blur-md bg-white/95 p-3.5 sm:p-4 rounded-xl sm:rounded-2xl border border-white/90 shadow-xl"
+                transition={{ duration: 0.6, ease: "easeOut" }}
+                className="inline-flex items-center gap-2 px-4 sm:px-5 py-2 sm:py-2.5 rounded-full bg-white/95 backdrop-blur-md border border-[#C8E6C9] shadow-[0_2px_10px_rgba(20,83,45,0.06)] text-xs sm:text-sm mb-6 sm:mb-8"
               >
-                <div className="flex items-center gap-3">
-                  <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-[#166534] flex items-center justify-center text-white font-bold text-base sm:text-lg shrink-0 shadow-md">
-                    98%
+                <Star className="w-4 h-4 text-[#166534] shrink-0 fill-none stroke-[2]" />
+                <span className="text-[#374151] font-medium">
+                  College Motto:
+                </span>
+                <span className="text-[#14532D] font-bold tracking-wide">
+                  Trust • Growth • Knowledge • Excellence
+                </span>
+              </motion.div>
+
+              {/* Main Heading: Bishop Ambrose College */}
+              <motion.h1
+                initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 25 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{
+                  duration: 0.65,
+                  delay: shouldReduceMotion ? 0 : 0.15,
+                  ease: "easeOut",
+                }}
+                className="font-serif font-bold text-[#14532D] text-4xl sm:text-5xl lg:text-[3.5rem] xl:text-[3.8rem] leading-[1.12] tracking-tight mb-5 sm:mb-7"
+              >
+                {hero.title || "Bishop Ambrose College"}
+              </motion.h1>
+
+              {/* Subtitle */}
+              <motion.p
+                initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{
+                  duration: 0.65,
+                  delay: shouldReduceMotion ? 0 : 0.3,
+                  ease: "easeOut",
+                }}
+                className="text-[#374151] text-base sm:text-lg lg:text-xl leading-relaxed mb-8 sm:mb-10 max-w-xl font-normal"
+              >
+                {hero.subtitle ||
+                  "Empowering students through excellence in education, character, and service since 1994."}
+              </motion.p>
+
+              {/* CTA Action Buttons */}
+              <motion.div
+                initial={{
+                  opacity: 0,
+                  scale: shouldReduceMotion ? 1 : 0.96,
+                  y: shouldReduceMotion ? 0 : 15,
+                }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                transition={{
+                  duration: 0.6,
+                  delay: shouldReduceMotion ? 0 : 0.45,
+                  ease: "easeOut",
+                }}
+                className="flex flex-wrap items-center gap-3.5 sm:gap-4"
+              >
+                {/* Apply Now Primary Pill Button */}
+                <button
+                  onClick={() => handleCta(hero.ctaLink)}
+                  className="inline-flex items-center justify-center gap-2.5 px-7 py-3.5 rounded-full bg-[#14532D] hover:bg-[#0f3e22] text-white font-semibold text-sm sm:text-base shadow-lg shadow-[#14532D]/25 hover:shadow-xl hover:shadow-[#14532D]/35 transition-all duration-300 hover:-translate-y-0.5 cursor-pointer"
+                >
+                  <span>Apply Now</span>
+                  <ArrowRight className="w-4.5 h-4.5" />
+                </button>
+
+                {/* Explore Courses Secondary Pill Button */}
+                <button
+                  onClick={() => handleCta(hero.secondaryCtaLink)}
+                  className="inline-flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-full bg-white hover:bg-[#F0FDF4] border-2 border-[#14532D] text-[#14532D] font-semibold text-sm sm:text-base shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-0.5 cursor-pointer"
+                >
+                  <BookOpen className="w-5 h-5 text-[#14532D]" />
+                  <span>Explore Courses</span>
+                </button>
+
+                {/* Virtual Tour Pill Button */}
+                <button
+                  onClick={() => setTourOpen(true)}
+                  className="inline-flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-full bg-white/70 hover:bg-white border border-[#14532D]/20 text-[#14532D] font-semibold text-sm sm:text-base shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-0.5 cursor-pointer"
+                >
+                  <Play className="w-4 h-4 fill-[#14532D] text-[#14532D]" />
+                  <span>Virtual Tour</span>
+                </button>
+              </motion.div>
+            </div>
+
+            {/* ── Right Column: Campus Image Carousel Card ───────────── */}
+            <div className="lg:col-span-6 xl:col-span-6 relative mt-6 lg:mt-0">
+              {/* Floating NAAC A++ Accredited Badge (Top-Left) */}
+              <motion.div
+                initial={{ opacity: 0, y: shouldReduceMotion ? 0 : -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{
+                  duration: 0.6,
+                  delay: shouldReduceMotion ? 0 : 0.45,
+                  ease: "easeOut",
+                }}
+                className="absolute -top-6 left-6 sm:left-10 bg-white/95 backdrop-blur-md px-4 sm:px-5 py-3 rounded-2xl shadow-[0_10px_25px_rgba(20,83,45,0.12)] border border-[#C8E6C9] flex items-center gap-3 z-30"
+              >
+                <div className="w-10 h-10 rounded-xl bg-[#E8F5E9] flex items-center justify-center text-[#166534] shrink-0">
+                  <Sparkles className="w-5 h-5" />
+                </div>
+                <div>
+                  <div className="font-bold text-sm sm:text-base text-[#14532D] leading-tight">
+                    NAAC A++ Accredited
                   </div>
-                  <div className="min-w-0">
-                    <h4 className="font-serif font-bold text-[#14532D] text-sm sm:text-base truncate sm:whitespace-normal">Graduate Placement Success</h4>
-                    <p className="text-xs sm:text-sm text-[#374151] font-medium line-clamp-1 sm:line-clamp-2">Top-ranked placement across core sectors & global companies.</p>
+                  <div className="text-[11px] sm:text-xs text-[#4B5563] font-medium">
+                    Highest Institutional Distinction
                   </div>
                 </div>
               </motion.div>
-            </motion.div>
 
-            {/* Accreditation Badge: NAAC A++ (High Contrast 95% Opacity White Card) */}
-            <motion.div
-              initial={{ opacity: 0, x: shouldReduceMotion ? 0 : -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6, delay: shouldReduceMotion ? 0 : 0.45, ease: "easeOut" }}
-              className="absolute -top-6 -left-6 bg-white/95 backdrop-blur-md p-3.5 sm:p-4 rounded-2xl shadow-xl border border-emerald-200/80 hidden md:flex items-center gap-3 z-20"
-            >
-              <div className="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center text-[#166534] font-bold shadow-xs">
-                <Sparkles className="w-5 h-5" />
-              </div>
-              <div>
-                <div className="font-bold text-xs sm:text-sm text-[#14532D]">NAAC A++ Accredited</div>
-                <div className="text-[11px] sm:text-xs text-[#374151] font-medium">Highest Institutional Distinction</div>
-              </div>
-            </motion.div>
+              {/* Main Rounded Showcase Card with Thick White Border */}
+              <motion.div
+                initial={{
+                  opacity: 0,
+                  scale: shouldReduceMotion ? 1 : 0.96,
+                  y: shouldReduceMotion ? 0 : 25,
+                }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                transition={{
+                  duration: 0.7,
+                  delay: shouldReduceMotion ? 0 : 0.25,
+                  ease: "easeOut",
+                }}
+                className="relative rounded-[2.25rem] overflow-hidden shadow-[0_20px_50px_rgba(20,83,45,0.14)] border-[8px] border-white bg-white group"
+              >
+                {/* Carousel Image Area */}
+                <div className="relative h-[280px] xs:h-[340px] sm:h-[400px] lg:h-[450px] w-full overflow-hidden bg-slate-900">
+                  <AnimatePresence mode="wait">
+                    <motion.img
+                      key={currentSlide}
+                      src={campusImages[currentSlide].src}
+                      alt={campusImages[currentSlide].alt}
+                      initial={{ opacity: 0, scale: 1.04 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.98 }}
+                      transition={{ duration: 0.6 }}
+                      className="absolute inset-0 w-full h-full object-cover"
+                    />
+                  </AnimatePresence>
+
+                  {/* Gentle gradient for contrast */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-transparent pointer-events-none" />
+
+                  {/* Left Chevron Button */}
+                  <button
+                    onClick={prevSlide}
+                    aria-label="Previous slide"
+                    className="absolute left-4 top-1/2 -translate-y-1/2 z-20 w-11 h-11 rounded-full bg-white/90 hover:bg-white shadow-lg flex items-center justify-center text-[#14532D] hover:scale-105 transition-all duration-200 cursor-pointer"
+                  >
+                    <ChevronLeft className="w-6 h-6 stroke-[2.5]" />
+                  </button>
+
+                  {/* Right Chevron Button */}
+                  <button
+                    onClick={nextSlide}
+                    aria-label="Next slide"
+                    className="absolute right-4 top-1/2 -translate-y-1/2 z-20 w-11 h-11 rounded-full bg-white/90 hover:bg-white shadow-lg flex items-center justify-center text-[#14532D] hover:scale-105 transition-all duration-200 cursor-pointer"
+                  >
+                    <ChevronRight className="w-6 h-6 stroke-[2.5]" />
+                  </button>
+
+                  {/* Carousel Dot Indicators */}
+                  <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 z-20">
+                    {campusImages.map((_, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => goToSlide(idx)}
+                        aria-label={`Go to slide ${idx + 1}`}
+                        className={cn(
+                          "rounded-full transition-all duration-300 cursor-pointer",
+                          idx === currentSlide
+                            ? "w-6 h-2.5 bg-[#14532D] shadow-md"
+                            : "w-2.5 h-2.5 bg-white/80 hover:bg-white"
+                        )}
+                      />
+                    ))}
+                  </div>
+                </div>
+
+                {/* Floating Graduate Placement Success Card (Bottom-Right) */}
+                <motion.div
+                  initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{
+                    duration: 0.6,
+                    delay: shouldReduceMotion ? 0 : 0.55,
+                    ease: "easeOut",
+                  }}
+                  className="absolute bottom-5 right-4 sm:bottom-6 sm:right-6 backdrop-blur-md bg-white/95 px-4 py-3 sm:py-3.5 rounded-2xl border border-white/90 shadow-[0_10px_30px_rgba(0,0,0,0.12)] max-w-[310px] z-20"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-full bg-[#14532D] flex items-center justify-center text-white font-bold text-base sm:text-lg shrink-0 shadow-sm">
+                      98%
+                    </div>
+                    <div className="min-w-0">
+                      <h4 className="font-serif font-bold text-[#14532D] text-sm sm:text-base leading-snug">
+                        Graduate Placement Success
+                      </h4>
+                      <p className="text-[11px] sm:text-xs text-[#4B5563] font-medium leading-normal mt-0.5">
+                        Top-ranked placement across core sectors &amp; global
+                        companies.
+                      </p>
+                    </div>
+                  </div>
+                </motion.div>
+              </motion.div>
+            </div>
           </div>
         </div>
-      </div>
 
+        {/* ── Floating Stats Bar Container (Matches Reference Image) ─ */}
+        <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 mt-12 sm:mt-16">
+          <motion.div
+            initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 25 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{
+              duration: 0.6,
+              delay: shouldReduceMotion ? 0 : 0.55,
+              ease: "easeOut",
+            }}
+            className="bg-white/95 backdrop-blur-md rounded-3xl shadow-[0_12px_40px_rgba(20,83,45,0.08)] border border-white py-6 px-4 sm:px-8"
+          >
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-0 items-center">
+              {heroStats.map((stat, idx) => (
+                <React.Fragment key={stat.label}>
+                  <div className="flex items-center justify-center gap-3.5 sm:gap-4 px-2 sm:px-4">
+                    <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-[#E8F5E9] flex items-center justify-center shrink-0 shadow-xs">
+                      {statIcons[stat.label] || (
+                        <Users className="w-7 h-7 sm:w-8 sm:h-8 text-[#166534]" />
+                      )}
+                    </div>
+                    <div>
+                      <div className="font-serif font-bold text-2xl sm:text-3xl lg:text-4xl text-[#14532D] tracking-tight leading-none mb-1">
+                        <AnimatedCounter
+                          value={stat.value}
+                          suffix={stat.suffix}
+                        />
+                      </div>
+                      <div className="text-xs sm:text-sm text-[#374151] font-semibold tracking-wide">
+                        {stat.label}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Vertical Divider between stat columns on desktop */}
+                  {idx < heroStats.length - 1 && (
+                    <div className="hidden md:block w-[1px] h-12 bg-slate-200/80 mx-auto" />
+                  )}
+                </React.Fragment>
+              ))}
+            </div>
+          </motion.div>
+        </div>
+      </section>
 
       {/* Virtual Tour Modal */}
       <VirtualTourModal open={tourOpen} onClose={() => setTourOpen(false)} />
-
-      {/* Scroll cue */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 1.2 }}
-        className="absolute bottom-6 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-[#14532D] z-10"
-      >
-        <span className="text-[10px] uppercase tracking-widest font-bold text-[#14532D]">Scroll</span>
-        <motion.div
-          animate={{ y: [0, 8, 0] }}
-          transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
-        >
-          <ChevronDown className="w-5 h-5 text-[#14532D]" />
-        </motion.div>
-      </motion.div>
-
-      {/* Bottom gradient fade into page content */}
-      <div className="absolute bottom-0 left-0 right-0 h-28 bg-gradient-to-t from-background to-transparent z-1 pointer-events-none" />
-    </section>
+    </>
   );
 }
