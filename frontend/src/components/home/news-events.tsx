@@ -182,15 +182,15 @@ export function NewsEventsSection() {
         <Reveal>
           <div className="text-center mb-8 sm:mb-10">
             {/* Eyebrow pill */}
-            <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-[#C8E6C9] bg-white text-[#15803D] text-xs font-bold uppercase tracking-widest mb-5 shadow-sm">
-              <span className="w-2 h-2 rounded-full bg-[#15803D] animate-pulse" />
+            <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-[#DCE8DE] bg-[#F1F8F2] text-[#2E7D32] text-xs font-bold uppercase tracking-widest mb-5 shadow-xs">
+              <span className="w-2 h-2 rounded-full bg-[#2E7D32] animate-pulse" />
               Latest from BAC
             </span>
 
             <h2 className="font-serif font-bold text-[#14532D] text-4xl sm:text-5xl lg:text-6xl leading-tight tracking-tight mb-4">
               News &amp; Events
             </h2>
-            <p className="text-[#374151] text-base sm:text-lg max-w-2xl mx-auto leading-relaxed">
+            <p className="text-[#68766C] text-base sm:text-lg max-w-2xl mx-auto leading-relaxed">
               Stay updated with the latest news, events, achievements, and activities at BAC Global University.
             </p>
           </div>
@@ -206,8 +206,8 @@ export function NewsEventsSection() {
                 className={cn(
                   "px-5 py-2 rounded-full text-sm font-semibold border transition-all duration-200 cursor-pointer",
                   activeFilter === cat
-                    ? "bg-[#14532D] text-white border-[#14532D] shadow-sm"
-                    : "bg-white text-[#374151] border-gray-200 hover:border-[#14532D]/50 hover:bg-emerald-50/50"
+                    ? "bg-[#2E7D32] text-white border-[#2E7D32] shadow-sm"
+                    : "bg-white text-[#26352B] border-[#DCE8DE] hover:border-[#2E7D32] hover:bg-[#F1F8F2]"
                 )}
               >
                 {cat}

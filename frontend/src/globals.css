@@ -37,6 +37,15 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
+  --color-forest-green: var(--forest-green);
+  --color-primary-green: var(--primary-green);
+  --color-fresh-green: var(--fresh-green);
+  --color-soft-green: var(--soft-green);
+  --color-light-green-bg: var(--light-green-bg);
+  --color-pure-white: var(--pure-white);
+  --color-dark-text: var(--dark-text);
+  --color-muted-text: var(--muted-text);
+  --color-light-border: var(--light-border);
   --color-navy: var(--navy);
   --color-navy-light: var(--navy-light);
   --color-navy-dark: var(--navy-dark);
@@ -53,49 +62,59 @@
 
 :root {
   --radius: 0.75rem;
-  --background: #F5FBF6;
-  --foreground: #1F2937;
+  --background: #FFFFFF;
+  --foreground: #26352B;
   --card: #FFFFFF;
-  --card-foreground: #1F2937;
+  --card-foreground: #26352B;
   --popover: #FFFFFF;
-  --popover-foreground: #1F2937;
+  --popover-foreground: #26352B;
 
-  /* Accessible Green & White Theme Palette following Design Guidelines */
-  --navy: #14532D;       /* Primary Heading: Dark Green (#14532D) */
-  --navy-light: #166534; /* Statistics Numbers & Accent Green (#166534) */
-  --navy-dark: #0B2916;  /* Deep Forest Green for Header/Footer */
+  /* Premium Green & White Colour System */
+  --forest-green: #14532D; /* Deep Forest Green for Headings, Footer, Important sections */
+  --primary-green: #2E7D32; /* Primary Green for Buttons, Active links, Icons */
+  --fresh-green: #4CAF50; /* Fresh Green for Highlights and Interactive elements */
+  --soft-green: #81C784; /* Soft Green for Decorative accents */
+  --light-green-bg: #F1F8F2; /* Very Light Green for Section backgrounds */
+  --pure-white: #FFFFFF; /* Pure White for Main backgrounds and cards */
+  --dark-text: #26352B; /* Dark Text for Paragraphs and body text */
+  --muted-text: #68766C; /* Muted Text for Secondary descriptions */
+  --light-border: #DCE8DE; /* Light Border for Dividers and subtle borders */
 
-  --gold: #C8E6C9;       /* Soft Green Accent */
-  --gold-light: #E8F5E9; /* Light Green */
-  --gold-dark: #15803D;  /* Solid Mid Green Accent */
+  --navy: #14532D;       /* Deep Forest Green (#14532D) */
+  --navy-light: #2E7D32; /* Primary Green (#2E7D32) */
+  --navy-dark: #14532D;  /* Deep Forest Green for Header/Footer (#14532D) */
 
-  --cream: #F5FBF6;      /* Background Neutral */
+  --gold: #81C784;       /* Soft Green Accent */
+  --gold-light: #F1F8F2; /* Very Light Green */
+  --gold-dark: #2E7D32;  /* Primary Green Accent */
 
-  --primary: var(--navy);
+  --cream: #F1F8F2;      /* Section Background Neutral */
+
+  --primary: #2E7D32;
   --primary-foreground: #FFFFFF;
-  --secondary: #E8F5E9;
-  --secondary-foreground: var(--navy);
-  --muted: #E8F5E9;
-  --muted-foreground: #374151; /* Secondary Text: #374151 */
-  --accent: var(--navy-light);
+  --secondary: #F1F8F2;
+  --secondary-foreground: #14532D;
+  --muted: #F1F8F2;
+  --muted-foreground: #68766C;
+  --accent: #4CAF50;
   --accent-foreground: #FFFFFF;
   --destructive: oklch(0.577 0.245 27.325);
-  --border: #C8E6C9;     /* Accessible Green Border */
-  --input: #E8F5E9;
-  --ring: var(--navy);
-  --chart-1: var(--navy);
-  --chart-2: var(--navy-light);
-  --chart-3: #15803D;
-  --chart-4: #22C55E;
-  --chart-5: #86EFAC;
-  --sidebar: #F5FBF6;
-  --sidebar-foreground: var(--navy);
-  --sidebar-primary: var(--navy);
+  --border: #DCE8DE;     /* Light Border (#DCE8DE) */
+  --input: #F1F8F2;
+  --ring: #2E7D32;
+  --chart-1: #14532D;
+  --chart-2: #2E7D32;
+  --chart-3: #4CAF50;
+  --chart-4: #81C784;
+  --chart-5: #A5D6A7;
+  --sidebar: #FFFFFF;
+  --sidebar-foreground: #14532D;
+  --sidebar-primary: #2E7D32;
   --sidebar-primary-foreground: #FFFFFF;
-  --sidebar-accent: var(--gold);
-  --sidebar-accent-foreground: var(--navy);
-  --sidebar-border: #C8E6C9;
-  --sidebar-ring: var(--navy);
+  --sidebar-accent: #F1F8F2;
+  --sidebar-accent-foreground: #14532D;
+  --sidebar-border: #DCE8DE;
+  --sidebar-ring: #2E7D32;
 }
 
 .dark {
@@ -217,7 +236,7 @@ html.theme-transitioning *:after {
     scroll-behavior: smooth;
     scroll-padding-top: 5.5rem;
     overflow-x: hidden;
-    max-width: 100%;
+    max-width: 100vw;
   }
   body {
     @apply bg-background text-foreground antialiased text-base;
@@ -225,7 +244,7 @@ html.theme-transitioning *:after {
     font-size: 15px;
     line-height: 1.6;
     overflow-x: hidden;
-    max-width: 100%;
+    max-width: 100vw;
     width: 100%;
     min-height: 100vh;
   }
@@ -308,16 +327,16 @@ html.theme-transitioning *:after {
   }
 
   .bg-mesh {
-    background-color: #F5FBF6;
+    background-color: #F1F8F2;
     background-image:
-      radial-gradient(at 0% 0%, rgba(22, 101, 52, 0.08) 0px, transparent 50%),
-      radial-gradient(at 100% 0%, rgba(20, 83, 45, 0.07) 0px, transparent 50%),
-      radial-gradient(at 50% 100%, rgba(22, 101, 52, 0.05) 0px, transparent 50%);
+      radial-gradient(at 0% 0%, rgba(46, 125, 50, 0.05) 0px, transparent 50%),
+      radial-gradient(at 100% 0%, rgba(20, 83, 45, 0.04) 0px, transparent 50%),
+      radial-gradient(at 50% 100%, rgba(46, 125, 50, 0.03) 0px, transparent 50%);
   }
 
   /* Accessible Text Gradients with High Contrast */
   .text-gold-gradient {
-    background: linear-gradient(135deg, #166534 0%, #14532D 100%);
+    background: linear-gradient(135deg, #2E7D32 0%, #14532D 100%);
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;

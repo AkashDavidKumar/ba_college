@@ -36,13 +36,13 @@ export function SectionHeading({
           viewport={{ once: true }}
           transition={{ duration: 0.4, ease: [0.21, 0.47, 0.32, 0.98] }}
           className={cn(
-            "inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-[11px] sm:text-xs font-extrabold uppercase tracking-widest transition-all",
+            "inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-[11px] sm:text-xs font-bold uppercase tracking-widest transition-all",
             isDark
               ? "bg-white/15 text-emerald-200 border border-emerald-300/40 backdrop-blur-md shadow-xs"
-              : "bg-emerald-100/80 text-[#14532D] border border-emerald-300/80 shadow-xs"
+              : "bg-[#F1F8F2] text-[#14532D] border border-[#DCE8DE] shadow-xs"
           )}
         >
-          <span className={cn("w-2 h-2 rounded-full animate-pulse", isDark ? "bg-emerald-300" : "bg-[#166534]")} />
+          <span className={cn("w-2 h-2 rounded-full animate-pulse", isDark ? "bg-emerald-300" : "bg-[#2E7D32]")} />
           {eyebrow}
         </motion.div>
       )}
@@ -66,7 +66,7 @@ export function SectionHeading({
           transition={{ duration: 0.5, delay: 0.2, ease: [0.21, 0.47, 0.32, 0.98] }}
           className={cn(
             "text-base sm:text-lg leading-relaxed font-medium tracking-normal",
-            isDark ? "text-white/90" : "text-[#374151]",
+            isDark ? "text-white/90" : "text-[#68766C]",
             align === "center" && "max-w-2xl"
           )}
         >
@@ -238,59 +238,48 @@ export function Logo({
   className?: string;
 }) {
   const { data } = useSiteData();
-  const text1 = data?.logo?.text1 || "BAC";
-  const text2 = data?.logo?.text2 || "Global University";
+  const text1 = data?.logo?.text1 && data?.logo?.text1 !== "BAC" ? data.logo.text1 : "Bishop Ambrose College";
+  const text2 = data?.logo?.text2 && data?.logo?.text2 !== "Global University" ? data.logo.text2 : "— ESTD. 1968 —";
   const logoImage = data?.logo?.image;
 
   return (
     <button
       onClick={onClick}
-      className={cn("flex items-center gap-2 sm:gap-2.5 min-h-[44px] group text-left cursor-pointer", className)}
+      className={cn("flex items-center gap-2.5 sm:gap-3 min-h-[44px] group text-left cursor-pointer", className)}
       aria-label={`${text1} ${text2} Home`}
     >
-      <div className="relative w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center shrink-0">
+      <div className="relative w-9 h-9 sm:w-11 sm:h-11 flex items-center justify-center shrink-0">
         {logoImage ? (
           <img
             src={logoImage}
             alt="Logo"
-            className="w-8 h-8 sm:w-10 sm:h-10 object-contain rounded-lg transition-transform duration-300 group-hover:scale-105"
+            className="w-9 h-9 sm:w-11 sm:h-11 object-contain rounded-lg transition-transform duration-300 group-hover:scale-105"
           />
         ) : (
-          <svg viewBox="0 0 48 48" className="w-8 h-8 sm:w-10 sm:h-10 transition-transform duration-300 group-hover:scale-105">
-            <defs>
-              <linearGradient id="logoGold" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="oklch(0.86 0.12 84)" />
-                <stop offset="100%" stopColor="oklch(0.68 0.13 84)" />
-              </linearGradient>
-            </defs>
-            <rect width="48" height="48" rx="10" fill={variant === "dark" ? "oklch(0.20 0.06 258)" : "#ffffff"} />
-            <text
-              x="24"
-              y="33"
-              textAnchor="middle"
-              fill="url(#logoGold)"
-              fontSize="28"
-              fontWeight="bold"
-              fontFamily="serif"
-            >
-              B
-            </text>
+          <svg viewBox="0 0 48 48" className="w-9 h-9 sm:w-11 sm:h-11 transition-transform duration-300 group-hover:scale-105 shrink-0" fill="none">
+            {/* Academic laurel crest in Institutional Green */}
+            <circle cx="24" cy="24" r="22" stroke={variant === "dark" ? "#2E7D32" : "#81C784"} strokeWidth="1.75" strokeDasharray="3 2" />
+            <circle cx="24" cy="24" r="18" fill={variant === "dark" ? "#F1F8F2" : "rgba(255,255,255,0.15)"} stroke={variant === "dark" ? "#14532D" : "#FFFFFF"} strokeWidth="1.5" />
+            {/* Open Book */}
+            <path d="M15 28C18 26.5 21 26.5 24 28V19C21 17.5 18 17.5 15 19V28Z" fill={variant === "dark" ? "#14532D" : "#FFFFFF"} />
+            <path d="M33 28C30 26.5 27 26.5 24 28V19C27 17.5 30 17.5 33 19V28Z" fill={variant === "dark" ? "#2E7D32" : "#81C784"} />
+            <path d="M24 19V28" stroke={variant === "dark" ? "#F1F8F2" : "#14532D"} strokeWidth="1" />
           </svg>
         )}
       </div>
       <div className="flex flex-col items-start leading-none min-w-0">
         <span
           className={cn(
-            "font-serif font-bold text-base sm:text-lg tracking-tight truncate max-w-[150px] xs:max-w-[200px] sm:max-w-none",
-            variant === "dark" ? "text-navy" : "text-white"
+            "font-serif font-bold text-base sm:text-lg lg:text-[19px] tracking-tight truncate max-w-[170px] xs:max-w-[220px] sm:max-w-none",
+            variant === "dark" ? "text-[#14532D]" : "text-white"
           )}
         >
           {text1}
         </span>
         <span
           className={cn(
-            "text-[9px] sm:text-[10px] uppercase tracking-[0.14em] sm:tracking-[0.18em] font-semibold truncate max-w-[140px] xs:max-w-[190px] sm:max-w-none",
-            variant === "dark" ? "text-gold-dark" : "text-gold-light"
+            "text-[9px] sm:text-[10px] uppercase tracking-[0.2em] font-semibold truncate max-w-[150px] xs:max-w-[200px] sm:max-w-none mt-1",
+            variant === "dark" ? "text-[#2E7D32]" : "text-white/80"
           )}
         >
           {text2}
@@ -308,7 +297,7 @@ type ButtonSize = "sm" | "md" | "lg";
 
 export function PremiumButton({
   children,
-  variant = "navy",
+  variant = "primary",
   size = "md",
   className,
   icon,
@@ -321,22 +310,22 @@ export function PremiumButton({
   icon?: React.ReactNode;
 } & ButtonHTMLAttributes<HTMLButtonElement>) {
   const base =
-    "relative inline-flex items-center justify-center gap-2 font-bold rounded-full min-h-[44px] transition-all duration-300 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-emerald-500/80 focus-visible:ring-offset-2 disabled:opacity-60 disabled:pointer-events-none overflow-hidden group touch-manipulation cursor-pointer";
+    "relative inline-flex items-center justify-center gap-2 font-bold rounded-lg min-h-[42px] transition-all duration-300 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-[#2E7D32]/80 focus-visible:ring-offset-2 disabled:opacity-60 disabled:pointer-events-none overflow-hidden group touch-manipulation cursor-pointer";
   const sizes: Record<ButtonSize, string> = {
-    sm: "text-xs sm:text-sm px-4 py-2",
-    md: "text-sm px-5 py-2.5",
-    lg: "text-sm sm:text-base px-6 sm:px-7 py-3 sm:py-3.5",
+    sm: "text-xs sm:text-sm px-4 py-2 rounded-md",
+    md: "text-sm px-5 py-2.5 rounded-lg",
+    lg: "text-sm sm:text-base px-6 sm:px-7 py-3 sm:py-3.5 rounded-lg",
   };
   const variants: Record<ButtonVariant, string> = {
-    primary: "btn-primary bg-navy text-white hover:bg-navy-dark shadow-md hover:shadow-emerald-900/30",
-    secondary: "btn-secondary bg-navy text-white hover:bg-navy-dark shadow-md hover:shadow-emerald-900/30",
-    highlight: "btn-highlight bg-gold-gradient text-navy hover:brightness-105 shadow-md",
-    navy: "btn-navy bg-navy text-white hover:bg-navy-dark shadow-md hover:shadow-emerald-900/30",
-    gold: "btn-primary bg-gold-gradient text-navy hover:brightness-105 shadow-md",
-    outline: "border-2 border-navy/20 text-navy hover:bg-navy hover:text-white hover:border-navy",
-    ghost: "text-navy hover:bg-navy/8",
-    white: "bg-white text-navy hover:bg-cream shadow-md",
-    "outline-light": "border-2 border-white/30 text-white hover:bg-white/10 backdrop-blur-md",
+    primary: "btn-primary bg-[#2E7D32] text-white hover:bg-[#14532D] shadow-sm hover:shadow-md",
+    secondary: "btn-secondary bg-white text-[#2E7D32] border-2 border-[#2E7D32] hover:bg-[#2E7D32] hover:text-white shadow-xs",
+    highlight: "btn-highlight bg-[#4CAF50] text-white hover:bg-[#2E7D32] shadow-sm",
+    navy: "btn-navy bg-[#14532D] text-white hover:bg-[#0B3B24] shadow-sm",
+    gold: "btn-primary bg-[#2E7D32] text-white hover:bg-[#14532D] shadow-sm",
+    outline: "border-2 border-[#2E7D32] text-[#2E7D32] hover:bg-[#2E7D32] hover:text-white",
+    ghost: "text-[#14532D] hover:bg-[#F1F8F2] hover:text-[#2E7D32]",
+    white: "bg-white text-[#14532D] hover:bg-[#F1F8F2] shadow-sm",
+    "outline-light": "border-2 border-white/80 text-white hover:bg-white/10 backdrop-blur-sm",
   };
   return (
     <motion.button

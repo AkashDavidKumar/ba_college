@@ -479,13 +479,13 @@ export function WhyChooseUs() {
               viewport={{ once: true, margin: "-60px" }}
               transition={{ duration: 0.6, delay: shouldReduceMotion ? 0 : idx * 0.09, ease: "easeOut" }}
               whileHover={{ y: shouldReduceMotion ? 0 : -5, transition: { duration: 0.25, ease: "easeOut" } }}
-              className="bg-white/95 backdrop-blur-md rounded-2xl p-6 text-center border border-emerald-200/70 hover:border-[#166534] hover:shadow-xl transition-all cursor-default group shadow-sm"
+              className="bg-white rounded-2xl p-6 text-center border border-[#DCE8DE] hover:border-[#2E7D32] hover:shadow-lg transition-all cursor-default group shadow-xs"
             >
-              <div className="font-serif text-3xl sm:text-4xl font-bold text-[#166534] mb-1.5 transition-colors tracking-tight text-shadow-subtle">
+              <div className="font-serif text-3xl sm:text-4xl font-bold text-[#2E7D32] mb-1.5 transition-colors tracking-tight">
                 {stat.prefix && <span className="mr-0.5">{stat.prefix}</span>}
                 <AnimatedCounter value={Number(stat.value) || 0} suffix={stat.suffix || ""} />
               </div>
-              <div className="text-[#1F2937] text-xs sm:text-sm font-bold tracking-wide">{stat.label}</div>
+              <div className="text-[#26352B] text-xs sm:text-sm font-semibold tracking-wide">{stat.label}</div>
             </motion.div>
           ))}
         </div>

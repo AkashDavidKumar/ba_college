@@ -100,75 +100,75 @@ export function Header() {
       label: "About Us",
       type: "about",
       children: [
-        { label: "History of BAC",    description: "Establishment and heritage since 1994",      icon: "BookOpen",   action: () => goAbout("history") },
-        { label: "Secretary's Message",description: "Message from the college Secretary",          icon: "MessageSquare",action: () => goAbout("secretary") },
-        { label: "Principal's Message",description: "Vision from the Principal",                   icon: "GraduationCap",action: () => goAbout("principal") },
-        { label: "Governance",         description: "Administrative governance structure",          icon: "Shield",     action: () => goAbout("governance") },
-        { label: "Organogram",         description: "Organizational chart and hierarchy",           icon: "GitBranch",  action: () => goAbout("organogram") },
-        { label: "Strategic Plan",     description: "Institutional development roadmap",            icon: "Target",     action: () => goAbout("strategic") },
-        { label: "Code of Conduct",    description: "Rules, values and expected conduct",           icon: "FileCheck",  action: () => goAbout("conduct") },
-        { label: "Annual Report",      description: "Year-wise institutional annual report",         icon: "BarChart2",  action: () => goAbout("annual-report") },
+        { label: "History of BAC", description: "Establishment and heritage since 1994", icon: "BookOpen", action: () => goAbout("history") },
+        { label: "Secretary's Message", description: "Message from the college Secretary", icon: "MessageSquare", action: () => goAbout("secretary") },
+        { label: "Principal's Message", description: "Vision from the Principal", icon: "GraduationCap", action: () => goAbout("principal") },
+        { label: "Governance", description: "Administrative governance structure", icon: "Shield", action: () => goAbout("governance") },
+        { label: "Organogram", description: "Organizational chart and hierarchy", icon: "GitBranch", action: () => goAbout("organogram") },
+        { label: "Strategic Plan", description: "Institutional development roadmap", icon: "Target", action: () => goAbout("strategic") },
+        { label: "Code of Conduct", description: "Rules, values and expected conduct", icon: "FileCheck", action: () => goAbout("conduct") },
+        { label: "Annual Report", description: "Year-wise institutional annual report", icon: "BarChart2", action: () => goAbout("annual-report") },
       ],
     },
     {
       label: "Academic",
       type: "academic",
       children: [
-        { label: "Courses Offered",         description: "All undergraduate programmes at BAC",      icon: "BookOpen",   action: () => goAcademic("courses") },
-        { label: "Departments",             description: "Our academic departments",                  icon: "Building2",  action: () => goAcademic("departments") },
-        { label: "Curriculum Dev. Cell",    description: "Curriculum design and development",         icon: "FileText",   action: () => goAcademic("curriculum") },
-        { label: "Programme Outcomes",      description: "Learning outcomes across programmes",        icon: "Target",     action: () => goAcademic("outcomes") },
-        { label: "ICT Facilities",          description: "Digital infrastructure and smart labs",      icon: "Monitor",    action: () => goAcademic("ict") },
-        { label: "Academic Calendar",       description: "Dates, events and schedules",               icon: "Calendar",   action: () => goAcademic("calendar") },
+        { label: "Courses Offered", description: "All undergraduate programmes at BAC", icon: "BookOpen", action: () => goAcademic("courses") },
+        { label: "Departments", description: "Our academic departments", icon: "Building2", action: () => goAcademic("departments") },
+        { label: "Curriculum Dev. Cell", description: "Curriculum design and development", icon: "FileText", action: () => goAcademic("curriculum") },
+        { label: "Programme Outcomes", description: "Learning outcomes across programmes", icon: "Target", action: () => goAcademic("outcomes") },
+        { label: "ICT Facilities", description: "Digital infrastructure and smart labs", icon: "Monitor", action: () => goAcademic("ict") },
+        { label: "Academic Calendar", description: "Dates, events and schedules", icon: "Calendar", action: () => goAcademic("calendar") },
       ],
     },
     {
       label: "Student Activities",
       type: "student-activities",
       children: [
-        { label: "Student Council",    description: "Elected student leadership body",              icon: "Users",      action: () => goStudentActivities("council") },
-        { label: "Fine Arts",          description: "Cultural and performing arts activities",       icon: "Palette",    action: () => goStudentActivities("fine-arts") },
-        { label: "Sports",             description: "Athletics, tournaments and achievements",        icon: "Trophy",     action: () => goStudentActivities("sports") },
-        { label: "Associations",       description: "Student associations by department",             icon: "Users",      action: () => goStudentActivities("associations") },
-        { label: "Extension Activities",description: "Community outreach and NSS",                  icon: "Heart",      action: () => goStudentActivities("extension") },
-        { label: "Placement",          description: "Campus placements and career support",          icon: "Briefcase",  action: goPlacements },
+        { label: "Student Council", description: "Elected student leadership body", icon: "Users", action: () => goStudentActivities("council") },
+        { label: "Fine Arts", description: "Cultural and performing arts activities", icon: "Palette", action: () => goStudentActivities("fine-arts") },
+        { label: "Sports", description: "Athletics, tournaments and achievements", icon: "Trophy", action: () => goStudentActivities("sports") },
+        { label: "Associations", description: "Student associations by department", icon: "Users", action: () => goStudentActivities("associations") },
+        { label: "Extension Activities", description: "Community outreach and NSS", icon: "Heart", action: () => goStudentActivities("extension") },
+        { label: "Placement", description: "Campus placements and career support", icon: "Briefcase", action: goPlacements },
       ],
     },
     {
       label: "Admission",
       type: "admissions",
       children: [
-        { label: "Admission Policy",   description: "Eligibility and admission procedure",          icon: "FileText",   action: goAdmissions },
-        { label: "BAC Prospectus",     description: "Download our college prospectus",              icon: "Download",   action: goAdmissions },
-        { label: "Fees Structure",     description: "Programme-wise fee details",                   icon: "CreditCard", action: goAdmissions },
-        { label: "Application Form",   description: "Apply online for 2026-27 admissions",         icon: "ClipboardList",action: goAdmissions },
-        { label: "Scholarships",       description: "Government and institutional scholarships",    icon: "Award",      action: goAdmissions },
+        { label: "Admission Policy", description: "Eligibility and admission procedure", icon: "FileText", action: goAdmissions },
+        { label: "BAC Prospectus", description: "Download our college prospectus", icon: "Download", action: goAdmissions },
+        { label: "Fees Structure", description: "Programme-wise fee details", icon: "CreditCard", action: goAdmissions },
+        { label: "Application Form", description: "Apply online for 2026-27 admissions", icon: "ClipboardList", action: goAdmissions },
+        { label: "Scholarships", description: "Government and institutional scholarships", icon: "Award", action: goAdmissions },
       ],
     },
     {
       label: "IQAC",
       type: "iqac",
       children: [
-        { label: "About IQAC",              description: "Internal Quality Assurance Cell",          icon: "Shield",    action: () => goIqac("about") },
-        { label: "IQAC Members",            description: "IQAC committee members list",              icon: "Users",     action: () => goIqac("members") },
-        { label: "AQAR Report",             description: "Annual Quality Assurance Reports",         icon: "FileText",  action: () => goIqac("aqar") },
-        { label: "Quality Initiatives",     description: "Initiatives to improve quality",           icon: "Lightbulb", action: () => goIqac("initiatives") },
-        { label: "NIRF",                    description: "National Institutional Ranking Framework", icon: "Award",     action: goNirf },
-        { label: "Best Practices",          description: "Institutional best practices",             icon: "Star",      action: () => goIqac("best-practices") },
-        { label: "SSR",                     description: "Self Study Report",                       icon: "BookOpen",  action: () => goIqac("ssr") },
+        { label: "About IQAC", description: "Internal Quality Assurance Cell", icon: "Shield", action: () => goIqac("about") },
+        { label: "IQAC Members", description: "IQAC committee members list", icon: "Users", action: () => goIqac("members") },
+        { label: "AQAR Report", description: "Annual Quality Assurance Reports", icon: "FileText", action: () => goIqac("aqar") },
+        { label: "Quality Initiatives", description: "Initiatives to improve quality", icon: "Lightbulb", action: () => goIqac("initiatives") },
+        { label: "NIRF", description: "National Institutional Ranking Framework", icon: "Award", action: goNirf },
+        { label: "Best Practices", description: "Institutional best practices", icon: "Star", action: () => goIqac("best-practices") },
+        { label: "SSR", description: "Self Study Report", icon: "BookOpen", action: () => goIqac("ssr") },
       ],
     },
     { label: "Examination", action: goExamination },
-    { label: "Autonomous",  action: () => goAutonomous() },
-    { label: "Library",     action: () => goLibrary() },
-    { label: "NIRF",        action: goNirf },
+    { label: "Autonomous", action: () => goAutonomous() },
+    { label: "Library", action: () => goLibrary() },
+    { label: "NIRF", action: goNirf },
     {
       label: "BAC Alumni",
       type: "alumni",
       children: [
-        { label: "Alumni Events",        description: "Events for and by alumni",                   icon: "Calendar",   action: () => goAlumni("events") },
-        { label: "Alumni Registration",  description: "Register as a BAC alumni",                  icon: "UserCheck",  action: () => goAlumni("registration") },
-        { label: "BAC Alumni Association",description: "Alumni association and chapter",            icon: "Heart",      action: () => goAlumni("association") },
+        { label: "Alumni Events", description: "Events for and by alumni", icon: "Calendar", action: () => goAlumni("events") },
+        { label: "Alumni Registration", description: "Register as a BAC alumni", icon: "UserCheck", action: () => goAlumni("registration") },
+        { label: "BAC Alumni Association", description: "Alumni association and chapter", icon: "Heart", action: () => goAlumni("association") },
       ],
     },
     { label: "Contact Us", action: goContact },
@@ -176,18 +176,18 @@ export function Header() {
 
   const isActive = (item: NavItem) => {
     const t = view.type;
-    if (item.label === "Home")              return t === "home";
-    if (item.label === "About Us")          return t === "about";
-    if (item.label === "Academic")          return t === "academic" || t === "department";
-    if (item.label === "Student Activities")return t === "student-activities";
-    if (item.label === "Admission")         return t === "admissions";
-    if (item.label === "IQAC")              return t === "iqac";
-    if (item.label === "Examination")       return t === "examination";
-    if (item.label === "Autonomous")        return t === "autonomous";
-    if (item.label === "Library")           return t === "library";
-    if (item.label === "NIRF")              return t === "nirf";
-    if (item.label === "BAC Alumni")        return t === "alumni";
-    if (item.label === "Contact Us")        return t === "contact";
+    if (item.label === "Home") return t === "home";
+    if (item.label === "About Us") return t === "about";
+    if (item.label === "Academic") return t === "academic" || t === "department";
+    if (item.label === "Student Activities") return t === "student-activities";
+    if (item.label === "Admission") return t === "admissions";
+    if (item.label === "IQAC") return t === "iqac";
+    if (item.label === "Examination") return t === "examination";
+    if (item.label === "Autonomous") return t === "autonomous";
+    if (item.label === "Library") return t === "library";
+    if (item.label === "NIRF") return t === "nirf";
+    if (item.label === "BAC Alumni") return t === "alumni";
+    if (item.label === "Contact Us") return t === "contact";
     return false;
   };
 
@@ -230,8 +230,8 @@ export function Header() {
 
       <header
         className={cn(
-          "sticky top-0 z-50 transition-all duration-300",
-          scrolled ? "glass-strong shadow-premium" : "bg-transparent"
+          "sticky top-0 z-50 transition-all duration-300 bg-white border-b border-[#DCE8DE]",
+          scrolled ? "shadow-md bg-white/98 backdrop-blur-md" : "shadow-xs"
         )}
         onMouseLeave={() => {
           setMegaOpen(null);
@@ -251,12 +251,12 @@ export function Header() {
             <Logo variant="dark" onClick={goHome} />
 
             {/* Desktop nav */}
-            <nav className="hidden lg:flex items-center gap-0 xl:gap-1 overflow-hidden">
+            <nav className="hidden lg:flex items-center gap-1">
               {navItems.map((item) => (
                 <button
                   key={item.label}
                   className={cn(
-                    "relative px-2 xl:px-4 py-2.5 text-xs xl:text-sm font-semibold transition-colors rounded-full whitespace-nowrap shrink-0",
+                    "relative px-4 py-2.5 text-sm font-semibold transition-colors rounded-full",
                     isActive(item)
                       ? "text-gold-dark"
                       : "text-navy hover:text-gold-dark",
@@ -284,7 +284,7 @@ export function Header() {
                       <ChevronDown className="w-3.5 h-3.5" />
                     )}
                   </span>
-                  
+
                   {hoveredItem === item.label && (
                     <motion.span
                       layoutId="nav-hover"
@@ -292,7 +292,7 @@ export function Header() {
                       transition={{ type: "spring", stiffness: 350, damping: 30 }}
                     />
                   )}
-                  
+
                   {isActive(item) && (
                     <motion.span
                       layoutId="nav-active"
