@@ -250,7 +250,7 @@ export type NewsArticle = {
   title: string;
   excerpt: string;
   content?: string;
-  category: "University News" | "Achievement" | "Announcement" | "Campus Life" | "Research";
+  category: "University News" | "Achievement" | "Announcement" | "Campus Life" | "Research" | "Events";
   image: string;
   date: string;
   dateISO: string;
@@ -258,6 +258,8 @@ export type NewsArticle = {
   featured: boolean;
   published: boolean;
   readMoreUrl?: string;
+  readTime?: string;
+  eventDate?: string;
 };
 
 export type NewsEventsConfig = {
@@ -412,12 +414,94 @@ type SiteContextValue = {
   updateNewsEventsConfig: (config: Partial<NewsEventsConfig>) => Promise<boolean>;
 };
 
-const SiteContext = createContext<SiteContextValue | null>(null);
+const defaultFallbackSiteData: SiteData = {
+  logo: { text1: "Bishop Ambrose", text2: "College", image: "" },
+  hero: {
+    badge: "Admissions Open 2026-27",
+    title: "Bishop Ambrose College",
+    subtitle: "Empowering students through excellence in education, character, and service since 1994.",
+    ctaText: "Apply Now",
+    ctaLink: "admissions",
+    secondaryCtaText: "Explore Courses",
+    secondaryCtaLink: "departments",
+    virtualTourUrl: "https://www.youtube.com/embed/91tSZsX0Bjg"
+  },
+  announcements: [
+    "Admissions for Academic Year 2026-27 are now open — Apply Online Today!",
+    "Bishop Ambrose College granted Autonomous status by Bharathiar University.",
+    "NAAC Accreditation renewed — Committed to quality education and continuous improvement."
+  ],
+  about: {
+    title: "A Legacy of Quality Education & Christian Values",
+    text1: "Established in 1994 by the Diocese of Coimbatore, Bishop Ambrose College stands as a beacon of quality higher education in Tamil Nadu. Affiliated to Bharathiar University and granted Autonomous status, we offer a rich academic environment with modern infrastructure and dedicated faculty.",
+    text2: "Our campus provides comprehensive undergraduate programs, state-of-the-art laboratories, and extensive extracurricular activities designed to nurture leadership, ethics, and academic brilliance in every student.",
+    stats: [
+      { label: "Students", value: "20,000+" },
+      { label: "Faculty", value: "500+" },
+      { label: "Placement", value: "95%" },
+    ],
+  },
+  footer: {
+    ctaBadge: "Admissions Open",
+    ctaTitle: "Begin Your Academic Journey at Bishop Ambrose College",
+    ctaDescription: "Join our vibrant academic community and unlock world-class education.",
+    aboutText: "Bishop Ambrose College is an Autonomous Christian Minority Institution in Coimbatore, affiliated to Bharathiar University, offering quality education since 1994.",
+    phone: "+91 422 231 6731",
+    email: "bishopambrosecollege1@gmail.com",
+    infoEmail: "info@bishopambrosecollege.edu.in",
+    address: "Sungam Bypass Road, Ramanathapuram, Coimbatore, Tamil Nadu 641045",
+    facebook: "#",
+    twitter: "#",
+    instagram: "#",
+    linkedin: "#",
+    youtube: "#",
+  },
+  departments: mockUniversityData.departments,
+  events: mockUniversityData.universityEvents,
+  guestSpeakers: [],
+  eventGallery: [],
+  erpModules: {},
+  admissionsPortalFeatures: [],
+  statistics: defaultHomepageStatistics,
+  aboutPage: defaultAboutPageData,
+  heroSection: defaultHeroSectionConfig,
+  virtualTour: defaultVirtualTourConfig,
+  news: [],
+  newsConfig: defaultNewsEventsConfig,
+  location: defaultLocationConfig
+};
+
+const defaultFallbackContext: SiteContextValue = {
+  data: defaultFallbackSiteData,
+  loading: false,
+  error: null,
+  refresh: async () => {},
+  updateGeneralSettings: async () => true,
+  updateStatistics: async () => true,
+  updateAboutPage: async () => true,
+  updateHeroSection: async () => true,
+  updateVirtualTour: async () => true,
+  saveDepartment: async () => true,
+  deleteDepartment: async () => true,
+  saveEvent: async () => true,
+  deleteEvent: async () => true,
+  saveSpeaker: async () => true,
+  deleteSpeaker: async () => true,
+  saveGalleryItem: async () => true,
+  deleteGalleryItem: async () => true,
+  submitApplication: async () => true,
+  resetAllData: async () => true,
+  saveNewsArticle: async () => true,
+  deleteNewsArticle: async () => true,
+  updateNewsEventsConfig: async () => true,
+  updateLocation: async () => true,
+};
+
+const SiteContext = createContext<SiteContextValue>(defaultFallbackContext);
 
 export function useSiteData() {
   const ctx = useContext(SiteContext);
-  if (!ctx) throw new Error("useSiteData must be used within SiteDataProvider");
-  return ctx;
+  return ctx || defaultFallbackContext;
 }
 
 export function SiteDataProvider({ children }: { children: React.ReactNode }) {

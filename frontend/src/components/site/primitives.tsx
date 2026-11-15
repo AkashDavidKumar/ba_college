@@ -164,6 +164,7 @@ export function Reveal({
   y?: number;
   className?: string;
   once?: boolean;
+  key?: React.Key;
 }) {
   return (
     <motion.div

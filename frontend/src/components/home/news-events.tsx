@@ -38,6 +38,7 @@ const NEWS_TO_FILTER_MAP: Record<string, FilterCategory> = {
   Announcement:      "Announcements",
   "Campus Life":     "Campus Life",
   Research:          "News",
+  Events:            "Events",
 };
 
 // ─── Fallback news ────────────────────────────────────────────────────────────
