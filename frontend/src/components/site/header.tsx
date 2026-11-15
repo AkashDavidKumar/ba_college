@@ -8,23 +8,17 @@ import {
   Search,
   ChevronDown,
   ArrowRight,
-  GraduationCap,
-  Building2,
-  CalendarDays,
-  LayoutDashboard,
   Phone,
   Mail,
-  Globe2,
   Facebook,
   Twitter,
   Instagram,
   Linkedin,
   Headphones,
   UserCheck,
-  type LucideIcon,
+  LayoutDashboard,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { departments } from "@/lib/university-data";
 import { useNav } from "./nav-context";
 import { Logo, PremiumButton, DepartmentIcon, staggerContainer, staggerItem } from "./primitives";
 
@@ -36,9 +30,22 @@ type NavItem = {
 };
 
 export function Header() {
-  const { goHome, goDepartment, goEvents, goAdmissions, goAbout, goAcademic,
-    goStudentActivities, goIqac, goExamination, goAutonomous, goLibrary,
-    goNirf, goAlumni, goContact, goFacilities, goGallery, goPlacements, goNews, view } = useNav();
+  const {
+    goHome,
+    goAdmissions,
+    goAbout,
+    goAcademic,
+    goStudentActivities,
+    goIqac,
+    goExamination,
+    goAutonomous,
+    goLibrary,
+    goNirf,
+    goAlumni,
+    goContact,
+    goPlacements,
+    view,
+  } = useNav();
   const goErp = goAdmissions;
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -53,6 +60,23 @@ export function Header() {
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  // Dynamically compute and expose real header height to CSS variable --header-height
+  useEffect(() => {
+    const updateHeaderHeight = () => {
+      const headerContainer = document.getElementById("site-header-container");
+      if (headerContainer) {
+        const height = headerContainer.offsetHeight;
+        if (height > 0) {
+          document.documentElement.style.setProperty("--header-height", `${height}px`);
+        }
+      }
+    };
+
+    updateHeaderHeight();
+    window.addEventListener("resize", updateHeaderHeight);
+    return () => window.removeEventListener("resize", updateHeaderHeight);
   }, []);
 
   // Lock background scroll when mobile navigation drawer is active
@@ -80,21 +104,7 @@ export function Header() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  const scrollToSection = (id: string) => {
-    setMegaOpen(null);
-    setMobileOpen(false);
-    setSearchOpen(false);
-    if (view.type !== "home") {
-      goHome();
-      setTimeout(() => {
-        document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
-      }, 250);
-    } else {
-      document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
-    }
-  };
-
-  const navItems = [
+  const navItems: NavItem[] = [
     { label: "Home", action: goHome },
     {
       label: "About Us",
@@ -192,45 +202,70 @@ export function Header() {
   };
 
   return (
-    <>
-      {/* Top utility bar */}
-      <div className="hidden lg:block bg-navy-dark text-white/90 text-xs py-2 border-b border-white/10">
-        <div className="container mx-auto px-6 flex items-center justify-between">
-          <div className="flex items-center gap-5">
-            <span className="inline-flex items-center gap-1.5 font-medium">
-              <Headphones className="w-3.5 h-3.5 text-gold" />
-              Admission Helpline: <a href="tel:04222316731" className="hover:text-gold transition-colors font-semibold">0422-2316731</a>
+    <div id="site-header-container" className="w-full relative z-50">
+      {/* ── Top Utility Contact Bar ──────────────────────────────────────── */}
+      <div
+        id="top-utility-bar"
+        className="hidden lg:block bg-navy-dark text-white/90 text-xs py-2 border-b border-white/10 select-none"
+      >
+        <div className="w-full max-w-[1920px] mx-auto px-4 sm:px-6 2xl:px-10 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3 xl:gap-5 whitespace-nowrap min-w-0">
+            <span className="inline-flex items-center gap-1.5 font-medium shrink-0">
+              <Headphones className="w-3.5 h-3.5 text-gold shrink-0" />
+              <span className="text-white/80">Helpline:</span>{" "}
+              <a href="tel:04222316731" className="hover:text-gold transition-colors font-semibold">
+                0422-2316731
+              </a>
             </span>
-            <span className="text-white/30">|</span>
-            <span className="inline-flex items-center gap-1.5">
-              <Phone className="w-3.5 h-3.5 text-gold" />
-              Contact: <a href="tel:04222310655" className="hover:text-gold transition-colors">0422-2310655</a>
+            <span className="text-white/20 hidden xl:inline">|</span>
+            <span className="hidden xl:inline-flex items-center gap-1.5 shrink-0">
+              <Phone className="w-3.5 h-3.5 text-gold shrink-0" />
+              <span className="text-white/80">Office:</span>{" "}
+              <a href="tel:04222310655" className="hover:text-gold transition-colors">
+                0422-2310655
+              </a>
             </span>
-            <span className="text-white/30">|</span>
-            <span className="inline-flex items-center gap-1.5">
-              <Mail className="w-3.5 h-3.5 text-gold" />
-              <a href="mailto:bishopambrosecollege1@gmail.com" className="hover:text-gold transition-colors">bishopambrosecollege1@gmail.com</a>
+            <span className="text-white/20">|</span>
+            <span className="inline-flex items-center gap-1.5 shrink-0">
+              <Mail className="w-3.5 h-3.5 text-gold shrink-0" />
+              <a href="mailto:bishopambrosecollege1@gmail.com" className="hover:text-gold transition-colors">
+                bishopambrosecollege1@gmail.com
+              </a>
             </span>
           </div>
-          <div className="flex items-center gap-5">
-            <button onClick={goErp} className="inline-flex items-center gap-1.5 text-gold hover:text-white transition-colors font-semibold">
-              <UserCheck className="w-3.5 h-3.5 text-gold" />
-              Student Portal Link
+
+          <div className="flex items-center gap-3 xl:gap-5 whitespace-nowrap shrink-0">
+            <button
+              onClick={goErp}
+              className="inline-flex items-center gap-1.5 text-gold hover:text-white transition-colors font-semibold cursor-pointer"
+            >
+              <UserCheck className="w-3.5 h-3.5 text-gold shrink-0" />
+              <span>Student Portal</span>
             </button>
-            <span className="text-white/30">|</span>
-            <div className="flex items-center gap-3">
-              <a href="#" className="hover:text-gold transition-colors" title="Facebook" aria-label="Facebook"><Facebook className="w-3.5 h-3.5" /></a>
-              <a href="#" className="hover:text-gold transition-colors" title="Twitter" aria-label="Twitter"><Twitter className="w-3.5 h-3.5" /></a>
-              <a href="#" className="hover:text-gold transition-colors" title="Instagram" aria-label="Instagram"><Instagram className="w-3.5 h-3.5" /></a>
-              <a href="#" className="hover:text-gold transition-colors" title="LinkedIn" aria-label="LinkedIn"><Linkedin className="w-3.5 h-3.5" /></a>
+            <span className="text-white/20">|</span>
+            <div className="flex items-center gap-2.5">
+              <a href="#" className="hover:text-gold transition-colors p-1" title="Facebook" aria-label="Facebook">
+                <Facebook className="w-3.5 h-3.5" />
+              </a>
+              <a href="#" className="hover:text-gold transition-colors p-1" title="Twitter" aria-label="Twitter">
+                <Twitter className="w-3.5 h-3.5" />
+              </a>
+              <a href="#" className="hover:text-gold transition-colors p-1" title="Instagram" aria-label="Instagram">
+                <Instagram className="w-3.5 h-3.5" />
+              </a>
+              <a href="#" className="hover:text-gold transition-colors p-1" title="LinkedIn" aria-label="LinkedIn">
+                <Linkedin className="w-3.5 h-3.5" />
+              </a>
             </div>
           </div>
         </div>
       </div>
 
+      {/* ── Main Sticky Navigation Header ─────────────────────────────────── */}
       <header
+        id="main-header"
         className={cn(
-          "sticky top-0 z-50 transition-all duration-300 bg-white border-b border-[#DCE8DE]",
+          "sticky top-0 z-50 transition-all duration-200 bg-white border-b border-[#DCE8DE]",
           scrolled ? "shadow-md bg-white/98 backdrop-blur-md" : "shadow-xs"
         )}
         onMouseLeave={() => {
@@ -243,24 +278,32 @@ export function Header() {
           className="absolute top-0 left-0 right-0 h-0.5 bg-gold-dark z-50 origin-left"
           style={{ scaleX: scrollYProgress }}
         />
-        <div className="container mx-auto px-4 sm:px-6">
-          <div className={cn(
-            "flex items-center justify-between transition-all duration-300",
-            scrolled ? "h-14 lg:h-16" : "h-16 lg:h-18"
-          )}>
+
+        <div className="w-full max-w-[1920px] mx-auto px-3 sm:px-6 xl:px-4 2xl:px-8">
+          <div
+            className={cn(
+              "flex items-center justify-between gap-2 xl:gap-3 transition-all duration-200",
+              scrolled ? "h-14 lg:h-16" : "h-16 lg:h-18"
+            )}
+          >
+            {/* College Logo */}
             <Logo variant="dark" onClick={goHome} />
 
-            {/* Desktop nav */}
-            <nav className="hidden lg:flex items-center gap-1">
+            {/* Desktop Navigation Bar (Single-Line at xl: and above) */}
+            <nav
+              role="navigation"
+              aria-label="Main Navigation"
+              className="hidden xl:flex items-center gap-0.5 2xl:gap-1.5 shrink min-w-0 justify-center"
+            >
               {navItems.map((item) => (
                 <button
                   key={item.label}
                   className={cn(
-                    "relative px-4 py-2.5 text-sm font-semibold transition-colors rounded-full",
+                    "relative px-2 py-1.5 2xl:px-2.5 2xl:py-2 text-[12.5px] 2xl:text-[13.5px] font-semibold transition-colors rounded-full whitespace-nowrap shrink-0 cursor-pointer select-none",
                     isActive(item)
-                      ? "text-gold-dark"
-                      : "text-navy hover:text-gold-dark",
-                    megaOpen === item.label && "text-gold-dark"
+                      ? "text-[#14532D] font-bold"
+                      : "text-navy hover:text-[#14532D]",
+                    megaOpen === item.label && "text-[#14532D]"
                   )}
                   onMouseEnter={() => {
                     setMegaOpen(item.label);
@@ -278,17 +321,17 @@ export function Header() {
                     }
                   }}
                 >
-                  <span className="relative z-10 flex items-center gap-1">
-                    {item.label}
+                  <span className="relative z-10 flex items-center gap-0.5 2xl:gap-1">
+                    <span>{item.label}</span>
                     {item.children && (
-                      <ChevronDown className="w-3.5 h-3.5" />
+                      <ChevronDown className="w-3 h-3 2xl:w-3.5 2xl:h-3.5 shrink-0 opacity-70 ml-0.5" />
                     )}
                   </span>
 
                   {hoveredItem === item.label && (
                     <motion.span
                       layoutId="nav-hover"
-                      className="absolute inset-0 rounded-full bg-navy/5 z-0"
+                      className="absolute inset-0 rounded-full bg-[#14532D]/8 z-0"
                       transition={{ type: "spring", stiffness: 350, damping: 30 }}
                     />
                   )}
@@ -296,7 +339,7 @@ export function Header() {
                   {isActive(item) && (
                     <motion.span
                       layoutId="nav-active"
-                      className="absolute bottom-1.5 left-4 right-4 h-0.5 bg-gold-dark rounded-full z-0"
+                      className="absolute bottom-0.5 left-2 right-2 h-0.5 bg-[#14532D] rounded-full z-0"
                       transition={{ type: "spring", stiffness: 350, damping: 30 }}
                     />
                   )}
@@ -304,32 +347,38 @@ export function Header() {
               ))}
             </nav>
 
-            {/* Right actions */}
-            <div className="flex items-center gap-1 sm:gap-2 shrink-0">
+            {/* Right Action Icons & Apply Now Button */}
+            <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
               <button
                 aria-label="Search"
                 onClick={() => setSearchOpen((v) => !v)}
-                className="w-10 h-10 sm:w-11 sm:h-11 min-w-[40px] min-h-[40px] rounded-full flex items-center justify-center text-navy hover:bg-navy/5 transition-colors cursor-pointer"
+                className="w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-navy hover:bg-navy/5 transition-colors cursor-pointer"
               >
-                <Search className="w-4.5 h-4.5" />
+                <Search className="w-4 h-4" />
               </button>
               <button
                 aria-label="Admin Portal"
                 onClick={() => window.open("/admin", "_blank")}
-                className="w-10 h-10 sm:w-11 sm:h-11 min-w-[40px] min-h-[40px] rounded-full flex items-center justify-center text-navy hover:bg-navy/5 transition-colors cursor-pointer"
+                className="w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-navy hover:bg-navy/5 transition-colors cursor-pointer"
                 title="Admin Portal"
               >
-                <LayoutDashboard className="w-4.5 h-4.5 text-navy" />
+                <LayoutDashboard className="w-4 h-4 text-navy" />
               </button>
               <div className="hidden sm:block">
-                <PremiumButton variant="gold" size="md" onClick={goAdmissions} icon={<ArrowRight className="w-4 h-4" />}>
+                <PremiumButton
+                  variant="gold"
+                  size="sm"
+                  onClick={goAdmissions}
+                  className="text-xs font-bold px-3.5 py-1.5 2xl:text-sm 2xl:px-4 2xl:py-2 whitespace-nowrap"
+                  icon={<ArrowRight className="w-3.5 h-3.5" />}
+                >
                   Apply Now
                 </PremiumButton>
               </div>
               <button
                 aria-label="Menu"
                 onClick={() => setMobileOpen(true)}
-                className="lg:hidden w-11 h-11 min-w-[44px] min-h-[44px] rounded-full flex items-center justify-center text-navy hover:bg-navy/5 transition-colors cursor-pointer"
+                className="xl:hidden w-10 h-10 min-w-[40px] min-h-[40px] rounded-full flex items-center justify-center text-navy hover:bg-navy/5 transition-colors cursor-pointer"
               >
                 <Menu className="w-5 h-5" />
               </button>
@@ -337,7 +386,7 @@ export function Header() {
           </div>
         </div>
 
-        {/* Mega menu */}
+        {/* ── Desktop Mega Menu ────────────────────────────────────────── */}
         <AnimatePresence>
           {megaOpen && (
             <motion.div
@@ -345,10 +394,10 @@ export function Header() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -8 }}
               transition={{ duration: 0.2 }}
-              className="absolute left-0 right-0 top-full hidden lg:block"
+              className="absolute left-0 right-0 top-full hidden xl:block"
             >
-              <div className="container mx-auto px-6 pb-6">
-                <div className="glass-strong rounded-2xl shadow-premium overflow-hidden">
+              <div className="w-full max-w-[1920px] mx-auto px-4 sm:px-6 xl:px-8 pb-6">
+                <div className="glass-strong rounded-2xl shadow-premium overflow-hidden border border-navy/10 bg-white/95 backdrop-blur-md">
                   <div className="grid grid-cols-12 gap-0">
                     {/* Side panel */}
                     <div className="col-span-3 bg-navy-gradient text-white p-6">
@@ -362,6 +411,7 @@ export function Header() {
                         Explore {megaOpen?.toLowerCase()} across Bishop Ambrose College.
                       </p>
                     </div>
+
                     {/* Items grid */}
                     <div className="col-span-9 p-6 grid grid-cols-3 gap-3">
                       {navItems
@@ -374,14 +424,14 @@ export function Header() {
                               child.action();
                               setMegaOpen(null);
                             }}
-                            className="group text-left p-4 rounded-xl border border-navy/8 hover:border-gold/40 hover:bg-gold/5 transition-all"
+                            className="group text-left p-3.5 rounded-xl border border-navy/8 hover:border-[#14532D]/40 hover:bg-[#14532D]/5 transition-all cursor-pointer"
                           >
                             <div className="flex items-start gap-3">
-                              <div className="w-10 h-10 rounded-lg bg-navy/8 flex items-center justify-center text-navy group-hover:bg-gold group-hover:text-navy transition-colors shrink-0">
-                                <DepartmentIcon name={child.icon} className="w-5 h-5" />
+                              <div className="w-9 h-9 rounded-lg bg-navy/8 flex items-center justify-center text-navy group-hover:bg-[#14532D] group-hover:text-white transition-colors shrink-0">
+                                <DepartmentIcon name={child.icon} className="w-4.5 h-4.5" />
                               </div>
                               <div className="min-w-0">
-                                <div className="font-semibold text-sm text-navy mb-1 leading-tight">
+                                <div className="font-semibold text-xs sm:text-sm text-navy mb-1 leading-tight group-hover:text-[#14532D] transition-colors">
                                   {child.label}
                                 </div>
                                 <div className="text-xs text-muted-foreground line-clamp-2">
@@ -399,23 +449,23 @@ export function Header() {
           )}
         </AnimatePresence>
 
-        {/* Search bar */}
+        {/* ── Search Bar Dropdown ──────────────────────────────────────── */}
         <AnimatePresence>
           {searchOpen && (
             <motion.div
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: "auto" }}
               exit={{ opacity: 0, height: 0 }}
-              className="border-t border-navy/8 overflow-hidden"
+              className="border-t border-navy/8 overflow-hidden bg-white"
             >
-              <div className="container mx-auto px-6 py-4">
+              <div className="w-full max-w-[1920px] mx-auto px-6 py-4">
                 <div className="relative max-w-2xl mx-auto">
                   <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <input
                     autoFocus
                     type="search"
                     placeholder="Search programs, departments, faculty, events..."
-                    className="w-full pl-11 pr-4 py-3 rounded-full border-2 border-navy/10 focus:border-gold focus:outline-none text-sm"
+                    className="w-full pl-11 pr-4 py-3 rounded-full border-2 border-navy/10 focus:border-[#14532D] focus:outline-none text-sm"
                   />
                 </div>
               </div>
@@ -424,7 +474,7 @@ export function Header() {
         </AnimatePresence>
       </header>
 
-      {/* Mobile drawer */}
+      {/* ── Responsive Mobile Navigation Drawer (< xl) ───────────────────── */}
       <AnimatePresence>
         {mobileOpen && (
           <>
@@ -432,7 +482,7 @@ export function Header() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-navy-dark/60 backdrop-blur-sm z-50 lg:hidden"
+              className="fixed inset-0 bg-navy-dark/60 backdrop-blur-sm z-50 xl:hidden"
               onClick={() => setMobileOpen(false)}
             />
             <motion.div
@@ -440,15 +490,15 @@ export function Header() {
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={{ type: "spring", damping: 30, stiffness: 300 }}
-              className="fixed right-0 top-0 bottom-0 w-[88%] max-w-sm bg-white z-50 lg:hidden flex flex-col shadow-2xl"
+              className="fixed right-0 top-0 bottom-0 w-[88%] max-w-sm sm:max-w-md bg-white z-50 xl:hidden flex flex-col shadow-2xl"
             >
               {/* Drawer Header */}
               <div className="flex items-center justify-between p-4 sm:p-5 border-b border-navy/8">
                 <Logo variant="dark" onClick={() => { setMobileOpen(false); goHome(); }} />
                 <button
-                  aria-label="Close"
+                  aria-label="Close menu"
                   onClick={() => setMobileOpen(false)}
-                  className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-full flex items-center justify-center text-navy hover:bg-navy/5 cursor-pointer"
+                  className="w-10 h-10 min-w-[40px] min-h-[40px] rounded-full flex items-center justify-center text-navy hover:bg-navy/5 cursor-pointer"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -481,9 +531,9 @@ export function Header() {
                               if (item.action) item.action();
                             }
                           }}
-                          className="w-full flex items-center justify-between py-3 px-2 font-semibold text-navy text-base min-h-[44px] hover:bg-navy/5 rounded-xl transition-colors cursor-pointer"
+                          className="w-full flex items-center justify-between py-3 px-2 font-semibold text-navy text-sm sm:text-base min-h-[44px] hover:bg-navy/5 rounded-xl transition-colors cursor-pointer"
                         >
-                          <span className={isActive(item) ? "text-gold-dark font-bold" : ""}>
+                          <span className={isActive(item) ? "text-[#14532D] font-bold" : ""}>
                             {item.label}
                           </span>
                           {hasChildren && (
@@ -513,12 +563,12 @@ export function Header() {
                                     setMobileOpen(false);
                                     child.action();
                                   }}
-                                  className="flex items-start gap-2.5 px-3 py-2.5 rounded-xl text-sm text-muted-foreground hover:text-navy hover:bg-navy/5 text-left min-h-[44px] cursor-pointer"
+                                  className="flex items-start gap-2.5 px-3 py-2 rounded-xl text-xs sm:text-sm text-muted-foreground hover:text-navy hover:bg-navy/5 text-left min-h-[40px] cursor-pointer"
                                 >
-                                  <DepartmentIcon name={child.icon} className="w-4 h-4 mt-0.5 text-gold-dark shrink-0" />
+                                  <DepartmentIcon name={child.icon} className="w-4 h-4 mt-0.5 text-[#14532D] shrink-0" />
                                   <span className="min-w-0">
                                     <span className="block text-navy font-medium leading-tight">{child.label}</span>
-                                    <span className="text-xs text-slate-500 line-clamp-1">{child.description}</span>
+                                    <span className="text-[11px] text-slate-500 line-clamp-1">{child.description}</span>
                                   </span>
                                 </button>
                               ))}
@@ -548,16 +598,16 @@ export function Header() {
                 <div className="pt-2 flex items-center justify-center gap-4 text-xs text-slate-500">
                   <a
                     href="tel:04222316731"
-                    className="inline-flex items-center gap-1 hover:text-gold-dark font-medium py-1.5"
+                    className="inline-flex items-center gap-1 hover:text-[#14532D] font-medium py-1.5"
                   >
-                    <Headphones className="w-3.5 h-3.5 text-gold-dark" /> 0422-2316731
+                    <Headphones className="w-3.5 h-3.5 text-[#14532D]" /> 0422-2316731
                   </a>
                   <span className="text-slate-300">|</span>
                   <a
                     href="mailto:bishopambrosecollege1@gmail.com"
-                    className="inline-flex items-center gap-1 hover:text-gold-dark font-medium py-1.5"
+                    className="inline-flex items-center gap-1 hover:text-[#14532D] font-medium py-1.5"
                   >
-                    <Mail className="w-3.5 h-3.5 text-gold-dark" /> Email
+                    <Mail className="w-3.5 h-3.5 text-[#14532D]" /> Email
                   </a>
                 </div>
               </div>
@@ -565,6 +615,6 @@ export function Header() {
           </>
         )}
       </AnimatePresence>
-    </>
+    </div>
   );
 }

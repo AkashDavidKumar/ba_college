@@ -78,7 +78,12 @@ export function Hero() {
   return (
     <section
       aria-label="Bishop Ambrose College Hero"
-      className="relative w-full h-[88vh] min-h-[620px] max-h-[920px] overflow-hidden bg-slate-950 select-none group"
+      className="hero-section relative w-full overflow-hidden bg-slate-950 select-none group flex flex-col justify-center"
+      style={{
+        height: "calc(100svh - var(--header-height, 104px))",
+        minHeight: "clamp(520px, calc(100svh - var(--header-height, 104px)), 760px)",
+        maxHeight: "760px",
+      }}
     >
       {/* ── 1. Full-Width Background Photography with Seamless Crossfade ──── */}
       {/* All slides are rendered simultaneously so outgoing & incoming images blend without solid color flashes */}
@@ -133,7 +138,7 @@ export function Hero() {
       <div className="absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-black/10 pointer-events-none z-[2]" />
 
       {/* ── 3. Top-Right Decorative Dotted Pattern (Corner Motif) ─────────── */}
-      <div className="absolute top-6 right-6 sm:top-10 sm:right-12 lg:top-12 lg:right-16 z-10 pointer-events-none select-none opacity-40">
+      <div className="absolute top-6 right-6 sm:top-8 sm:right-10 lg:top-10 lg:right-14 z-10 pointer-events-none select-none opacity-35">
         <svg
           width="112"
           height="112"
@@ -157,14 +162,14 @@ export function Hero() {
       </div>
 
       {/* ── 4. Main Content (Editorial Left Text Block) ────────────────────── */}
-      <div className="relative z-10 w-full h-full max-w-[1240px] mx-auto px-6 sm:px-10 lg:px-16 flex items-center">
-        <div className="max-w-[580px] w-full text-left py-10 sm:py-12">
+      <div className="relative z-10 w-full max-w-[1280px] mx-auto px-6 sm:px-10 lg:px-16 flex items-center">
+        <div className="max-w-[580px] w-full text-left py-6 sm:py-8 lg:py-10">
           {/* Eyebrow */}
           <motion.div
             initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: 0.1, ease: "easeOut" }}
-            className="mb-5 sm:mb-6"
+            className="mb-3.5 sm:mb-4 lg:mb-5"
           >
             <div className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-[#8BD66A]/12 border border-[#8BD66A]/30 backdrop-blur-md shadow-sm">
               <span className="w-2 h-2 rounded-full bg-[#8BD66A] animate-pulse" />
@@ -176,18 +181,18 @@ export function Hero() {
 
           {/* Main Headline */}
           <motion.h1
-            initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 24 }}
+            initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.85, delay: 0.25, ease: "easeOut" }}
             style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
-            className="text-5xl sm:text-6xl md:text-7xl lg:text-[76px] font-bold text-white tracking-tight leading-[1.06] drop-shadow-[0_2px_14px_rgba(0,30,18,0.5)]"
+            className="text-4xl sm:text-5xl md:text-6xl lg:text-[62px] xl:text-[68px] 2xl:text-[72px] font-bold text-white tracking-tight leading-[1.08] sm:leading-[1.05] drop-shadow-[0_2px_14px_rgba(0,30,18,0.5)]"
           >
             <span className="block">Learn. Discover.</span>
-            <span className="relative inline-block italic font-normal text-[#8BD66A] mt-1 sm:mt-2">
+            <span className="relative inline-block italic font-normal text-[#8BD66A] mt-1 sm:mt-1.5">
               Become.
               {/* Subtle Hand-Crafted Curved Decorative Underline */}
               <svg
-                className="absolute -bottom-2 sm:-bottom-3 left-0 w-full h-3 sm:h-4 text-[#8BD66A] overflow-visible pointer-events-none"
+                className="absolute -bottom-1.5 sm:-bottom-2.5 left-0 w-full h-2.5 sm:h-3.5 text-[#8BD66A] overflow-visible pointer-events-none"
                 viewBox="0 0 160 14"
                 fill="none"
                 xmlns="http://www.w3.org/2000/svg"
@@ -205,10 +210,10 @@ export function Hero() {
 
           {/* Supporting Description */}
           <motion.p
-            initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 20 }}
+            initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.45, ease: "easeOut" }}
-            className="text-white/95 text-base sm:text-lg md:text-xl font-normal leading-relaxed max-w-md mt-6 sm:mt-7 font-sans drop-shadow-[0_1px_8px_rgba(0,30,18,0.4)]"
+            className="text-white/95 text-sm sm:text-base md:text-lg lg:text-xl font-normal leading-relaxed max-w-md mt-4 sm:mt-5 font-sans drop-shadow-[0_1px_8px_rgba(0,30,18,0.4)]"
           >
             Empowering generations through knowledge, character and service.
           </motion.p>
@@ -219,7 +224,7 @@ export function Hero() {
       <button
         onClick={prevSlide}
         aria-label="Previous slide"
-        className="absolute left-4 sm:left-6 top-1/2 -translate-y-1/2 z-20 w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-black/25 hover:bg-black/55 text-white/85 hover:text-white backdrop-blur-md border border-white/20 shadow-lg flex items-center justify-center opacity-70 hover:opacity-100 transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer"
+        className="absolute left-3 sm:left-6 top-1/2 -translate-y-1/2 z-20 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-black/25 hover:bg-black/55 text-white/85 hover:text-white backdrop-blur-md border border-white/20 shadow-lg flex items-center justify-center opacity-70 hover:opacity-100 transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer"
       >
         <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6 stroke-[2.5]" />
       </button>
@@ -227,13 +232,13 @@ export function Hero() {
       <button
         onClick={nextSlide}
         aria-label="Next slide"
-        className="absolute right-4 sm:right-6 top-1/2 -translate-y-1/2 z-20 w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-black/25 hover:bg-black/55 text-white/85 hover:text-white backdrop-blur-md border border-white/20 shadow-lg flex items-center justify-center opacity-70 hover:opacity-100 transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer"
+        className="absolute right-3 sm:right-6 top-1/2 -translate-y-1/2 z-20 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-black/25 hover:bg-black/55 text-white/85 hover:text-white backdrop-blur-md border border-white/20 shadow-lg flex items-center justify-center opacity-70 hover:opacity-100 transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer"
       >
         <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6 stroke-[2.5]" />
       </button>
 
       {/* ── 6. Minimalist Slide Indicators ───────────────────────────────── */}
-      <div className="absolute bottom-14 sm:bottom-16 left-6 sm:left-10 lg:left-16 z-20 flex items-center gap-2">
+      <div className="absolute bottom-4 sm:bottom-6 lg:bottom-7 left-6 sm:left-10 lg:left-16 z-20 flex items-center gap-2">
         {HERO_SLIDES.map((_, idx) => (
           <button
             key={idx}
@@ -255,7 +260,7 @@ export function Hero() {
           viewBox="0 0 1440 120"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
-          className="w-full h-14 sm:h-20 lg:h-24 preserve-3d"
+          className="w-full h-10 sm:h-12 lg:h-14 preserve-3d"
           preserveAspectRatio="none"
           aria-hidden="true"
         >

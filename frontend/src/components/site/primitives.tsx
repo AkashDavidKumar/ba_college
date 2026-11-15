@@ -245,18 +245,18 @@ export function Logo({
   return (
     <button
       onClick={onClick}
-      className={cn("flex items-center gap-2.5 sm:gap-3 min-h-[44px] group text-left cursor-pointer", className)}
+      className={cn("flex items-center gap-2 sm:gap-2.5 min-h-[44px] group text-left cursor-pointer shrink-0 select-none", className)}
       aria-label={`${text1} ${text2} Home`}
     >
-      <div className="relative w-9 h-9 sm:w-11 sm:h-11 flex items-center justify-center shrink-0">
+      <div className="relative w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center shrink-0">
         {logoImage ? (
           <img
             src={logoImage}
             alt="Logo"
-            className="w-9 h-9 sm:w-11 sm:h-11 object-contain rounded-lg transition-transform duration-300 group-hover:scale-105"
+            className="w-9 h-9 sm:w-10 sm:h-10 object-contain rounded-lg transition-transform duration-300 group-hover:scale-105"
           />
         ) : (
-          <svg viewBox="0 0 48 48" className="w-9 h-9 sm:w-11 sm:h-11 transition-transform duration-300 group-hover:scale-105 shrink-0" fill="none">
+          <svg viewBox="0 0 48 48" className="w-9 h-9 sm:w-10 sm:h-10 transition-transform duration-300 group-hover:scale-105 shrink-0" fill="none">
             {/* Academic laurel crest in Institutional Green */}
             <circle cx="24" cy="24" r="22" stroke={variant === "dark" ? "#2E7D32" : "#81C784"} strokeWidth="1.75" strokeDasharray="3 2" />
             <circle cx="24" cy="24" r="18" fill={variant === "dark" ? "#F1F8F2" : "rgba(255,255,255,0.15)"} stroke={variant === "dark" ? "#14532D" : "#FFFFFF"} strokeWidth="1.5" />
@@ -267,10 +267,10 @@ export function Logo({
           </svg>
         )}
       </div>
-      <div className="flex flex-col items-start leading-none min-w-0">
+      <div className="flex flex-col items-start leading-none min-w-0 whitespace-nowrap">
         <span
           className={cn(
-            "font-serif font-bold text-base sm:text-lg lg:text-[19px] tracking-tight truncate max-w-[170px] xs:max-w-[220px] sm:max-w-none",
+            "font-serif font-bold text-base sm:text-lg tracking-tight whitespace-nowrap",
             variant === "dark" ? "text-[#14532D]" : "text-white"
           )}
         >
@@ -278,7 +278,7 @@ export function Logo({
         </span>
         <span
           className={cn(
-            "text-[9px] sm:text-[10px] uppercase tracking-[0.2em] font-semibold truncate max-w-[150px] xs:max-w-[200px] sm:max-w-none mt-1",
+            "text-[9px] sm:text-[10px] uppercase tracking-[0.2em] font-semibold whitespace-nowrap mt-1",
             variant === "dark" ? "text-[#2E7D32]" : "text-white/80"
           )}
         >

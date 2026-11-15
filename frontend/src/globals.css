@@ -52,6 +52,7 @@
 }
 
 :root {
+  --header-height: 104px;
   --radius: 0.75rem;
   --background: #F5FBF6;
   --foreground: #1F2937;
@@ -96,6 +97,29 @@
   --sidebar-accent-foreground: var(--navy);
   --sidebar-border: #C8E6C9;
   --sidebar-ring: var(--navy);
+}
+
+@media (max-width: 1023px) {
+  :root {
+    --header-height: 64px;
+  }
+}
+
+/* Responsive Viewport-Fitting Hero Section */
+.hero-section {
+  min-height: clamp(520px, calc(100svh - var(--header-height, 104px)), 760px);
+  height: calc(100svh - var(--header-height, 104px));
+  max-height: 760px;
+  position: relative;
+  overflow: hidden;
+}
+
+@media (max-width: 639px) {
+  .hero-section {
+    min-height: clamp(480px, calc(100svh - var(--header-height, 64px)), 640px);
+    height: calc(100svh - var(--header-height, 64px));
+    max-height: 640px;
+  }
 }
 
 .dark {
