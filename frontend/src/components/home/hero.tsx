@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, useReducedMotion } from "framer-motion";
-import { ChevronLeft, ChevronRight, ChevronDown } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 // ── Curated High-Resolution Campus & Graduation Photography ──────────────────
@@ -73,17 +73,6 @@ export function Hero() {
     e.stopPropagation();
     setCurrentSlide((prev) => (prev + 1) % HERO_SLIDES.length);
     startTimer();
-  };
-
-  const scrollToNextSection = () => {
-    const nextElem =
-      document.getElementById("why-choose-us") ||
-      document.getElementById("departments");
-    if (nextElem) {
-      nextElem.scrollIntoView({ behavior: "smooth" });
-    } else {
-      window.scrollBy({ top: window.innerHeight * 0.85, behavior: "smooth" });
-    }
   };
 
   return (
@@ -169,7 +158,7 @@ export function Hero() {
 
       {/* ── 4. Main Content (Editorial Left Text Block) ────────────────────── */}
       <div className="relative z-10 w-full h-full max-w-[1240px] mx-auto px-6 sm:px-10 lg:px-16 flex items-center">
-        <div className="max-w-[580px] w-full text-left pt-6 pb-20 sm:pb-16">
+        <div className="max-w-[580px] w-full text-left py-10 sm:py-12">
           {/* Eyebrow */}
           <motion.div
             initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 16 }}
@@ -244,7 +233,7 @@ export function Hero() {
       </button>
 
       {/* ── 6. Minimalist Slide Indicators ───────────────────────────────── */}
-      <div className="absolute bottom-16 sm:bottom-20 left-6 sm:left-10 lg:left-16 z-20 flex items-center gap-2">
+      <div className="absolute bottom-14 sm:bottom-16 left-6 sm:left-10 lg:left-16 z-20 flex items-center gap-2">
         {HERO_SLIDES.map((_, idx) => (
           <button
             key={idx}
@@ -260,25 +249,7 @@ export function Hero() {
         ))}
       </div>
 
-      {/* ── 7. Elegant Bottom-Centre Scroll Indicator ─────────────────────── */}
-      <button
-        onClick={scrollToNextSection}
-        aria-label="Scroll to explore"
-        className="absolute bottom-6 sm:bottom-8 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-1.5 text-white/80 hover:text-white transition-colors cursor-pointer group/scroll"
-      >
-        <span className="text-[11px] sm:text-xs font-semibold tracking-[0.2em] uppercase text-white/80 group-hover/scroll:text-white transition-colors">
-          Scroll to explore
-        </span>
-        <motion.div
-          animate={{ y: [0, 5, 0] }}
-          transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
-          className="w-7 h-7 rounded-full border border-white/30 flex items-center justify-center bg-black/15 backdrop-blur-sm group-hover/scroll:border-white/70"
-        >
-          <ChevronDown className="w-4 h-4 stroke-[2]" />
-        </motion.div>
-      </button>
-
-      {/* ── 8. Layered Curved Shapes (Bottom Boundary Wave) ───────────────── */}
+      {/* ── 7. Layered Curved Shapes (Bottom Boundary Wave) ───────────────── */}
       <div className="absolute bottom-0 left-0 right-0 z-10 pointer-events-none overflow-hidden leading-none">
         <svg
           viewBox="0 0 1440 120"
