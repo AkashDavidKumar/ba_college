@@ -1,30 +1,30 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
-import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { ChevronLeft, ChevronRight, ChevronDown } from "lucide-react";
-import { useSiteData } from "@/lib/site-context";
 import { cn } from "@/lib/utils";
 
 // ── Curated High-Resolution Campus & Graduation Photography ──────────────────
+// The primary slide is the authentic graduation ceremony photograph.
 const HERO_SLIDES = [
   {
-    src: "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&w=2400&q=85",
+    src: "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&w=2000&q=85",
     alt: "Bishop Ambrose College Graduation Ceremony & Convocation",
-    objectPosition: "object-[82%_35%]",
+    objectPosition: "object-[80%_35%]",
   },
   {
-    src: "https://images.unsplash.com/photo-1562774053-701939374585?auto=format&fit=crop&w=2400&q=85",
+    src: "https://images.unsplash.com/photo-1562774053-701939374585?auto=format&fit=crop&w=2000&q=85",
     alt: "Bishop Ambrose College Main Academic Quadrangle",
     objectPosition: "object-center",
   },
   {
-    src: "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=2400&q=85",
+    src: "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=2000&q=85",
     alt: "Bishop Ambrose College Central Library & Learning Commons",
     objectPosition: "object-center",
   },
   {
-    src: "https://images.unsplash.com/photo-1592280771190-3e2e4d571952?auto=format&fit=crop&w=2400&q=85",
+    src: "https://images.unsplash.com/photo-1592280771190-3e2e4d571952?auto=format&fit=crop&w=2000&q=85",
     alt: "Modern Campus Facilities & State-of-the-Art Architecture",
     objectPosition: "object-center",
   },
@@ -32,29 +32,24 @@ const HERO_SLIDES = [
 
 export function Hero() {
   const shouldReduceMotion = useReducedMotion();
-  const { data } = useSiteData();
   const [currentSlide, setCurrentSlide] = useState(0);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // Allow CMS custom fallback image if specified, keeping the curated slides as primary
-  const slides = data?.heroSection?.fallbackImage
-    ? [
-        {
-          src: data.heroSection.fallbackImage,
-          alt: "Bishop Ambrose College Campus",
-          objectPosition: "object-center",
-        },
-        ...HERO_SLIDES.filter((s) => s.src !== data?.heroSection?.fallbackImage),
-      ]
-    : HERO_SLIDES;
+  // Preload all slides on initial mount for instant, flicker-free crossfades
+  useEffect(() => {
+    HERO_SLIDES.forEach((slide) => {
+      const img = new Image();
+      img.src = slide.src;
+    });
+  }, []);
 
   // ── Auto-advance carousel with smooth 6.5s interval ─────────────────────────
   const startTimer = useCallback(() => {
     if (intervalRef.current) clearInterval(intervalRef.current);
     intervalRef.current = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % slides.length);
+      setCurrentSlide((prev) => (prev + 1) % HERO_SLIDES.length);
     }, 6500);
-  }, [slides.length]);
+  }, []);
 
   useEffect(() => {
     startTimer();
@@ -70,13 +65,13 @@ export function Hero() {
 
   const prevSlide = (e: React.MouseEvent) => {
     e.stopPropagation();
-    setCurrentSlide((prev) => (prev === 0 ? slides.length - 1 : prev - 1));
+    setCurrentSlide((prev) => (prev === 0 ? HERO_SLIDES.length - 1 : prev - 1));
     startTimer();
   };
 
   const nextSlide = (e: React.MouseEvent) => {
     e.stopPropagation();
-    setCurrentSlide((prev) => (prev + 1) % slides.length);
+    setCurrentSlide((prev) => (prev + 1) % HERO_SLIDES.length);
     startTimer();
   };
 
@@ -94,50 +89,45 @@ export function Hero() {
   return (
     <section
       aria-label="Bishop Ambrose College Hero"
-      className="relative w-full h-[88vh] min-h-[620px] max-h-[920px] overflow-hidden bg-[#002F20] select-none group"
+      className="relative w-full h-[88vh] min-h-[620px] max-h-[920px] overflow-hidden bg-slate-950 select-none group"
     >
-      {/* ── 1. Full-Width Background Photography with Slow Ken Burns Zoom ──── */}
-      <div className="absolute inset-0 w-full h-full overflow-hidden">
-        <AnimatePresence initial={false} mode="wait">
-          <motion.div
-            key={currentSlide}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{
-              opacity: {
-                duration: shouldReduceMotion ? 0.3 : 1.2,
-                ease: "easeInOut",
-              },
-            }}
-            className="absolute inset-0 w-full h-full overflow-hidden"
-          >
-            <motion.img
-              src={slides[currentSlide].src}
-              alt={slides[currentSlide].alt}
-              initial={{ scale: shouldReduceMotion ? 1 : 1.0 }}
-              animate={{ scale: shouldReduceMotion ? 1 : 1.06 }}
-              transition={{
-                duration: 7,
-                ease: "easeOut",
-              }}
+      {/* ── 1. Full-Width Background Photography with Seamless Crossfade ──── */}
+      {/* All slides are rendered simultaneously so outgoing & incoming images blend without solid color flashes */}
+      <div className="absolute inset-0 w-full h-full overflow-hidden bg-slate-950">
+        {HERO_SLIDES.map((slide, idx) => {
+          const isActive = idx === currentSlide;
+          return (
+            <div
+              key={slide.src}
+              aria-hidden={!isActive}
               className={cn(
-                "w-full h-full object-cover pointer-events-none",
-                slides[currentSlide].objectPosition
+                "absolute inset-0 w-full h-full overflow-hidden transition-opacity duration-1000 ease-in-out pointer-events-none",
+                isActive ? "opacity-100 z-[1]" : "opacity-0 z-0"
               )}
-              loading="eager"
-            />
-          </motion.div>
-        </AnimatePresence>
+            >
+              <img
+                src={slide.src}
+                alt={slide.alt}
+                loading={idx === 0 ? "eager" : "lazy"}
+                decoding="async"
+                className={cn(
+                  "w-full h-full object-cover transition-transform duration-[7000ms] ease-out pointer-events-none",
+                  slide.objectPosition,
+                  isActive && !shouldReduceMotion ? "scale-105" : "scale-100"
+                )}
+              />
+            </div>
+          );
+        })}
       </div>
 
-      {/* ── 2. Cinematic Gradient Overlays (Refined & 35% Softer) ──────────── */}
-      {/* Desktop Left-to-Right Softer Forest-Green Gradient */}
+      {/* ── 2. Refined Cinematic Gradient Overlay ───────────────────────────── */}
+      {/* Desktop Left-to-Right Balanced Gradient (78% -> 48% -> 15% -> 2%) */}
       <div
         className="hidden sm:block absolute inset-0 pointer-events-none z-[2]"
         style={{
           background:
-            "linear-gradient(90deg, rgba(0, 47, 32, 0.88) 0%, rgba(0, 47, 32, 0.65) 32%, rgba(0, 47, 32, 0.25) 58%, rgba(0, 47, 32, 0.05) 100%)",
+            "linear-gradient(90deg, rgba(0, 47, 32, 0.78) 0%, rgba(0, 47, 32, 0.48) 35%, rgba(0, 47, 32, 0.15) 65%, rgba(0, 47, 32, 0.02) 100%)",
         }}
       />
 
@@ -146,12 +136,12 @@ export function Hero() {
         className="sm:hidden absolute inset-0 pointer-events-none z-[2]"
         style={{
           background:
-            "linear-gradient(to bottom, rgba(0, 47, 32, 0.86) 0%, rgba(0, 47, 32, 0.62) 48%, rgba(0, 47, 32, 0.18) 85%, transparent 100%)",
+            "linear-gradient(180deg, rgba(0, 47, 32, 0.80) 0%, rgba(0, 47, 32, 0.50) 40%, rgba(0, 47, 32, 0.15) 75%, rgba(0, 47, 32, 0.02) 100%)",
         }}
       />
 
-      {/* Subtle Depth Vignette (Soft & Natural) */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-black/15 pointer-events-none z-[2]" />
+      {/* Light Depth Vignette for Edge Definition */}
+      <div className="absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-black/10 pointer-events-none z-[2]" />
 
       {/* ── 3. Top-Right Decorative Dotted Pattern (Corner Motif) ─────────── */}
       <div className="absolute top-6 right-6 sm:top-10 sm:right-12 lg:top-12 lg:right-16 z-10 pointer-events-none select-none opacity-40">
@@ -201,7 +191,7 @@ export function Hero() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.85, delay: 0.25, ease: "easeOut" }}
             style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
-            className="text-5xl sm:text-6xl md:text-7xl lg:text-[76px] font-bold text-white tracking-tight leading-[1.06] drop-shadow-[0_2px_14px_rgba(0,30,18,0.45)]"
+            className="text-5xl sm:text-6xl md:text-7xl lg:text-[76px] font-bold text-white tracking-tight leading-[1.06] drop-shadow-[0_2px_14px_rgba(0,30,18,0.5)]"
           >
             <span className="block">Learn. Discover.</span>
             <span className="relative inline-block italic font-normal text-[#8BD66A] mt-1 sm:mt-2">
@@ -229,7 +219,7 @@ export function Hero() {
             initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.45, ease: "easeOut" }}
-            className="text-white/90 text-base sm:text-lg md:text-xl font-normal leading-relaxed max-w-md mt-6 sm:mt-7 font-sans drop-shadow-[0_1px_8px_rgba(0,30,18,0.35)]"
+            className="text-white/95 text-base sm:text-lg md:text-xl font-normal leading-relaxed max-w-md mt-6 sm:mt-7 font-sans drop-shadow-[0_1px_8px_rgba(0,30,18,0.4)]"
           >
             Empowering generations through knowledge, character and service.
           </motion.p>
@@ -255,7 +245,7 @@ export function Hero() {
 
       {/* ── 6. Minimalist Slide Indicators ───────────────────────────────── */}
       <div className="absolute bottom-16 sm:bottom-20 left-6 sm:left-10 lg:left-16 z-20 flex items-center gap-2">
-        {slides.map((_, idx) => (
+        {HERO_SLIDES.map((_, idx) => (
           <button
             key={idx}
             onClick={() => goToSlide(idx)}
@@ -288,7 +278,7 @@ export function Hero() {
         </motion.div>
       </button>
 
-      {/* ── 8. Layered Curved Green Shapes (Bottom Boundary Wave) ─────────── */}
+      {/* ── 8. Layered Curved Shapes (Bottom Boundary Wave) ───────────────── */}
       <div className="absolute bottom-0 left-0 right-0 z-10 pointer-events-none overflow-hidden leading-none">
         <svg
           viewBox="0 0 1440 120"
@@ -302,13 +292,13 @@ export function Hero() {
           <path
             d="M0,45 C320,115 520,15 760,55 C1000,95 1180,25 1440,65 L1440,120 L0,120 Z"
             fill="#063B27"
-            fillOpacity="0.25"
+            fillOpacity="0.22"
           />
           {/* Primary Green Mid-Wave */}
           <path
             d="M0,65 C260,15 540,100 840,48 C1120,-2 1280,75 1440,55 L1440,120 L0,120 Z"
             fill="#087A45"
-            fillOpacity="0.18"
+            fillOpacity="0.15"
           />
           {/* Seamless Soft Transition into the next section background (#F5FBF6) */}
           <path
