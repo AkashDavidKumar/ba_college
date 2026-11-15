@@ -91,7 +91,7 @@ export function StudentActivitiesPage({ section }: { section?: string }) {
                 <div className="group bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-100 hover:shadow-md hover:-translate-y-1 transition-all">
                   <div className="relative h-44 overflow-hidden">
                     <img src={s.image} alt={s.sport} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-navy-dark/80 to-transparent" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/15 to-transparent" />
                     <div className="absolute bottom-3 left-4"><p className="text-white font-bold">{s.sport}</p><p className="text-white/70 text-xs">{s.level} Level</p></div>
                   </div>
                   <div className="p-4">
@@ -172,9 +172,9 @@ export function StudentActivitiesPage({ section }: { section?: string }) {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      <div className="relative bg-navy-dark text-white py-16 overflow-hidden">
-        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=1920&q=60')] bg-cover bg-center opacity-10" />
-        <div className="absolute inset-0 bg-gradient-to-r from-navy-dark to-navy/80" />
+      <div className="relative bg-slate-950 text-white py-16 overflow-hidden">
+        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=1920&q=60')] bg-cover bg-center opacity-60" />
+        <div className="absolute inset-0 bg-gradient-to-r from-navy-dark/85 via-navy-dark/70 to-navy/35" />
         <div className="relative container mx-auto px-6">
           <div className="flex items-center gap-2 text-xs text-white/60 mb-4">
             <span>Home</span><ChevronRight className="w-3 h-3" /><span className="text-gold-light">Student Activities</span>

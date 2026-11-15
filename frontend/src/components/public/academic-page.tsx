@@ -195,7 +195,7 @@ function DepartmentsView() {
           <div className="group bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
             <div className="relative overflow-hidden h-44">
               <img src={dept.image} alt={dept.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
-              <div className="absolute inset-0 bg-gradient-to-t from-navy-dark/80 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/15 to-transparent" />
               <div className="absolute bottom-3 left-4 right-4">
                 <p className="text-white font-bold text-sm">{dept.name}</p>
                 <p className="text-white/70 text-xs">HOD: {dept.hod}</p>
@@ -325,9 +325,9 @@ export function AcademicPage({ section }: { section?: string }) {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      <div className="relative bg-navy-dark text-white py-16 overflow-hidden">
-        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&w=1920&q=60')] bg-cover bg-center opacity-10" />
-        <div className="absolute inset-0 bg-gradient-to-r from-navy-dark to-navy/80" />
+      <div className="relative bg-slate-950 text-white py-16 overflow-hidden">
+        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&w=1920&q=60')] bg-cover bg-center opacity-60" />
+        <div className="absolute inset-0 bg-gradient-to-r from-navy-dark/85 via-navy-dark/70 to-navy/35" />
         <div className="relative container mx-auto px-6">
           <div className="flex items-center gap-2 text-xs text-white/60 mb-4">
             <span>Home</span><ChevronRight className="w-3 h-3" /><span>Academic</span>

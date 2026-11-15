@@ -136,17 +136,23 @@ export function AdmissionsPage() {
       </div>
 
       {/* Hero */}
-      <section className="relative py-20 lg:py-28 overflow-hidden bg-navy-gradient text-white">
+      <section className="relative py-20 lg:py-28 overflow-hidden bg-slate-950 text-white">
         <div className="absolute inset-0">
           <img
             src="https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&w=2400&q=80"
             alt="Admissions"
-            className="w-full h-full object-cover opacity-25"
+            className="w-full h-full object-cover opacity-80"
           />
-          <div className="absolute inset-0 bg-gradient-to-br from-navy-dark/85 via-navy/70 to-navy-dark/85" />
+          <div
+            className="absolute inset-0"
+            style={{
+              background:
+                "linear-gradient(180deg, rgba(0, 47, 32, 0.55) 0%, rgba(0, 47, 32, 0.35) 50%, rgba(0, 47, 32, 0.75) 100%)",
+            }}
+          />
         </div>
-        <div className="absolute -top-20 right-0 w-80 h-80 blob bg-gold/20" />
-        <div className="absolute bottom-0 -left-32 w-96 h-96 blob bg-violet-500/15" />
+        <div className="absolute -top-20 right-0 w-80 h-80 blob bg-gold/10" />
+        <div className="absolute bottom-0 -left-32 w-96 h-96 blob bg-violet-500/10" />
 
         <div className="container mx-auto px-4 sm:px-6 relative">
           <motion.div

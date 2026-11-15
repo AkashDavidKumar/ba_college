@@ -91,17 +91,23 @@ export function EventsPage() {
       </div>
 
       {/* Hero */}
-      <section className="relative py-20 lg:py-28 overflow-hidden bg-navy-gradient text-white">
+      <section className="relative py-20 lg:py-28 overflow-hidden bg-slate-950 text-white">
         <div className="absolute inset-0">
           <img
             src="https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=2400&q=80"
             alt="Events at BAC"
-            className="w-full h-full object-cover opacity-30"
+            className="w-full h-full object-cover opacity-80"
           />
-          <div className="absolute inset-0 bg-gradient-to-br from-navy-dark/85 via-navy/70 to-navy-dark/85" />
+          <div
+            className="absolute inset-0"
+            style={{
+              background:
+                "linear-gradient(180deg, rgba(0, 47, 32, 0.55) 0%, rgba(0, 47, 32, 0.35) 55%, rgba(0, 47, 32, 0.75) 100%)",
+            }}
+          />
         </div>
-        <div className="absolute -top-20 right-0 w-80 h-80 blob bg-gold/20" />
-        <div className="absolute bottom-0 -left-32 w-96 h-96 blob bg-violet-500/15" />
+        <div className="absolute -top-20 right-0 w-80 h-80 blob bg-gold/10" />
+        <div className="absolute bottom-0 -left-32 w-96 h-96 blob bg-violet-500/10" />
 
         <div className="container mx-auto px-4 sm:px-6 relative">
           <motion.div
@@ -310,7 +316,13 @@ export function EventsPage() {
                       alt={event.title}
                       className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-navy-dark/85 via-navy-dark/20 to-transparent" />
+                    <div
+                      className="absolute inset-0"
+                      style={{
+                        background:
+                          "linear-gradient(180deg, rgba(0, 47, 32, 0.02) 0%, rgba(0, 0, 0, 0.15) 55%, rgba(0, 0, 0, 0.65) 100%)",
+                      }}
+                    />
                     <div className="absolute top-3 left-3">
                       <span className={cn("px-2.5 py-1 rounded-full text-[10px] font-bold uppercase", categoryColorMap[event.category])}>
                         {event.category}
@@ -449,7 +461,7 @@ export function EventsPage() {
                       alt={speaker.name}
                       className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-navy-dark/90 via-transparent to-transparent" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/15 to-transparent" />
                     <div className="absolute bottom-3 left-3 right-3 text-white">
                       <h4 className="font-serif text-base font-bold leading-tight">{speaker.name}</h4>
                       <p className="text-xs text-gold-light font-medium">{speaker.company}</p>
@@ -525,7 +537,7 @@ export function EventsPage() {
                     className="w-full h-auto object-cover transition-transform duration-700 group-hover:scale-105"
                     style={{ aspectRatio: idx % 3 === 0 ? "3/4" : idx % 3 === 1 ? "1/1" : "4/3" }}
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-navy-dark/85 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                   <div className="absolute bottom-3 left-3 right-3 text-white opacity-0 group-hover:opacity-100 transition-opacity">
                     <div className="text-[10px] uppercase tracking-wider text-gold-light font-semibold mb-1">
                       {item.category}
@@ -597,7 +609,7 @@ export function EventsPage() {
               <div className="relative">
                 <div className="relative h-56 overflow-hidden rounded-t-2xl">
                   <img src={selectedEvent.image} alt={selectedEvent.title} className="w-full h-full object-cover" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-navy-dark/85 to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent" />
                   <button
                     onClick={() => setSelectedEvent(null)}
                     className="absolute top-3 right-3 w-9 h-9 rounded-full glass-strong flex items-center justify-center text-navy hover:bg-white"

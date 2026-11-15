@@ -197,7 +197,7 @@ export function GalleryPage() {
                   </div>
 
                   {/* Hover Overlay Button */}
-                  <div className="absolute inset-0 bg-navy/60 backdrop-blur-[2px] opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                  <div className="absolute inset-0 bg-black/45 backdrop-blur-[2px] opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                     <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white text-navy font-bold text-xs shadow-lg">
                       <Maximize2 className="w-3.5 h-3.5 text-gold-dark" /> View Details
                     </span>

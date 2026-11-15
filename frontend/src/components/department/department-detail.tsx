@@ -112,13 +112,19 @@ export function DepartmentDetail({ slug, section }: { slug: string; section?: st
       </div>
 
       {/* Hero */}
-      <section className="relative py-16 lg:py-24 overflow-hidden bg-navy-gradient text-white">
+      <section className="relative py-16 lg:py-24 overflow-hidden bg-slate-950 text-white">
         <div className="absolute inset-0">
-          <img src={dept.coverImage} alt={dept.name} className="w-full h-full object-cover opacity-30" />
-          <div className="absolute inset-0 bg-gradient-to-br from-navy-dark/85 via-navy/70 to-navy-dark/85" />
+          <img src={dept.coverImage} alt={dept.name} className="w-full h-full object-cover opacity-80" />
+          <div
+            className="absolute inset-0"
+            style={{
+              background:
+                "linear-gradient(180deg, rgba(0, 47, 32, 0.60) 0%, rgba(0, 47, 32, 0.40) 50%, rgba(0, 47, 32, 0.75) 100%)",
+            }}
+          />
         </div>
-        <div className="absolute -top-20 -right-20 w-80 h-80 blob bg-gold/20" />
-        <div className="absolute bottom-0 -left-32 w-96 h-96 blob bg-violet-500/15" />
+        <div className="absolute -top-20 -right-20 w-80 h-80 blob bg-gold/10" />
+        <div className="absolute bottom-0 -left-32 w-96 h-96 blob bg-violet-500/10" />
 
         <div className="container mx-auto px-4 sm:px-6 relative">
           <div className="grid lg:grid-cols-12 gap-10 items-end">
@@ -429,10 +435,10 @@ export function DepartmentDetail({ slug, section }: { slug: string; section?: st
                     alt={member.name}
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-navy-dark/85 via-transparent to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
                   
                   {/* Social links overlay */}
-                  <div className="absolute inset-0 bg-navy-dark/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-3 z-10">
+                  <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-3 z-10">
                     <motion.a
                       whileHover={{ scale: 1.15, y: -2 }}
                       whileTap={{ scale: 0.95 }}
@@ -568,7 +574,7 @@ export function DepartmentDetail({ slug, section }: { slug: string; section?: st
                     alt={lab.name}
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-navy-dark/85 via-navy-dark/20 to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/15 to-transparent" />
                   <div className="absolute top-3 left-3 px-2.5 py-1 rounded-full glass-navy text-white text-[10px] font-semibold">
                     Capacity: {lab.capacity}
                   </div>

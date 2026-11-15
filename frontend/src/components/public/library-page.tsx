@@ -36,9 +36,9 @@ const LIB_SERVICES = [
 export function LibraryPage() {
   return (
     <div className="min-h-screen bg-slate-50">
-      <div className="relative bg-navy-dark text-white py-16 overflow-hidden">
-        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1481627834876-b7833e8f5570?auto=format&fit=crop&w=1920&q=60')] bg-cover bg-center opacity-10" />
-        <div className="absolute inset-0 bg-gradient-to-r from-navy-dark to-navy/80" />
+      <div className="relative bg-slate-950 text-white py-16 overflow-hidden">
+        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1481627834876-b7833e8f5570?auto=format&fit=crop&w=1920&q=60')] bg-cover bg-center opacity-65" />
+        <div className="absolute inset-0 bg-gradient-to-r from-navy-dark/85 via-navy-dark/70 to-navy/35" />
         <div className="relative container mx-auto px-6">
           <div className="flex items-center gap-2 text-xs text-white/60 mb-4">
             <span>Home</span><ChevronRight className="w-3 h-3" /><span className="text-gold-light">Library</span>
