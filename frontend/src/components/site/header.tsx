@@ -299,11 +299,11 @@ export function Header() {
                 <button
                   key={item.label}
                   className={cn(
-                    "relative px-2 py-1.5 2xl:px-2.5 2xl:py-2 text-[12.5px] 2xl:text-[13.5px] font-semibold transition-colors rounded-full whitespace-nowrap shrink-0 cursor-pointer select-none",
+                    "relative px-2.5 py-1.5 2xl:px-3 2xl:py-2 text-[13px] 2xl:text-[14px] font-medium tracking-normal transition-all rounded-full whitespace-nowrap shrink-0 cursor-pointer select-none group",
                     isActive(item)
                       ? "text-[#14532D] font-bold"
-                      : "text-navy hover:text-[#14532D]",
-                    megaOpen === item.label && "text-[#14532D]"
+                      : "text-[#26352B] hover:text-[#14532D] hover:bg-[#14532D]/6",
+                    megaOpen === item.label && "text-[#14532D] bg-[#14532D]/6 font-semibold"
                   )}
                   onMouseEnter={() => {
                     setMegaOpen(item.label);
@@ -321,17 +321,17 @@ export function Header() {
                     }
                   }}
                 >
-                  <span className="relative z-10 flex items-center gap-0.5 2xl:gap-1">
+                  <span className="relative z-10 flex items-center gap-1">
                     <span>{item.label}</span>
                     {item.children && (
-                      <ChevronDown className="w-3 h-3 2xl:w-3.5 2xl:h-3.5 shrink-0 opacity-70 ml-0.5" />
+                      <ChevronDown className="w-3 h-3 2xl:w-3.5 2xl:h-3.5 shrink-0 opacity-60 group-hover:opacity-100 transition-opacity ml-0.5" />
                     )}
                   </span>
 
                   {hoveredItem === item.label && (
                     <motion.span
                       layoutId="nav-hover"
-                      className="absolute inset-0 rounded-full bg-[#14532D]/8 z-0"
+                      className="absolute inset-0 rounded-full bg-[#14532D]/6 z-0"
                       transition={{ type: "spring", stiffness: 350, damping: 30 }}
                     />
                   )}
@@ -339,7 +339,7 @@ export function Header() {
                   {isActive(item) && (
                     <motion.span
                       layoutId="nav-active"
-                      className="absolute bottom-0.5 left-2 right-2 h-0.5 bg-[#14532D] rounded-full z-0"
+                      className="absolute bottom-0 left-2.5 right-2.5 h-[2px] bg-[#14532D] rounded-full z-0"
                       transition={{ type: "spring", stiffness: 350, damping: 30 }}
                     />
                   )}
