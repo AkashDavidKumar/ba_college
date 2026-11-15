@@ -6,27 +6,27 @@ import { ChevronLeft, ChevronRight, ChevronDown } from "lucide-react";
 import { useSiteData } from "@/lib/site-context";
 import { cn } from "@/lib/utils";
 
-// ── Curated Full-View High-Resolution Campus Photography ────────────────────
-const DEFAULT_CAMPUS_SLIDES = [
+// ── Curated High-Resolution Campus & Graduation Photography ──────────────────
+const HERO_SLIDES = [
+  {
+    src: "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&w=2400&q=85",
+    alt: "Bishop Ambrose College Graduation Ceremony & Convocation",
+    objectPosition: "object-[82%_35%]",
+  },
   {
     src: "https://images.unsplash.com/photo-1562774053-701939374585?auto=format&fit=crop&w=2400&q=85",
-    alt: "Bishop Ambrose College Main Academic Building & Central Quadrangle",
+    alt: "Bishop Ambrose College Main Academic Quadrangle",
+    objectPosition: "object-center",
   },
   {
     src: "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=2400&q=85",
-    alt: "College Central Library & Digital Learning Commons",
-  },
-  {
-    src: "https://images.unsplash.com/photo-1523050854058-8df90110c476?auto=format&fit=crop&w=2400&q=85",
-    alt: "Lush Green Campus Landscapes & Historic Walkways",
+    alt: "Bishop Ambrose College Central Library & Learning Commons",
+    objectPosition: "object-center",
   },
   {
     src: "https://images.unsplash.com/photo-1592280771190-3e2e4d571952?auto=format&fit=crop&w=2400&q=85",
-    alt: "Modern Campus Infrastructure & Academic Facilities",
-  },
-  {
-    src: "https://images.unsplash.com/photo-1580537659466-0a9bfa916a54?auto=format&fit=crop&w=2400&q=85",
-    alt: "Vibrant Campus Life & Open Courtyards",
+    alt: "Modern Campus Facilities & State-of-the-Art Architecture",
+    objectPosition: "object-center",
   },
 ];
 
@@ -36,20 +36,24 @@ export function Hero() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // Use CMS fallback image if provided, combined with authentic campus slides
-  const slides = (data?.heroSection?.fallbackImage
+  // Allow CMS custom fallback image if specified, keeping the curated slides as primary
+  const slides = data?.heroSection?.fallbackImage
     ? [
-        { src: data.heroSection.fallbackImage, alt: "Bishop Ambrose College Campus" },
-        ...DEFAULT_CAMPUS_SLIDES.filter((s) => s.src !== data?.heroSection?.fallbackImage),
+        {
+          src: data.heroSection.fallbackImage,
+          alt: "Bishop Ambrose College Campus",
+          objectPosition: "object-center",
+        },
+        ...HERO_SLIDES.filter((s) => s.src !== data?.heroSection?.fallbackImage),
       ]
-    : DEFAULT_CAMPUS_SLIDES);
+    : HERO_SLIDES;
 
-  // ── Auto-advance slideshow with smooth cinematic timing (6s) ───────────────
+  // ── Auto-advance carousel with smooth 6.5s interval ─────────────────────────
   const startTimer = useCallback(() => {
     if (intervalRef.current) clearInterval(intervalRef.current);
     intervalRef.current = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % slides.length);
-    }, 6000);
+    }, 6500);
   }, [slides.length]);
 
   useEffect(() => {
@@ -77,7 +81,9 @@ export function Hero() {
   };
 
   const scrollToNextSection = () => {
-    const nextElem = document.getElementById("why-choose-us") || document.getElementById("departments");
+    const nextElem =
+      document.getElementById("why-choose-us") ||
+      document.getElementById("departments");
     if (nextElem) {
       nextElem.scrollIntoView({ behavior: "smooth" });
     } else {
@@ -87,10 +93,10 @@ export function Hero() {
 
   return (
     <section
-      aria-label="Campus Experience"
-      className="relative w-full h-[calc(100vh-5.5rem)] min-h-[580px] lg:h-[calc(100vh-6.25rem)] overflow-hidden bg-slate-950 select-none group"
+      aria-label="Bishop Ambrose College Hero"
+      className="relative w-full h-[88vh] min-h-[620px] max-h-[920px] overflow-hidden bg-[#002F20] select-none group"
     >
-      {/* ── Full-Screen Cinematic Slideshow ─────────────────────────────── */}
+      {/* ── 1. Full-Width Background Photography with Slow Ken Burns Zoom ──── */}
       <div className="absolute inset-0 w-full h-full overflow-hidden">
         <AnimatePresence initial={false} mode="wait">
           <motion.div
@@ -99,78 +105,218 @@ export function Hero() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{
-              opacity: { duration: shouldReduceMotion ? 0.3 : 1.2, ease: "easeInOut" },
+              opacity: {
+                duration: shouldReduceMotion ? 0.3 : 1.2,
+                ease: "easeInOut",
+              },
             }}
             className="absolute inset-0 w-full h-full overflow-hidden"
           >
-            {/* Cinematic Pan & Slow Zoom (Ken Burns Effect) */}
             <motion.img
               src={slides[currentSlide].src}
               alt={slides[currentSlide].alt}
               initial={{ scale: shouldReduceMotion ? 1 : 1.0 }}
-              animate={{ scale: shouldReduceMotion ? 1 : 1.07 }}
+              animate={{ scale: shouldReduceMotion ? 1 : 1.06 }}
               transition={{
-                duration: 6.5,
+                duration: 7,
                 ease: "easeOut",
               }}
-              className="w-full h-full object-cover object-center pointer-events-none"
+              className={cn(
+                "w-full h-full object-cover pointer-events-none",
+                slides[currentSlide].objectPosition
+              )}
               loading="eager"
             />
           </motion.div>
         </AnimatePresence>
       </div>
 
-      {/* ── Subtle Cinematic Depth Vignette (Dark edge framing for premium feel) ─ */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-black/20 pointer-events-none" />
+      {/* ── 2. Cinematic Gradient Overlays (Preserving Editorial Split) ──────── */}
+      {/* Desktop Left-to-Right Dark Forest-Green Gradient (40-45% solid text backdrop) */}
+      <div
+        className="hidden sm:block absolute inset-0 pointer-events-none z-[2]"
+        style={{
+          background:
+            "linear-gradient(to right, #002F20 0%, rgba(0, 47, 32, 0.95) 32%, rgba(6, 59, 39, 0.78) 48%, rgba(0, 47, 32, 0.3) 72%, transparent 100%)",
+        }}
+      />
 
-      {/* ── Discreet Navigation Arrows (Fade in on hover) ───────────────── */}
+      {/* Mobile Top-to-Bottom Gradient for Flawless Readability */}
+      <div
+        className="sm:hidden absolute inset-0 pointer-events-none z-[2]"
+        style={{
+          background:
+            "linear-gradient(to bottom, rgba(0, 47, 32, 0.96) 0%, rgba(0, 47, 32, 0.88) 55%, rgba(0, 47, 32, 0.5) 100%)",
+        }}
+      />
+
+      {/* Subtle Top & Bottom Vignettes */}
+      <div className="absolute inset-0 bg-gradient-to-t from-[#002F20]/70 via-transparent to-[#002F20]/30 pointer-events-none z-[2]" />
+
+      {/* ── 3. Top-Right Decorative Dotted Pattern (Corner Motif) ─────────── */}
+      <div className="absolute top-6 right-6 sm:top-10 sm:right-12 lg:top-12 lg:right-16 z-10 pointer-events-none select-none opacity-40">
+        <svg
+          width="112"
+          height="112"
+          viewBox="0 0 112 112"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          aria-hidden="true"
+        >
+          <pattern
+            id="hero-dot-grid"
+            x="0"
+            y="0"
+            width="16"
+            height="16"
+            patternUnits="userSpaceOnUse"
+          >
+            <circle cx="2.5" cy="2.5" r="1.5" fill="#8BD66A" />
+          </pattern>
+          <rect width="112" height="112" fill="url(#hero-dot-grid)" />
+        </svg>
+      </div>
+
+      {/* ── 4. Main Content (Editorial Left Text Block) ────────────────────── */}
+      <div className="relative z-10 w-full h-full max-w-[1240px] mx-auto px-6 sm:px-10 lg:px-16 flex items-center">
+        <div className="max-w-[580px] w-full text-left pt-6 pb-20 sm:pb-16">
+          {/* Eyebrow */}
+          <motion.div
+            initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.1, ease: "easeOut" }}
+            className="mb-5 sm:mb-6"
+          >
+            <div className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-[#8BD66A]/12 border border-[#8BD66A]/30 backdrop-blur-md shadow-sm">
+              <span className="w-2 h-2 rounded-full bg-[#8BD66A] animate-pulse" />
+              <span className="text-[11px] sm:text-xs font-bold tracking-[0.25em] text-[#8BD66A] uppercase">
+                Bishop Ambrose College
+              </span>
+            </div>
+          </motion.div>
+
+          {/* Main Headline */}
+          <motion.h1
+            initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.85, delay: 0.25, ease: "easeOut" }}
+            style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
+            className="text-5xl sm:text-6xl md:text-7xl lg:text-[76px] font-bold text-white tracking-tight leading-[1.06]"
+          >
+            <span className="block">Learn. Discover.</span>
+            <span className="relative inline-block italic font-normal text-[#8BD66A] mt-1 sm:mt-2">
+              Become.
+              {/* Subtle Hand-Crafted Curved Decorative Underline */}
+              <svg
+                className="absolute -bottom-2 sm:-bottom-3 left-0 w-full h-3 sm:h-4 text-[#8BD66A] overflow-visible pointer-events-none"
+                viewBox="0 0 160 14"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                aria-hidden="true"
+              >
+                <path
+                  d="M2 9.5C48 2.5 118 2 158 9.5"
+                  stroke="currentColor"
+                  strokeWidth="3.5"
+                  strokeLinecap="round"
+                />
+              </svg>
+            </span>
+          </motion.h1>
+
+          {/* Supporting Description */}
+          <motion.p
+            initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.45, ease: "easeOut" }}
+            className="text-white/85 text-base sm:text-lg md:text-xl font-normal leading-relaxed max-w-md mt-6 sm:mt-7 font-sans"
+          >
+            Empowering generations through knowledge, character and service.
+          </motion.p>
+        </div>
+      </div>
+
+      {/* ── 5. Circular Previous/Next Carousel Navigation Controls ───────── */}
       <button
         onClick={prevSlide}
-        aria-label="Previous campus photo"
-        className="absolute left-4 sm:left-6 top-1/2 -translate-y-1/2 z-20 w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-black/25 hover:bg-black/55 text-white/80 hover:text-white backdrop-blur-md border border-white/20 shadow-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 hover:scale-105 cursor-pointer"
+        aria-label="Previous slide"
+        className="absolute left-4 sm:left-6 top-1/2 -translate-y-1/2 z-20 w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-black/25 hover:bg-black/55 text-white/85 hover:text-white backdrop-blur-md border border-white/20 shadow-lg flex items-center justify-center opacity-70 hover:opacity-100 transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer"
       >
-        <ChevronLeft className="w-6 h-6 stroke-[2.5]" />
+        <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6 stroke-[2.5]" />
       </button>
 
       <button
         onClick={nextSlide}
-        aria-label="Next campus photo"
-        className="absolute right-4 sm:right-6 top-1/2 -translate-y-1/2 z-20 w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-black/25 hover:bg-black/55 text-white/80 hover:text-white backdrop-blur-md border border-white/20 shadow-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 hover:scale-105 cursor-pointer"
+        aria-label="Next slide"
+        className="absolute right-4 sm:right-6 top-1/2 -translate-y-1/2 z-20 w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-black/25 hover:bg-black/55 text-white/85 hover:text-white backdrop-blur-md border border-white/20 shadow-lg flex items-center justify-center opacity-70 hover:opacity-100 transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer"
       >
-        <ChevronRight className="w-6 h-6 stroke-[2.5]" />
+        <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6 stroke-[2.5]" />
       </button>
 
-      {/* ── Minimalist Bottom Dot Indicators ────────────────────────────── */}
-      <div className="absolute bottom-6 sm:bottom-8 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2">
+      {/* ── 6. Minimalist Slide Indicators ───────────────────────────────── */}
+      <div className="absolute bottom-16 sm:bottom-20 left-6 sm:left-10 lg:left-16 z-20 flex items-center gap-2">
         {slides.map((_, idx) => (
           <button
             key={idx}
             onClick={() => goToSlide(idx)}
-            aria-label={`View campus slide ${idx + 1}`}
+            aria-label={`Go to slide ${idx + 1}`}
             className={cn(
               "h-1.5 rounded-full transition-all duration-500 cursor-pointer",
               idx === currentSlide
-                ? "w-8 bg-white shadow-md"
-                : "w-2.5 bg-white/40 hover:bg-white/70"
+                ? "w-8 bg-[#8BD66A] shadow-md"
+                : "w-2.5 bg-white/35 hover:bg-white/60"
             )}
           />
         ))}
       </div>
 
-      {/* ── Subtle Down Scroll Indicator ─────────────────────────────────── */}
+      {/* ── 7. Elegant Bottom-Centre Scroll Indicator ─────────────────────── */}
       <button
         onClick={scrollToNextSection}
-        aria-label="Scroll to campus highlights"
-        className="absolute bottom-6 sm:bottom-8 right-6 sm:right-10 z-20 hidden md:flex items-center gap-2 text-white/80 hover:text-white transition-colors cursor-pointer"
+        aria-label="Scroll to explore"
+        className="absolute bottom-6 sm:bottom-8 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-1.5 text-white/80 hover:text-white transition-colors cursor-pointer group/scroll"
       >
-        <span className="text-[11px] font-semibold tracking-widest uppercase">Explore</span>
+        <span className="text-[11px] sm:text-xs font-semibold tracking-[0.2em] uppercase text-white/80 group-hover/scroll:text-white transition-colors">
+          Scroll to explore
+        </span>
         <motion.div
-          animate={{ y: [0, 4, 0] }}
+          animate={{ y: [0, 5, 0] }}
           transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
+          className="w-7 h-7 rounded-full border border-white/30 flex items-center justify-center bg-black/15 backdrop-blur-sm group-hover/scroll:border-white/70"
         >
-          <ChevronDown className="w-4 h-4 stroke-[2.5]" />
+          <ChevronDown className="w-4 h-4 stroke-[2]" />
         </motion.div>
       </button>
+
+      {/* ── 8. Layered Curved Green Shapes (Bottom Boundary Wave) ─────────── */}
+      <div className="absolute bottom-0 left-0 right-0 z-10 pointer-events-none overflow-hidden leading-none">
+        <svg
+          viewBox="0 0 1440 120"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          className="w-full h-14 sm:h-20 lg:h-24 preserve-3d"
+          preserveAspectRatio="none"
+          aria-hidden="true"
+        >
+          {/* Deep Forest-Green Ambient Wave */}
+          <path
+            d="M0,45 C320,115 520,15 760,55 C1000,95 1180,25 1440,65 L1440,120 L0,120 Z"
+            fill="#063B27"
+            fillOpacity="0.45"
+          />
+          {/* Primary Green Mid-Wave */}
+          <path
+            d="M0,65 C260,15 540,100 840,48 C1120,-2 1280,75 1440,55 L1440,120 L0,120 Z"
+            fill="#087A45"
+            fillOpacity="0.32"
+          />
+          {/* Seamless Soft Transition into the next section background (#F5FBF6) */}
+          <path
+            d="M0,85 C380,25 760,115 1120,55 C1280,28 1380,68 1440,78 L1440,120 L0,120 Z"
+            fill="#F5FBF6"
+          />
+        </svg>
+      </div>
     </section>
   );
 }
