@@ -131,27 +131,27 @@ export function Hero() {
         </AnimatePresence>
       </div>
 
-      {/* ── 2. Cinematic Gradient Overlays (Preserving Editorial Split) ──────── */}
-      {/* Desktop Left-to-Right Dark Forest-Green Gradient (40-45% solid text backdrop) */}
+      {/* ── 2. Cinematic Gradient Overlays (Refined & 35% Softer) ──────────── */}
+      {/* Desktop Left-to-Right Softer Forest-Green Gradient */}
       <div
         className="hidden sm:block absolute inset-0 pointer-events-none z-[2]"
         style={{
           background:
-            "linear-gradient(to right, #002F20 0%, rgba(0, 47, 32, 0.95) 32%, rgba(6, 59, 39, 0.78) 48%, rgba(0, 47, 32, 0.3) 72%, transparent 100%)",
+            "linear-gradient(90deg, rgba(0, 47, 32, 0.88) 0%, rgba(0, 47, 32, 0.65) 32%, rgba(0, 47, 32, 0.25) 58%, rgba(0, 47, 32, 0.05) 100%)",
         }}
       />
 
-      {/* Mobile Top-to-Bottom Gradient for Flawless Readability */}
+      {/* Mobile Top-to-Bottom Refined Gradient */}
       <div
         className="sm:hidden absolute inset-0 pointer-events-none z-[2]"
         style={{
           background:
-            "linear-gradient(to bottom, rgba(0, 47, 32, 0.96) 0%, rgba(0, 47, 32, 0.88) 55%, rgba(0, 47, 32, 0.5) 100%)",
+            "linear-gradient(to bottom, rgba(0, 47, 32, 0.86) 0%, rgba(0, 47, 32, 0.62) 48%, rgba(0, 47, 32, 0.18) 85%, transparent 100%)",
         }}
       />
 
-      {/* Subtle Top & Bottom Vignettes */}
-      <div className="absolute inset-0 bg-gradient-to-t from-[#002F20]/70 via-transparent to-[#002F20]/30 pointer-events-none z-[2]" />
+      {/* Subtle Depth Vignette (Soft & Natural) */}
+      <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-black/15 pointer-events-none z-[2]" />
 
       {/* ── 3. Top-Right Decorative Dotted Pattern (Corner Motif) ─────────── */}
       <div className="absolute top-6 right-6 sm:top-10 sm:right-12 lg:top-12 lg:right-16 z-10 pointer-events-none select-none opacity-40">
@@ -201,7 +201,7 @@ export function Hero() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.85, delay: 0.25, ease: "easeOut" }}
             style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
-            className="text-5xl sm:text-6xl md:text-7xl lg:text-[76px] font-bold text-white tracking-tight leading-[1.06]"
+            className="text-5xl sm:text-6xl md:text-7xl lg:text-[76px] font-bold text-white tracking-tight leading-[1.06] drop-shadow-[0_2px_14px_rgba(0,30,18,0.45)]"
           >
             <span className="block">Learn. Discover.</span>
             <span className="relative inline-block italic font-normal text-[#8BD66A] mt-1 sm:mt-2">
@@ -229,7 +229,7 @@ export function Hero() {
             initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.45, ease: "easeOut" }}
-            className="text-white/85 text-base sm:text-lg md:text-xl font-normal leading-relaxed max-w-md mt-6 sm:mt-7 font-sans"
+            className="text-white/90 text-base sm:text-lg md:text-xl font-normal leading-relaxed max-w-md mt-6 sm:mt-7 font-sans drop-shadow-[0_1px_8px_rgba(0,30,18,0.35)]"
           >
             Empowering generations through knowledge, character and service.
           </motion.p>
@@ -302,13 +302,13 @@ export function Hero() {
           <path
             d="M0,45 C320,115 520,15 760,55 C1000,95 1180,25 1440,65 L1440,120 L0,120 Z"
             fill="#063B27"
-            fillOpacity="0.45"
+            fillOpacity="0.25"
           />
           {/* Primary Green Mid-Wave */}
           <path
             d="M0,65 C260,15 540,100 840,48 C1120,-2 1280,75 1440,55 L1440,120 L0,120 Z"
             fill="#087A45"
-            fillOpacity="0.32"
+            fillOpacity="0.18"
           />
           {/* Seamless Soft Transition into the next section background (#F5FBF6) */}
           <path
