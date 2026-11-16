@@ -5,7 +5,6 @@ import { motion, AnimatePresence, useScroll } from "framer-motion";
 import {
   Menu,
   X,
-  Search,
   ChevronDown,
   ArrowRight,
   Phone,
@@ -16,7 +15,6 @@ import {
   Linkedin,
   Headphones,
   UserCheck,
-  LayoutDashboard,
   BookOpen,
   GraduationCap,
   Building2,
@@ -101,7 +99,6 @@ export function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [expandedMobileItem, setExpandedMobileItem] = useState<string | null>(null);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
-  const [searchOpen, setSearchOpen] = useState(false);
   const { scrollYProgress } = useScroll();
 
   const navRef = useRef<HTMLDivElement>(null);
@@ -160,7 +157,6 @@ export function Header() {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         setMobileOpen(false);
-        setSearchOpen(false);
         setActiveDropdown(null);
       }
     };
@@ -558,25 +554,8 @@ export function Header() {
               })}
             </nav>
 
-            {/* Right Action Icons & Primary Apply Now CTA */}
-            <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0 ml-auto xl:ml-6 2xl:ml-8">
-              <button
-                aria-label="Search"
-                onClick={() => setSearchOpen((v) => !v)}
-                className="w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-navy hover:bg-slate-100 transition-colors cursor-pointer"
-                title="Search courses, departments, faculty"
-              >
-                <Search className="w-4 h-4" />
-              </button>
-              <button
-                aria-label="Admin Portal"
-                onClick={() => window.open("/admin", "_blank")}
-                className="w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-navy hover:bg-slate-100 transition-colors cursor-pointer"
-                title="Admin Portal"
-              >
-                <LayoutDashboard className="w-4 h-4 text-navy" />
-              </button>
-
+            {/* Right Action CTA & Mobile Hamburger Menu */}
+            <div className="flex items-center gap-3 shrink-0 ml-auto xl:ml-6 2xl:ml-8">
               <div className="hidden sm:block">
                 <PremiumButton
                   variant="gold"
@@ -600,30 +579,6 @@ export function Header() {
             </div>
           </div>
         </div>
-
-        {/* ── Search Bar Dropdown ──────────────────────────────────────── */}
-        <AnimatePresence>
-          {searchOpen && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }}
-              className="border-t border-[#E2E8F0] overflow-hidden bg-white"
-            >
-              <div className="w-full max-w-[1920px] mx-auto px-6 py-4">
-                <div className="relative max-w-2xl mx-auto">
-                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <input
-                    autoFocus
-                    type="search"
-                    placeholder="Search programmes, departments, faculty, examinations, calendar..."
-                    className="w-full pl-11 pr-4 py-3 rounded-full border-2 border-slate-200 focus:border-[#14532D] focus:outline-none text-sm"
-                  />
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
       </header>
 
       {/* ── 3. Responsive Mobile Navigation Drawer (< xl) ────────────────── */}
