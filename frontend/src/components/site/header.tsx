@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { motion, AnimatePresence, useScroll } from "framer-motion";
 import {
   Menu,
@@ -17,17 +17,64 @@ import {
   Headphones,
   UserCheck,
   LayoutDashboard,
+  BookOpen,
+  GraduationCap,
+  Building2,
+  FileText,
+  Target,
+  Monitor,
+  Calendar,
+  Users,
+  Palette,
+  Trophy,
+  Heart,
+  Briefcase,
+  Download,
+  CreditCard,
+  ClipboardList,
+  Award,
+  Shield,
+  Lightbulb,
+  Star,
+  MessageSquare,
+  GitBranch,
+  FileCheck,
+  BarChart2,
+  Library,
+  MapPin,
+  Sparkles,
+  ExternalLink,
+  type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useNav } from "./nav-context";
-import { Logo, PremiumButton, DepartmentIcon, staggerContainer, staggerItem } from "./primitives";
+import { Logo, PremiumButton, staggerContainer, staggerItem } from "./primitives";
 
-type NavItem = {
+// ── Dropdown Item Interface ───────────────────────────────────────────────────
+interface SubItem {
   label: string;
-  type?: string;
+  description: string;
+  icon: LucideIcon;
+  badge?: string;
+  action: () => void;
+}
+
+interface NavSection {
+  label: string;
+  id: string;
   action?: () => void;
-  children?: { label: string; description: string; icon: string; slug?: string; action: () => void }[];
-};
+  align?: "left" | "right" | "center";
+  width?: string;
+  columns?: 1 | 2;
+  highlight?: {
+    badge?: string;
+    title: string;
+    description: string;
+    ctaText: string;
+    action: () => void;
+  };
+  children?: SubItem[];
+}
 
 export function Header() {
   const {
@@ -43,20 +90,26 @@ export function Header() {
     goNirf,
     goAlumni,
     goContact,
+    goFacilities,
+    goGallery,
     goPlacements,
     view,
   } = useNav();
   const goErp = goAdmissions;
+
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [expandedMobileItem, setExpandedMobileItem] = useState<string | null>(null);
-  const [megaOpen, setMegaOpen] = useState<string | null>(null);
-  const [hoveredItem, setHoveredItem] = useState<string | null>(null);
+  const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const [searchOpen, setSearchOpen] = useState(false);
   const { scrollYProgress } = useScroll();
 
+  const navRef = useRef<HTMLDivElement>(null);
+  const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Scroll detection for navbar elevation
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 24);
+    const onScroll = () => setScrolled(window.scrollY > 20);
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
@@ -79,7 +132,7 @@ export function Header() {
     return () => window.removeEventListener("resize", updateHeaderHeight);
   }, []);
 
-  // Lock background scroll when mobile navigation drawer is active
+  // Lock background scroll when mobile drawer is open
   useEffect(() => {
     if (mobileOpen) {
       document.body.style.overflow = "hidden";
@@ -91,124 +144,190 @@ export function Header() {
     };
   }, [mobileOpen]);
 
+  // Click outside listener to gracefully close active dropdown
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (navRef.current && !navRef.current.contains(e.target as Node)) {
+        setActiveDropdown(null);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   // Close drawers and modals on Escape key press
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         setMobileOpen(false);
         setSearchOpen(false);
-        setMegaOpen(null);
+        setActiveDropdown(null);
       }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  const navItems: NavItem[] = [
-    { label: "Home", action: goHome },
+  // Hover handlers with debounce to prevent flicker
+  const handleMouseEnter = (label: string) => {
+    if (closeTimerRef.current) clearTimeout(closeTimerRef.current);
+    setActiveDropdown(label);
+  };
+
+  const handleMouseLeave = () => {
+    if (closeTimerRef.current) clearTimeout(closeTimerRef.current);
+    closeTimerRef.current = setTimeout(() => {
+      setActiveDropdown(null);
+    }, 140);
+  };
+
+  // ── Nav Sections Definition with Rich Grouping & Preserved Routes ───────────
+  const navSections: NavSection[] = [
+    {
+      label: "Home",
+      id: "home",
+      action: goHome,
+    },
     {
       label: "About Us",
-      type: "about",
+      id: "about",
+      align: "left",
+      width: "w-[560px]",
+      columns: 2,
       children: [
-        { label: "History of BAC", description: "Establishment and heritage since 1994", icon: "BookOpen", action: () => goAbout("history") },
-        { label: "Secretary's Message", description: "Message from the college Secretary", icon: "MessageSquare", action: () => goAbout("secretary") },
-        { label: "Principal's Message", description: "Vision from the Principal", icon: "GraduationCap", action: () => goAbout("principal") },
-        { label: "Governance", description: "Administrative governance structure", icon: "Shield", action: () => goAbout("governance") },
-        { label: "Organogram", description: "Organizational chart and hierarchy", icon: "GitBranch", action: () => goAbout("organogram") },
-        { label: "Strategic Plan", description: "Institutional development roadmap", icon: "Target", action: () => goAbout("strategic") },
-        { label: "Code of Conduct", description: "Rules, values and expected conduct", icon: "FileCheck", action: () => goAbout("conduct") },
-        { label: "Annual Report", description: "Year-wise institutional annual report", icon: "BarChart2", action: () => goAbout("annual-report") },
+        { label: "History of BAC", description: "Diocesan establishment and 30-year legacy", icon: BookOpen, action: () => goAbout("history") },
+        { label: "Secretary's Message", description: "Vision and guidance from the Secretary", icon: MessageSquare, action: () => goAbout("secretary") },
+        { label: "Principal's Message", description: "Academic stewardship & student development", icon: GraduationCap, action: () => goAbout("principal") },
+        { label: "Governance", description: "Apex statutory councils and leadership", icon: Shield, action: () => goAbout("governance") },
+        { label: "Organogram", description: "Administrative chart and hierarchy", icon: GitBranch, action: () => goAbout("organogram") },
+        { label: "Strategic Plan", description: "Institutional benchmarks & vision", icon: Target, action: () => goAbout("strategic") },
+        { label: "Code of Conduct", description: "Ethical values, integrity & rules", icon: FileCheck, action: () => goAbout("conduct") },
+        { label: "Annual Reports", description: "Year-wise certified institutional audits", icon: BarChart2, action: () => goAbout("annual-report") },
       ],
     },
     {
       label: "Academic",
-      type: "academic",
+      id: "academic",
+      align: "left",
+      width: "w-[620px]",
+      columns: 2,
       children: [
-        { label: "Courses Offered", description: "All undergraduate programmes at BAC", icon: "BookOpen", action: () => goAcademic("courses") },
-        { label: "Departments", description: "Our academic departments", icon: "Building2", action: () => goAcademic("departments") },
-        { label: "Curriculum Dev. Cell", description: "Curriculum design and development", icon: "FileText", action: () => goAcademic("curriculum") },
-        { label: "Programme Outcomes", description: "Learning outcomes across programmes", icon: "Target", action: () => goAcademic("outcomes") },
-        { label: "ICT Facilities", description: "Digital infrastructure and smart labs", icon: "Monitor", action: () => goAcademic("ict") },
-        { label: "Academic Calendar", description: "Dates, events and schedules", icon: "Calendar", action: () => goAcademic("calendar") },
-      ],
-    },
-    {
-      label: "Student Activities",
-      type: "student-activities",
-      children: [
-        { label: "Student Council", description: "Elected student leadership body", icon: "Users", action: () => goStudentActivities("council") },
-        { label: "Fine Arts", description: "Cultural and performing arts activities", icon: "Palette", action: () => goStudentActivities("fine-arts") },
-        { label: "Sports", description: "Athletics, tournaments and achievements", icon: "Trophy", action: () => goStudentActivities("sports") },
-        { label: "Associations", description: "Student associations by department", icon: "Users", action: () => goStudentActivities("associations") },
-        { label: "Extension Activities", description: "Community outreach and NSS", icon: "Heart", action: () => goStudentActivities("extension") },
-        { label: "Placement", description: "Campus placements and career support", icon: "Briefcase", action: goPlacements },
+        { label: "Courses Offered", description: "All undergraduate & postgraduate programmes", icon: BookOpen, action: () => goAcademic("courses") },
+        { label: "Academic Departments", description: "Specialized centres of excellence", icon: Building2, action: () => goAcademic("departments") },
+        { label: "Autonomous Status", description: "Conferred autonomous system & CBCS", icon: Shield, badge: "UGC", action: () => goAutonomous() },
+        { label: "Examination Cell", description: "CIA schedules, evaluations & results", icon: FileCheck, badge: "COE", action: () => goExamination() },
+        { label: "Curriculum Dev. Cell", description: "Outcome-based syllabus & Board of Studies", icon: FileText, action: () => goAcademic("curriculum") },
+        { label: "Programme Outcomes", description: "Core PO1–PO8 graduate attributes", icon: Target, action: () => goAcademic("outcomes") },
+        { label: "ICT Facilities", description: "Advanced computing labs & smart classrooms", icon: Monitor, action: () => goAcademic("ict") },
+        { label: "Academic Calendar", description: "Annual instructional days & milestones", icon: Calendar, action: () => goAcademic("calendar") },
       ],
     },
     {
       label: "Admission",
-      type: "admissions",
+      id: "admissions",
+      align: "center",
+      width: "w-[480px]",
+      columns: 1,
+      highlight: {
+        badge: "Admissions 2026–27",
+        title: "Enroll in Bishop Ambrose College",
+        description: "Merit-based admissions open across Computer Science, Commerce, Management, Life Sciences and Arts.",
+        ctaText: "Apply Online Now",
+        action: goAdmissions,
+      },
       children: [
-        { label: "Admission Policy", description: "Eligibility and admission procedure", icon: "FileText", action: goAdmissions },
-        { label: "BAC Prospectus", description: "Download our college prospectus", icon: "Download", action: goAdmissions },
-        { label: "Fees Structure", description: "Programme-wise fee details", icon: "CreditCard", action: goAdmissions },
-        { label: "Application Form", description: "Apply online for 2026-27 admissions", icon: "ClipboardList", action: goAdmissions },
-        { label: "Scholarships", description: "Government and institutional scholarships", icon: "Award", action: goAdmissions },
+        { label: "Admission Policy", description: "Eligibility criteria, guidelines & procedures", icon: FileText, action: goAdmissions },
+        { label: "BAC Prospectus", description: "Download our official college prospectus", icon: Download, action: goAdmissions },
+        { label: "Fees Structure", description: "Programme-wise fee schedule & payment modes", icon: CreditCard, action: goAdmissions },
+        { label: "Application Form", description: "Apply online for 2026–27 academic year", icon: ClipboardList, action: goAdmissions },
+        { label: "Scholarships", description: "Government aid, institutional merit awards", icon: Award, action: goAdmissions },
       ],
     },
     {
-      label: "IQAC",
-      type: "iqac",
+      label: "Student Activities",
+      id: "student-activities",
+      align: "center",
+      width: "w-[540px]",
+      columns: 2,
       children: [
-        { label: "About IQAC", description: "Internal Quality Assurance Cell", icon: "Shield", action: () => goIqac("about") },
-        { label: "IQAC Members", description: "IQAC committee members list", icon: "Users", action: () => goIqac("members") },
-        { label: "AQAR Report", description: "Annual Quality Assurance Reports", icon: "FileText", action: () => goIqac("aqar") },
-        { label: "Quality Initiatives", description: "Initiatives to improve quality", icon: "Lightbulb", action: () => goIqac("initiatives") },
-        { label: "NIRF", description: "National Institutional Ranking Framework", icon: "Award", action: goNirf },
-        { label: "Best Practices", description: "Institutional best practices", icon: "Star", action: () => goIqac("best-practices") },
-        { label: "SSR", description: "Self Study Report", icon: "BookOpen", action: () => goIqac("ssr") },
+        { label: "Student Council", description: "Elected student leadership & representation", icon: Users, action: () => goStudentActivities("council") },
+        { label: "Fine Arts & Culture", description: "Annual fest, dance, music & theatre", icon: Palette, action: () => goStudentActivities("fine-arts") },
+        { label: "Sports & Athletics", description: "Inter-collegiate tournaments & championships", icon: Trophy, action: () => goStudentActivities("sports") },
+        { label: "Department Associations", description: "Co-curricular symposiums & guest lectures", icon: Building2, action: () => goStudentActivities("associations") },
+        { label: "Extension Activities", description: "NSS, NCC & community outreach initiatives", icon: Heart, action: () => goStudentActivities("extension") },
+        { label: "Placements & Careers", description: "Corporate recruitment bootcamps & drives", icon: Briefcase, action: goPlacements },
       ],
     },
-    { label: "Examination", action: goExamination },
-    { label: "Autonomous", action: () => goAutonomous() },
-    { label: "Library", action: () => goLibrary() },
-    { label: "NIRF", action: goNirf },
+    {
+      label: "IQAC & NIRF",
+      id: "iqac",
+      align: "center",
+      width: "w-[560px]",
+      columns: 2,
+      children: [
+        { label: "About IQAC Cell", description: "Internal Quality Assurance Cell stewardship", icon: Shield, action: () => goIqac("about") },
+        { label: "IQAC Members", description: "Composition of the IQAC committee", icon: Users, action: () => goIqac("members") },
+        { label: "NIRF Rankings", description: "National Institutional Ranking Framework data", icon: Award, badge: "NIRF", action: goNirf },
+        { label: "AQAR Reports", description: "Annual Quality Assurance Reports", icon: FileText, action: () => goIqac("aqar") },
+        { label: "Quality Initiatives", description: "Continuous benchmark improvements", icon: Lightbulb, action: () => goIqac("initiatives") },
+        { label: "Institutional Best Practices", description: "Excellence in ethics & student support", icon: Star, action: () => goIqac("best-practices") },
+        { label: "Self Study Report (SSR)", description: "Certified NAAC accreditation documents", icon: BookOpen, action: () => goIqac("ssr") },
+      ],
+    },
+    {
+      label: "Campus & Library",
+      id: "library",
+      align: "right",
+      width: "w-[440px]",
+      columns: 1,
+      children: [
+        { label: "Central Library", description: "10,000+ e-books, INFLIBNET N-LIST & print journals", icon: Library, action: () => goLibrary() },
+        { label: "Campus Facilities", description: "Sports pavilion, eco-grounds & cafeteria", icon: Building2, action: goFacilities },
+        { label: "Campus Photo Gallery", description: "Life at Bishop Ambrose College in photos", icon: Palette, action: goGallery },
+      ],
+    },
     {
       label: "BAC Alumni",
-      type: "alumni",
+      id: "alumni",
+      align: "right",
+      width: "w-[400px]",
+      columns: 1,
       children: [
-        { label: "Alumni Events", description: "Events for and by alumni", icon: "Calendar", action: () => goAlumni("events") },
-        { label: "Alumni Registration", description: "Register as a BAC alumni", icon: "UserCheck", action: () => goAlumni("registration") },
-        { label: "BAC Alumni Association", description: "Alumni association and chapter", icon: "Heart", action: () => goAlumni("association") },
+        { label: "Alumni Events", description: "Reunions, guest lectures & homecoming", icon: Calendar, action: () => goAlumni("events") },
+        { label: "Alumni Registration", description: "Join our global graduate network", icon: UserCheck, action: () => goAlumni("registration") },
+        { label: "Alumni Association", description: "Chapter leadership & mentorship programs", icon: Heart, action: () => goAlumni("association") },
       ],
     },
-    { label: "Contact Us", action: goContact },
+    {
+      label: "Contact Us",
+      id: "contact",
+      action: goContact,
+    },
   ];
 
-  const isActive = (item: NavItem) => {
+  // Active item checking logic matching routes
+  const isItemActive = (section: NavSection) => {
     const t = view.type;
-    if (item.label === "Home") return t === "home";
-    if (item.label === "About Us") return t === "about";
-    if (item.label === "Academic") return t === "academic" || t === "department";
-    if (item.label === "Student Activities") return t === "student-activities";
-    if (item.label === "Admission") return t === "admissions";
-    if (item.label === "IQAC") return t === "iqac";
-    if (item.label === "Examination") return t === "examination";
-    if (item.label === "Autonomous") return t === "autonomous";
-    if (item.label === "Library") return t === "library";
-    if (item.label === "NIRF") return t === "nirf";
-    if (item.label === "BAC Alumni") return t === "alumni";
-    if (item.label === "Contact Us") return t === "contact";
+    if (section.id === "home") return t === "home";
+    if (section.id === "about") return t === "about";
+    if (section.id === "academic") return t === "academic" || t === "department" || t === "autonomous" || t === "examination";
+    if (section.id === "admissions") return t === "admissions";
+    if (section.id === "student-activities") return t === "student-activities" || t === "placements";
+    if (section.id === "iqac") return t === "iqac" || t === "nirf";
+    if (section.id === "library") return t === "library" || t === "facilities" || t === "gallery";
+    if (section.id === "alumni") return t === "alumni";
+    if (section.id === "contact") return t === "contact";
     return false;
   };
 
   return (
     <div id="site-header-container" className="w-full relative z-50">
-      {/* ── Top Utility Contact Bar ──────────────────────────────────────── */}
+      {/* ── 1. Top Utility Contact Bar ──────────────────────────────────── */}
       <div
         id="top-utility-bar"
         className="hidden lg:block bg-navy-dark text-white/90 text-xs py-2 border-b border-white/10 select-none"
       >
-        <div className="w-full max-w-[1920px] mx-auto px-4 sm:px-6 2xl:px-10 flex items-center justify-between gap-4">
+        <div className="w-full max-w-[1920px] mx-auto px-4 sm:px-6 xl:px-8 2xl:px-12 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3 xl:gap-5 whitespace-nowrap min-w-0">
             <span className="inline-flex items-center gap-1.5 font-medium shrink-0">
               <Headphones className="w-3.5 h-3.5 text-gold shrink-0" />
@@ -261,17 +380,14 @@ export function Header() {
         </div>
       </div>
 
-      {/* ── Main Sticky Navigation Header ─────────────────────────────────── */}
+      {/* ── 2. Main Sticky Navigation Header ─────────────────────────────── */}
       <header
         id="main-header"
+        ref={navRef}
         className={cn(
-          "sticky top-0 z-50 transition-all duration-200 bg-white border-b border-[#DCE8DE]",
+          "sticky top-0 z-50 transition-all duration-200 bg-white border-b border-[#E2E8F0]",
           scrolled ? "shadow-md bg-white/98 backdrop-blur-md" : "shadow-xs"
         )}
-        onMouseLeave={() => {
-          setMegaOpen(null);
-          setHoveredItem(null);
-        }}
       >
         {/* Scroll Progress Bar */}
         <motion.div
@@ -279,175 +395,211 @@ export function Header() {
           style={{ scaleX: scrollYProgress }}
         />
 
-        <div className="w-full max-w-[1920px] mx-auto px-3 sm:px-6 xl:px-4 2xl:px-8">
+        <div className="w-full max-w-[1920px] mx-auto px-4 sm:px-6 xl:px-8 2xl:px-12">
           <div
             className={cn(
-              "flex items-center justify-between gap-2 xl:gap-3 transition-all duration-200",
+              "flex items-center justify-between transition-all duration-200",
               scrolled ? "h-14 lg:h-16" : "h-16 lg:h-18"
             )}
           >
-            {/* College Logo */}
-            <Logo variant="dark" onClick={goHome} />
+            {/* College Logo with Distinct Spacing from Navigation */}
+            <div className="flex items-center shrink-0 mr-6 lg:mr-8 xl:mr-10 2xl:mr-12">
+              <Logo variant="dark" onClick={goHome} />
+            </div>
 
-            {/* Desktop Navigation Bar (Single-Line at xl: and above) */}
+            {/* Desktop Navigation Links (Single-Line, Logical, Cleanly Spaced) */}
             <nav
               role="navigation"
               aria-label="Main Navigation"
-              className="hidden xl:flex items-center gap-0.5 2xl:gap-1.5 shrink min-w-0 justify-center"
+              className="hidden xl:flex items-center gap-1 xl:gap-1.5 2xl:gap-2.5 shrink min-w-0"
             >
-              {navItems.map((item) => (
-                <button
-                  key={item.label}
-                  className={cn(
-                    "relative px-2.5 py-1.5 2xl:px-3 2xl:py-2 text-[13px] 2xl:text-[14px] font-medium tracking-normal transition-all rounded-full whitespace-nowrap shrink-0 cursor-pointer select-none group",
-                    isActive(item)
-                      ? "text-[#14532D] font-bold"
-                      : "text-[#26352B] hover:text-[#14532D] hover:bg-[#14532D]/6",
-                    megaOpen === item.label && "text-[#14532D] bg-[#14532D]/6 font-semibold"
-                  )}
-                  onMouseEnter={() => {
-                    setMegaOpen(item.label);
-                    setHoveredItem(item.label);
-                  }}
-                  onMouseLeave={() => setHoveredItem(null)}
-                  onClick={() => {
-                    setMobileOpen(false);
-                    setSearchOpen(false);
-                    if (item.children) {
-                      setMegaOpen(megaOpen === item.label ? null : item.label);
-                    } else if (item.action) {
-                      item.action();
-                      setMegaOpen(null);
-                    }
-                  }}
-                >
-                  <span className="relative z-10 flex items-center gap-1">
-                    <span>{item.label}</span>
-                    {item.children && (
-                      <ChevronDown className="w-3 h-3 2xl:w-3.5 2xl:h-3.5 shrink-0 opacity-60 group-hover:opacity-100 transition-opacity ml-0.5" />
-                    )}
-                  </span>
+              {navSections.map((section) => {
+                const hasChildren = Boolean(section.children && section.children.length > 0);
+                const isCurrentActive = isItemActive(section);
+                const isCurrentOpen = activeDropdown === section.label;
 
-                  {hoveredItem === item.label && (
-                    <motion.span
-                      layoutId="nav-hover"
-                      className="absolute inset-0 rounded-full bg-[#14532D]/6 z-0"
-                      transition={{ type: "spring", stiffness: 350, damping: 30 }}
-                    />
-                  )}
+                return (
+                  <div
+                    key={section.label}
+                    className="relative"
+                    onMouseEnter={() => hasChildren && handleMouseEnter(section.label)}
+                    onMouseLeave={() => hasChildren && handleMouseLeave()}
+                  >
+                    <button
+                      type="button"
+                      aria-haspopup={hasChildren ? "true" : undefined}
+                      aria-expanded={hasChildren ? isCurrentOpen : undefined}
+                      onClick={() => {
+                        if (hasChildren) {
+                          setActiveDropdown(isCurrentOpen ? null : section.label);
+                        } else if (section.action) {
+                          section.action();
+                          setActiveDropdown(null);
+                        }
+                      }}
+                      className={cn(
+                        "relative px-2.5 py-1.5 xl:px-3 xl:py-2 text-[13px] xl:text-[13.5px] 2xl:text-[14px] font-medium tracking-normal transition-all rounded-lg whitespace-nowrap shrink-0 flex items-center gap-1 cursor-pointer select-none",
+                        isCurrentActive
+                          ? "text-[#14532D] font-bold bg-[#14532D]/8"
+                          : "text-[#26352B] hover:text-[#14532D] hover:bg-[#14532D]/5",
+                        isCurrentOpen && "text-[#14532D] bg-[#14532D]/6"
+                      )}
+                    >
+                      <span>{section.label}</span>
+                      {hasChildren && (
+                        <ChevronDown
+                          className={cn(
+                            "w-3.5 h-3.5 text-slate-400 transition-transform duration-200 shrink-0",
+                            isCurrentOpen && "rotate-180 text-[#14532D]"
+                          )}
+                        />
+                      )}
 
-                  {isActive(item) && (
-                    <motion.span
-                      layoutId="nav-active"
-                      className="absolute bottom-0 left-2.5 right-2.5 h-[2px] bg-[#14532D] rounded-full z-0"
-                      transition={{ type: "spring", stiffness: 350, damping: 30 }}
-                    />
-                  )}
-                </button>
-              ))}
+                      {/* Active Indicator Bar */}
+                      {isCurrentActive && (
+                        <motion.span
+                          layoutId="nav-active"
+                          className="absolute bottom-0 left-2.5 right-2.5 h-0.5 bg-[#14532D] rounded-full z-10"
+                          transition={{ type: "spring", stiffness: 350, damping: 30 }}
+                        />
+                      )}
+                    </button>
+
+                    {/* Desktop Floating Dropdown Menu */}
+                    <AnimatePresence>
+                      {hasChildren && isCurrentOpen && (
+                        <motion.div
+                          initial={{ opacity: 0, y: 8, scale: 0.98 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          exit={{ opacity: 0, y: 6, scale: 0.98 }}
+                          transition={{ duration: 0.16, ease: "easeOut" }}
+                          className={cn(
+                            "absolute top-full mt-1.5 z-50 bg-white rounded-2xl shadow-xl shadow-slate-900/10 border border-[#E2E8F0] overflow-hidden p-4",
+                            section.width || "w-[500px]",
+                            section.align === "left" && "left-0",
+                            section.align === "center" && "left-1/2 -translate-x-1/2",
+                            section.align === "right" && "right-0"
+                          )}
+                        >
+                          {/* Optional Top Highlight Banner (e.g. for Admissions) */}
+                          {section.highlight && (
+                            <div className="mb-3 p-3.5 rounded-xl bg-gradient-to-r from-emerald-50 via-green-50 to-emerald-50/50 border border-emerald-100 flex items-center justify-between gap-3">
+                              <div className="min-w-0">
+                                {section.highlight.badge && (
+                                  <span className="text-[10px] font-bold text-[#14532D] uppercase tracking-wider bg-white px-2 py-0.5 rounded-full border border-emerald-200">
+                                    {section.highlight.badge}
+                                  </span>
+                                )}
+                                <h4 className="font-serif font-bold text-xs text-navy mt-1">
+                                  {section.highlight.title}
+                                </h4>
+                                <p className="text-[11px] text-slate-600 line-clamp-1 mt-0.5">
+                                  {section.highlight.description}
+                                </p>
+                              </div>
+                              <button
+                                onClick={() => {
+                                  section.highlight?.action();
+                                  setActiveDropdown(null);
+                                }}
+                                className="shrink-0 inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-[#14532D] text-white text-xs font-semibold hover:bg-[#0f3d21] transition-colors cursor-pointer shadow-xs"
+                              >
+                                <span>{section.highlight.ctaText}</span>
+                                <ArrowRight className="w-3 h-3" />
+                              </button>
+                            </div>
+                          )}
+
+                          {/* Items Grid */}
+                          <div
+                            className={cn(
+                              "grid gap-1.5",
+                              section.columns === 2 ? "grid-cols-2" : "grid-cols-1"
+                            )}
+                          >
+                            {section.children?.map((child, idx) => {
+                              const Icon = child.icon;
+                              return (
+                                <button
+                                  key={idx}
+                                  onClick={() => {
+                                    child.action();
+                                    setActiveDropdown(null);
+                                  }}
+                                  className="group text-left p-2.5 rounded-xl hover:bg-emerald-50/70 hover:text-[#14532D] transition-all flex items-start gap-2.5 cursor-pointer"
+                                >
+                                  <div className="w-8 h-8 rounded-lg bg-slate-100 group-hover:bg-[#14532D] group-hover:text-white text-navy flex items-center justify-center shrink-0 transition-colors mt-0.5">
+                                    <Icon className="w-4 h-4" />
+                                  </div>
+                                  <div className="min-w-0 flex-1">
+                                    <div className="flex items-center gap-1.5">
+                                      <span className="text-xs font-semibold text-navy group-hover:text-[#14532D] transition-colors leading-tight">
+                                        {child.label}
+                                      </span>
+                                      {child.badge && (
+                                        <span className="text-[9px] font-bold text-white bg-[#14532D] px-1.5 py-0.2 rounded-full">
+                                          {child.badge}
+                                        </span>
+                                      )}
+                                    </div>
+                                    <p className="text-[11px] text-slate-500 line-clamp-1 mt-0.5 leading-snug">
+                                      {child.description}
+                                    </p>
+                                  </div>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                );
+              })}
             </nav>
 
-            {/* Right Action Icons & Apply Now Button */}
-            <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+            {/* Right Action Icons & Primary Apply Now CTA */}
+            <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0 ml-auto xl:ml-0">
               <button
                 aria-label="Search"
                 onClick={() => setSearchOpen((v) => !v)}
-                className="w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-navy hover:bg-navy/5 transition-colors cursor-pointer"
+                className="w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-navy hover:bg-slate-100 transition-colors cursor-pointer"
+                title="Search courses, departments, faculty"
               >
                 <Search className="w-4 h-4" />
               </button>
               <button
                 aria-label="Admin Portal"
                 onClick={() => window.open("/admin", "_blank")}
-                className="w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-navy hover:bg-navy/5 transition-colors cursor-pointer"
+                className="w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-navy hover:bg-slate-100 transition-colors cursor-pointer"
                 title="Admin Portal"
               >
                 <LayoutDashboard className="w-4 h-4 text-navy" />
               </button>
+
               <div className="hidden sm:block">
                 <PremiumButton
                   variant="gold"
                   size="sm"
                   onClick={goAdmissions}
-                  className="text-xs font-bold px-3.5 py-1.5 2xl:text-sm 2xl:px-4 2xl:py-2 whitespace-nowrap"
+                  className="text-xs sm:text-sm font-bold px-4 py-2 whitespace-nowrap shadow-xs"
                   icon={<ArrowRight className="w-3.5 h-3.5" />}
                 >
                   Apply Now
                 </PremiumButton>
               </div>
+
+              {/* Mobile Hamburger Menu Toggle */}
               <button
-                aria-label="Menu"
+                aria-label="Open menu"
                 onClick={() => setMobileOpen(true)}
-                className="xl:hidden w-10 h-10 min-w-[40px] min-h-[40px] rounded-full flex items-center justify-center text-navy hover:bg-navy/5 transition-colors cursor-pointer"
+                className="xl:hidden w-10 h-10 min-w-[40px] min-h-[40px] rounded-full flex items-center justify-center text-navy hover:bg-slate-100 transition-colors cursor-pointer"
               >
                 <Menu className="w-5 h-5" />
               </button>
             </div>
           </div>
         </div>
-
-        {/* ── Desktop Mega Menu ────────────────────────────────────────── */}
-        <AnimatePresence>
-          {megaOpen && (
-            <motion.div
-              initial={{ opacity: 0, y: -8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
-              transition={{ duration: 0.2 }}
-              className="absolute left-0 right-0 top-full hidden xl:block"
-            >
-              <div className="w-full max-w-[1920px] mx-auto px-4 sm:px-6 xl:px-8 pb-6">
-                <div className="glass-strong rounded-2xl shadow-premium overflow-hidden border border-navy/10 bg-white/95 backdrop-blur-md">
-                  <div className="grid grid-cols-12 gap-0">
-                    {/* Side panel */}
-                    <div className="col-span-3 bg-navy-gradient text-white p-6">
-                      <div className="text-xs uppercase tracking-widest text-gold mb-2 font-semibold">
-                        BAC
-                      </div>
-                      <h3 className="font-serif text-2xl font-bold mb-3 leading-tight">
-                        {megaOpen}
-                      </h3>
-                      <p className="text-sm text-white/70 leading-relaxed">
-                        Explore {megaOpen?.toLowerCase()} across Bishop Ambrose College.
-                      </p>
-                    </div>
-
-                    {/* Items grid */}
-                    <div className="col-span-9 p-6 grid grid-cols-3 gap-3">
-                      {navItems
-                        .find((i) => i.label === megaOpen)
-                        ?.children?.slice(0, 9)
-                        .map((child, idx) => (
-                          <button
-                            key={idx}
-                            onClick={() => {
-                              child.action();
-                              setMegaOpen(null);
-                            }}
-                            className="group text-left p-3.5 rounded-xl border border-navy/8 hover:border-[#14532D]/40 hover:bg-[#14532D]/5 transition-all cursor-pointer"
-                          >
-                            <div className="flex items-start gap-3">
-                              <div className="w-9 h-9 rounded-lg bg-navy/8 flex items-center justify-center text-navy group-hover:bg-[#14532D] group-hover:text-white transition-colors shrink-0">
-                                <DepartmentIcon name={child.icon} className="w-4.5 h-4.5" />
-                              </div>
-                              <div className="min-w-0">
-                                <div className="font-semibold text-xs sm:text-sm text-navy mb-1 leading-tight group-hover:text-[#14532D] transition-colors">
-                                  {child.label}
-                                </div>
-                                <div className="text-xs text-muted-foreground line-clamp-2">
-                                  {child.description}
-                                </div>
-                              </div>
-                            </div>
-                          </button>
-                        ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
 
         {/* ── Search Bar Dropdown ──────────────────────────────────────── */}
         <AnimatePresence>
@@ -456,7 +608,7 @@ export function Header() {
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: "auto" }}
               exit={{ opacity: 0, height: 0 }}
-              className="border-t border-navy/8 overflow-hidden bg-white"
+              className="border-t border-[#E2E8F0] overflow-hidden bg-white"
             >
               <div className="w-full max-w-[1920px] mx-auto px-6 py-4">
                 <div className="relative max-w-2xl mx-auto">
@@ -464,8 +616,8 @@ export function Header() {
                   <input
                     autoFocus
                     type="search"
-                    placeholder="Search programs, departments, faculty, events..."
-                    className="w-full pl-11 pr-4 py-3 rounded-full border-2 border-navy/10 focus:border-[#14532D] focus:outline-none text-sm"
+                    placeholder="Search programmes, departments, faculty, examinations, calendar..."
+                    className="w-full pl-11 pr-4 py-3 rounded-full border-2 border-slate-200 focus:border-[#14532D] focus:outline-none text-sm"
                   />
                 </div>
               </div>
@@ -474,7 +626,7 @@ export function Header() {
         </AnimatePresence>
       </header>
 
-      {/* ── Responsive Mobile Navigation Drawer (< xl) ───────────────────── */}
+      {/* ── 3. Responsive Mobile Navigation Drawer (< xl) ────────────────── */}
       <AnimatePresence>
         {mobileOpen && (
           <>
@@ -493,12 +645,12 @@ export function Header() {
               className="fixed right-0 top-0 bottom-0 w-[88%] max-w-sm sm:max-w-md bg-white z-50 xl:hidden flex flex-col shadow-2xl"
             >
               {/* Drawer Header */}
-              <div className="flex items-center justify-between p-4 sm:p-5 border-b border-navy/8">
+              <div className="flex items-center justify-between p-4 sm:p-5 border-b border-slate-100">
                 <Logo variant="dark" onClick={() => { setMobileOpen(false); goHome(); }} />
                 <button
                   aria-label="Close menu"
                   onClick={() => setMobileOpen(false)}
-                  className="w-10 h-10 min-w-[40px] min-h-[40px] rounded-full flex items-center justify-center text-navy hover:bg-navy/5 cursor-pointer"
+                  className="w-10 h-10 min-w-[40px] min-h-[40px] rounded-full flex items-center justify-center text-navy hover:bg-slate-100 cursor-pointer"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -510,43 +662,44 @@ export function Header() {
                   variants={staggerContainer}
                   initial="hidden"
                   animate="show"
-                  className="flex flex-col gap-0.5"
+                  className="flex flex-col gap-1"
                 >
-                  {navItems.map((item) => {
-                    const hasChildren = Boolean(item.children && item.children.length > 0);
-                    const isExpanded = expandedMobileItem === item.label;
+                  {navSections.map((section) => {
+                    const hasChildren = Boolean(section.children && section.children.length > 0);
+                    const isExpanded = expandedMobileItem === section.label;
+                    const isCurrentActive = isItemActive(section);
 
                     return (
                       <motion.div
                         variants={staggerItem}
-                        key={item.label}
-                        className="border-b border-navy/5 last:border-0"
+                        key={section.label}
+                        className="border-b border-slate-100 last:border-0"
                       >
                         <button
                           onClick={() => {
                             if (hasChildren) {
-                              setExpandedMobileItem(isExpanded ? null : item.label);
+                              setExpandedMobileItem(isExpanded ? null : section.label);
                             } else {
                               setMobileOpen(false);
-                              if (item.action) item.action();
+                              if (section.action) section.action();
                             }
                           }}
-                          className="w-full flex items-center justify-between py-3 px-2 font-semibold text-navy text-sm sm:text-base min-h-[44px] hover:bg-navy/5 rounded-xl transition-colors cursor-pointer"
+                          className="w-full flex items-center justify-between py-3 px-2 font-semibold text-navy text-sm sm:text-base min-h-[44px] hover:bg-slate-50 rounded-xl transition-colors cursor-pointer"
                         >
-                          <span className={isActive(item) ? "text-[#14532D] font-bold" : ""}>
-                            {item.label}
+                          <span className={isCurrentActive ? "text-[#14532D] font-bold" : ""}>
+                            {section.label}
                           </span>
                           {hasChildren && (
                             <ChevronDown
                               className={cn(
                                 "w-4 h-4 text-muted-foreground transition-transform duration-200",
-                                isExpanded && "rotate-180 text-navy"
+                                isExpanded && "rotate-180 text-[#14532D]"
                               )}
                             />
                           )}
                         </button>
 
-                        {/* Interactive Accordion for Child Items */}
+                        {/* Interactive Accordion for Sub-items */}
                         <AnimatePresence>
                           {hasChildren && isExpanded && (
                             <motion.div
@@ -554,24 +707,31 @@ export function Header() {
                               animate={{ height: "auto", opacity: 1 }}
                               exit={{ height: 0, opacity: 0 }}
                               transition={{ duration: 0.2 }}
-                              className="overflow-hidden pb-2 pl-3 flex flex-col gap-1"
+                              className="overflow-hidden pb-2 pl-2 flex flex-col gap-1"
                             >
-                              {item.children?.map((child, idx) => (
-                                <button
-                                  key={idx}
-                                  onClick={() => {
-                                    setMobileOpen(false);
-                                    child.action();
-                                  }}
-                                  className="flex items-start gap-2.5 px-3 py-2 rounded-xl text-xs sm:text-sm text-muted-foreground hover:text-navy hover:bg-navy/5 text-left min-h-[40px] cursor-pointer"
-                                >
-                                  <DepartmentIcon name={child.icon} className="w-4 h-4 mt-0.5 text-[#14532D] shrink-0" />
-                                  <span className="min-w-0">
-                                    <span className="block text-navy font-medium leading-tight">{child.label}</span>
-                                    <span className="text-[11px] text-slate-500 line-clamp-1">{child.description}</span>
-                                  </span>
-                                </button>
-                              ))}
+                              {section.children?.map((child, idx) => {
+                                const Icon = child.icon;
+                                return (
+                                  <button
+                                    key={idx}
+                                    onClick={() => {
+                                      setMobileOpen(false);
+                                      child.action();
+                                    }}
+                                    className="flex items-start gap-2.5 px-3 py-2 rounded-xl text-xs sm:text-sm text-slate-600 hover:text-[#14532D] hover:bg-emerald-50/60 text-left min-h-[40px] cursor-pointer"
+                                  >
+                                    <Icon className="w-4 h-4 mt-0.5 text-[#14532D] shrink-0" />
+                                    <span className="min-w-0">
+                                      <span className="block text-navy font-medium leading-tight">
+                                        {child.label}
+                                      </span>
+                                      <span className="text-[11px] text-slate-500 line-clamp-1">
+                                        {child.description}
+                                      </span>
+                                    </span>
+                                  </button>
+                                );
+                              })}
                             </motion.div>
                           )}
                         </AnimatePresence>
@@ -582,17 +742,17 @@ export function Header() {
               </div>
 
               {/* Drawer Footer */}
-              <div className="p-4 sm:p-5 border-t border-navy/8 space-y-3 bg-slate-50/50">
+              <div className="p-4 sm:p-5 border-t border-slate-100 space-y-3 bg-slate-50/60">
                 <PremiumButton
                   variant="gold"
-                  className="w-full justify-center"
+                  className="w-full justify-center shadow-xs"
                   onClick={() => {
                     setMobileOpen(false);
                     goAdmissions();
                   }}
                   icon={<ArrowRight className="w-4 h-4" />}
                 >
-                  Apply Now
+                  Apply for Admissions
                 </PremiumButton>
 
                 <div className="pt-2 flex items-center justify-center gap-4 text-xs text-slate-500">
