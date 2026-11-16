@@ -632,19 +632,33 @@ export function WhyChooseUs() {
 /* ============== Campus Facilities ============== */
 const featuredFacilities = [
   {
-    title: "Digital Library & Research Learning Centre",
+    title: "Digital Library & Research Learning",
     subtitle: "Knowledge Gateway",
-    description: "An expansive resource center with over 500,000 physical volumes, 24/7 subscriptions to international journals (INFLIBNET N-LIST, IEEE, Springer), quiet individual research pods, and collaborative group study suites.",
-    image: "https://images.unsplash.com/photo-1521587760476-6c12a4b040da?auto=format&fit=crop&w=1200&q=80",
-    features: ["500k+ Books & Journals", "Air-Conditioned Pods", "Digital Archives", "Automated RFID"],
+    description:
+      "An expansive academic resource hub housing over 25,000 physical volumes, 24/7 digital subscriptions to international journals (INFLIBNET N-LIST, DELNET, IEEE), individual research carrels, and collaborative study pods.",
+    image:
+      "https://images.unsplash.com/photo-1521587760476-6c12a4b040da?auto=format&fit=crop&w=1200&q=80",
+    features: [
+      "25,000+ Print & E-Volumes",
+      "Automated RFID Cataloging",
+      "INFLIBNET & DELNET Access",
+      "Air-Conditioned Study Pods",
+    ],
     icon: BookOpen,
   },
   {
-    title: "High-Performance Computing & AI Laboratories",
+    title: "High-Performance Computing & AI Infrastructure",
     subtitle: "Innovation Infrastructure",
-    description: "State-of-the-art computer science and engineering laboratories equipped with workstation clusters, GPU accelerators, dedicated cloud access, and modern development software suites.",
-    image: "https://images.unsplash.com/photo-1531403009284-440f080d1e12?auto=format&fit=crop&w=1200&q=80",
-    features: ["GPU Compute Workstations", "Gigabit LAN Backbone", "AI & Robotics Kits", "Linux / Windows Dual Boot"],
+    description:
+      "State-of-the-art computer science and engineering laboratories equipped with 350+ workstation clusters, dedicated GPU compute accelerators for artificial intelligence and machine learning, and enterprise software suites.",
+    image:
+      "https://images.unsplash.com/photo-1531403009284-440f080d1e12?auto=format&fit=crop&w=1200&q=80",
+    features: [
+      "350+ Intel i7 Workstations",
+      "GPU Compute Accelerators",
+      "Gigabit LAN Network",
+      "Linux & Windows Dual Boot",
+    ],
     icon: Cpu,
   },
 ];
@@ -652,66 +666,92 @@ const featuredFacilities = [
 const supportingFacilities = [
   {
     title: "Smart Classrooms",
-    description: "Equipped with interactive smartboards, high-speed audio-visual systems, and hybrid lecture capture.",
-    image: "https://images.unsplash.com/photo-1580582932707-520aed937b7b?auto=format&fit=crop&w=600&q=80",
+    category: "Academic",
+    description:
+      "Spacious, ergonomically designed lecture halls equipped with interactive smartboards, high-definition audio-visual projection, and hybrid lecture capture systems.",
+    image:
+      "https://images.unsplash.com/photo-1580582932707-520aed937b7b?auto=format&fit=crop&w=800&q=80",
+    highlight: "45+ Digitally Enabled Halls",
     icon: Monitor,
   },
   {
     title: "Sports & Athletics Arena",
-    description: "Multi-purpose sports pavilion, football grounds, basketball courts, badminton arena, and fitness gyms.",
-    image: "https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&w=600&q=80",
+    category: "Sports & Fitness",
+    description:
+      "Expansive sports pavilion featuring standard football grounds, cricket pitches, floodlit volleyball courts, indoor badminton arena, and a modern fitness gym.",
+    image:
+      "https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&w=800&q=80",
+    highlight: "Multi-Sport Pavilion & Gym",
     icon: Trophy,
   },
   {
     title: "College Transportation Fleet",
-    description: "Comprehensive fleet of buses connecting campus to all major Coimbatore hubs with real-time GPS tracking.",
-    image: "https://images.unsplash.com/photo-1570125909232-eb263c188f7e?auto=format&fit=crop&w=600&q=80",
+    category: "Campus Services",
+    description:
+      "Comprehensive fleet of institutional buses connecting the campus to all major Coimbatore arterial hubs, Tirupur, and Pollachi with real-time GPS tracking.",
+    image:
+      "https://images.unsplash.com/photo-1570125909232-eb263c188f7e?auto=format&fit=crop&w=800&q=80",
+    highlight: "15+ Arterial Routes · GPS Tracking",
     icon: Bus,
   },
   {
     title: "Hygienic Dining & Cafeteria",
-    description: "Spacious food courts offering hygienic, nutritious, and balanced meals adhering to certified food safety standards.",
-    image: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=600&q=80",
+    category: "Student Life",
+    description:
+      "Spacious dining commons offering hygienic, balanced South and North Indian meals, healthy refreshments, and purified RO drinking water under strict FSSAI standards.",
+    image:
+      "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=800&q=80",
+    highlight: "300+ Seating · FSSAI Certified",
     icon: Utensils,
   },
   {
-    title: "High-Speed 10 Gbps Campus Wi-Fi",
-    description: "Seamless wireless network coverage spanning across academic blocks, departments, labs, and student lawns.",
-    image: "https://images.unsplash.com/photo-1544197150-b99a580bb7a8?auto=format&fit=crop&w=600&q=80",
+    title: "High-Speed Campus Wi-Fi & Network",
+    category: "Connectivity",
+    description:
+      "High-speed dedicated leased-line network backbone with seamless wireless coverage spanning across academic blocks, departments, laboratories, and student open greens.",
+    image:
+      "https://images.unsplash.com/photo-1544197150-b99a580bb7a8?auto=format&fit=crop&w=800&q=80",
+    highlight: "Dedicated Leased-Line Coverage",
     icon: Wifi,
   },
   {
     title: "Auditoriums & Seminar Halls",
-    description: "Acoustically engineered air-conditioned halls with 1,500+ seating for international conferences and events.",
-    image: "https://images.unsplash.com/photo-1475721027785-f74eccf877e2?auto=format&fit=crop&w=600&q=80",
+    category: "Events & Culture",
+    description:
+      "Acoustically engineered air-conditioned main auditorium with 1,200+ seating capacity and multimedia seminar halls for university symposiums and conferences.",
+    image:
+      "https://images.unsplash.com/photo-1475721027785-f74eccf877e2?auto=format&fit=crop&w=800&q=80",
+    highlight: "1,200+ Seating Capacity",
     icon: Building2,
   },
 ];
 
 export function CampusFacilities() {
   const shouldReduceMotion = useReducedMotion();
+  const { goFacilities } = useNav();
+
   return (
-    <section id="facilities" className="relative py-14 sm:py-20 lg:py-24 bg-[#F5F7F1] border-t border-[#E2E8F0]/80 overflow-hidden">
+    <section id="facilities" className="relative py-16 sm:py-20 lg:py-28 bg-[#F4FAF4] border-t border-[#E2E8F0]/80 overflow-hidden">
       <div className="container mx-auto px-4 sm:px-6 relative z-10">
         
         {/* Section Header */}
         <Reveal>
-          <div className="text-center max-w-3xl mx-auto mb-12 sm:mb-16">
-            <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-[#C8E6C9] bg-white text-[#14532D] text-xs font-bold uppercase tracking-widest mb-4 shadow-2xs">
+          <div className="text-center max-w-3xl mx-auto mb-14 sm:mb-18">
+            <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-[#2E7D32]/25 bg-white text-[#14532D] text-xs font-bold uppercase tracking-widest mb-4 shadow-2xs">
               <Building2 className="w-3.5 h-3.5 text-[#2E7D32]" />
               Campus Infrastructure & Spaces
             </span>
             <h2 className="font-serif font-bold text-[#14532D] text-3xl sm:text-4xl lg:text-5xl leading-tight tracking-tight mb-4">
               World-Class Learning Environments
             </h2>
-            <p className="text-[#374151] text-base sm:text-lg leading-relaxed">
+            <p className="text-[#475569] text-base sm:text-lg leading-relaxed font-normal">
               Designed to support comprehensive academic discovery, holistic personal growth, ethical leadership, and student well-being.
             </p>
           </div>
         </Reveal>
 
-        {/* ── 1. Top Featured Asymmetric Facilities (2 Large Featured Hubs) ── */}
-        <div className="grid lg:grid-cols-2 gap-8 mb-8">
+        {/* ── PART A: Featured Campus Facilities (Two Large Prominent Hubs) ── */}
+        <div className="grid lg:grid-cols-2 gap-8 lg:gap-10 mb-14 sm:mb-16">
           {featuredFacilities.map((fac, idx) => {
             const Icon = fac.icon;
             return (
@@ -720,49 +760,71 @@ export function CampusFacilities() {
                 initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 25 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-60px" }}
-                transition={{ duration: 0.6, delay: shouldReduceMotion ? 0 : idx * 0.15, ease: "easeOut" }}
-                className="group rounded-3xl overflow-hidden bg-white border border-[#E2E8F0] shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col"
+                transition={{
+                  duration: 0.55,
+                  delay: shouldReduceMotion ? 0 : idx * 0.12,
+                  ease: "easeOut",
+                }}
+                onClick={goFacilities}
+                className="group rounded-2xl sm:rounded-3xl overflow-hidden bg-white border border-slate-200/90 hover:border-[#14532D]/30 shadow-xs hover:shadow-xl transition-all duration-300 flex flex-col justify-between cursor-pointer"
               >
-                {/* Visual Area */}
-                <div className="relative h-64 sm:h-72 overflow-hidden bg-slate-900">
+                {/* Visual Image Area (55–60% space) */}
+                <div className="relative aspect-[16/10] overflow-hidden bg-slate-900">
                   <img
                     src={fac.image}
                     alt={fac.title}
                     onError={(e) => {
-                      (e.currentTarget as HTMLImageElement).src = "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&w=1200&q=80";
+                      (e.currentTarget as HTMLImageElement).src =
+                        "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&w=1200&q=80";
                     }}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                    className="w-full h-full object-cover group-hover:scale-104 transition-transform duration-700 ease-out"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent pointer-events-none" />
-                  
-                  {/* Category Pill */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/60 via-slate-950/10 to-transparent pointer-events-none" />
+
+                  {/* Category Label */}
                   <div className="absolute top-4 left-4">
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/95 backdrop-blur-md text-xs font-bold text-[#14532D] shadow-sm">
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/95 backdrop-blur-md text-[11px] font-bold text-[#14532D] uppercase tracking-wider shadow-2xs">
                       <Icon className="w-3.5 h-3.5 text-[#2E7D32]" />
                       {fac.subtitle}
                     </span>
                   </div>
                 </div>
 
-                {/* Content */}
+                {/* Content Area */}
                 <div className="p-6 sm:p-8 flex-1 flex flex-col justify-between">
                   <div>
-                    <h3 className="font-serif font-bold text-[#14532D] text-xl sm:text-2xl mb-3 group-hover:text-[#166534] transition-colors leading-snug">
+                    <h3 className="font-serif font-bold text-xl sm:text-2xl text-[#14532D] group-hover:text-[#2E7D32] transition-colors leading-snug mb-3">
                       {fac.title}
                     </h3>
-                    <p className="text-[#374151] text-sm leading-relaxed mb-6 font-normal">
+                    <p className="text-sm text-[#475569] leading-relaxed mb-6 font-normal">
                       {fac.description}
                     </p>
                   </div>
 
-                  {/* Feature Checklist Pills */}
-                  <div className="grid grid-cols-2 gap-2 pt-4 border-t border-gray-100">
-                    {fac.features.map((feat) => (
-                      <div key={feat} className="flex items-center gap-2 text-xs text-[#26352B] font-semibold">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-[#2E7D32] shrink-0" />
-                        <span>{feat}</span>
-                      </div>
-                    ))}
+                  <div>
+                    {/* Feature Checklist Pills */}
+                    <div className="grid grid-cols-2 gap-2.5 py-4 border-t border-slate-100">
+                      {fac.features.map((feat) => (
+                        <div
+                          key={feat}
+                          className="flex items-center gap-2 text-xs text-[#1e293b] font-medium"
+                        >
+                          <CheckCircle2 className="w-3.5 h-3.5 text-[#2E7D32] shrink-0" />
+                          <span className="truncate">{feat}</span>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Explore Link */}
+                    <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
+                      <span className="text-xs text-slate-500 font-medium">
+                        Explore Facility &amp; Specifications
+                      </span>
+                      <span className="inline-flex items-center gap-1.5 text-xs font-bold text-[#14532D] group-hover:text-[#2E7D32] transition-colors">
+                        <span>Explore More</span>
+                        <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform duration-200" />
+                      </span>
+                    </div>
                   </div>
                 </div>
               </motion.div>
@@ -770,48 +832,100 @@ export function CampusFacilities() {
           })}
         </div>
 
-        {/* ── 2. Supporting Facilities (Balanced 3-Column Grid) ── */}
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        {/* ── PART B: Other Campus Facilities (Sub-heading & Six Compact Cards) ── */}
+        <div className="mb-8 border-b border-slate-200/80 pb-4 flex flex-col sm:flex-row sm:items-end justify-between gap-3">
+          <div>
+            <span className="text-xs font-bold uppercase tracking-widest text-[#2E7D32]">
+              Campus Resources
+            </span>
+            <h3 className="font-serif font-bold text-2xl sm:text-3xl text-[#14532D] mt-1">
+              More Campus Facilities
+            </h3>
+          </div>
+          <button
+            onClick={goFacilities}
+            className="inline-flex items-center gap-1.5 text-xs font-bold text-[#14532D] hover:text-[#2E7D32] transition-colors self-start sm:self-auto group cursor-pointer"
+          >
+            <span>View All Facilities</span>
+            <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+          </button>
+        </div>
+
+        {/* Six Compact Cards Grid (3-Column Desktop, 2-Column Tablet, 1-Column Mobile) */}
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-7">
           {supportingFacilities.map((fac, idx) => {
-            const Icon = fac.icon;
             return (
               <motion.div
                 key={fac.title}
                 initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-50px" }}
-                transition={{ duration: 0.5, delay: shouldReduceMotion ? 0 : idx * 0.08, ease: "easeOut" }}
-                className="group rounded-2xl overflow-hidden bg-white border border-[#E2E8F0] hover:border-[#14532D]/40 shadow-xs hover:shadow-md transition-all duration-300 flex flex-col h-full"
+                transition={{
+                  duration: 0.5,
+                  delay: shouldReduceMotion ? 0 : idx * 0.07,
+                  ease: "easeOut",
+                }}
+                onClick={goFacilities}
+                className="group rounded-2xl overflow-hidden bg-white border border-slate-200/90 hover:border-[#14532D]/30 shadow-xs hover:shadow-md transition-all duration-300 flex flex-col justify-between cursor-pointer h-full"
               >
-                <div className="relative h-44 overflow-hidden bg-slate-900">
+                {/* Landscape Image */}
+                <div className="relative aspect-[16/10] overflow-hidden bg-slate-900">
                   <img
                     src={fac.image}
                     alt={fac.title}
                     onError={(e) => {
-                      (e.currentTarget as HTMLImageElement).src = "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&w=800&q=80";
+                      (e.currentTarget as HTMLImageElement).src =
+                        "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&w=800&q=80";
                     }}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    className="w-full h-full object-cover group-hover:scale-104 transition-transform duration-500 ease-out"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent pointer-events-none" />
-                  
-                  {/* Floating Icon */}
-                  <div className="absolute top-3.5 right-3.5 w-9 h-9 rounded-xl bg-white/95 backdrop-blur-md shadow-xs flex items-center justify-center text-[#14532D] group-hover:bg-[#14532D] group-hover:text-white transition-colors">
-                    <Icon className="w-4 h-4" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/40 via-transparent to-transparent pointer-events-none" />
+
+                  {/* Category Pill */}
+                  <div className="absolute top-3 left-3">
+                    <span className="px-2.5 py-0.5 rounded-full bg-white/90 backdrop-blur-xs text-[10px] font-bold text-[#14532D] uppercase tracking-wider shadow-2xs">
+                      {fac.category}
+                    </span>
                   </div>
                 </div>
-                <div className="p-5 flex-1 flex flex-col justify-between">
+
+                {/* Card Body */}
+                <div className="p-5 sm:p-6 flex-1 flex flex-col justify-between">
                   <div>
-                    <h4 className="font-serif font-bold text-[#14532D] text-base mb-1.5 group-hover:text-[#166534] transition-colors">
+                    <h4 className="font-serif font-bold text-lg text-[#14532D] group-hover:text-[#2E7D32] transition-colors leading-snug mb-2">
                       {fac.title}
                     </h4>
-                    <p className="text-xs text-[#374151] leading-relaxed font-normal">
+                    <p className="text-xs sm:text-sm text-[#475569] leading-relaxed font-normal mb-4">
                       {fac.description}
                     </p>
+                  </div>
+
+                  {/* Card Footer */}
+                  <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+                    <span className="text-[11px] font-semibold text-slate-500 truncate mr-2">
+                      {fac.highlight}
+                    </span>
+                    <span className="inline-flex items-center gap-1 font-bold text-[#14532D] group-hover:text-[#2E7D32] transition-colors shrink-0">
+                      <span>Explore</span>
+                      <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+                    </span>
                   </div>
                 </div>
               </motion.div>
             );
           })}
+        </div>
+
+        {/* Bottom Comprehensive Facilities Action Bar */}
+        <div className="mt-14 text-center">
+          <PremiumButton
+            variant="gold"
+            size="lg"
+            onClick={goFacilities}
+            icon={<ArrowRight className="w-4 h-4" />}
+          >
+            Explore Complete Campus Facilities Dossier
+          </PremiumButton>
         </div>
 
       </div>
