@@ -41,6 +41,16 @@ const NEWS_TO_FILTER_MAP: Record<string, FilterCategory> = {
   Events:            "Events",
 };
 
+// ─── Default fallback images ──────────────────────────────────────────────────
+const DEFAULT_FALLBACK_IMAGE = "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&w=1200&q=80";
+
+function getArticleImage(img?: string): string {
+  if (!img || typeof img !== "string" || img.trim().length === 0) {
+    return DEFAULT_FALLBACK_IMAGE;
+  }
+  return img;
+}
+
 // ─── Fallback news ────────────────────────────────────────────────────────────
 
 const FALLBACK_NEWS: NewsArticle[] = [
@@ -182,15 +192,15 @@ export function NewsEventsSection() {
         <Reveal>
           <div className="text-center mb-8 sm:mb-10">
             {/* Eyebrow pill */}
-            <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-[#DCE8DE] bg-[#F1F8F2] text-[#2E7D32] text-xs font-bold uppercase tracking-widest mb-5 shadow-xs">
-              <span className="w-2 h-2 rounded-full bg-[#2E7D32] animate-pulse" />
+            <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-[#C8E6C9] bg-white text-[#15803D] text-xs font-bold uppercase tracking-widest mb-5 shadow-sm">
+              <span className="w-2 h-2 rounded-full bg-[#15803D] animate-pulse" />
               Latest from BAC
             </span>
 
             <h2 className="font-serif font-bold text-[#14532D] text-4xl sm:text-5xl lg:text-6xl leading-tight tracking-tight mb-4">
               News &amp; Events
             </h2>
-            <p className="text-[#68766C] text-base sm:text-lg max-w-2xl mx-auto leading-relaxed">
+            <p className="text-[#374151] text-base sm:text-lg max-w-2xl mx-auto leading-relaxed">
               Stay updated with the latest news, events, achievements, and activities at BAC Global University.
             </p>
           </div>
@@ -206,8 +216,8 @@ export function NewsEventsSection() {
                 className={cn(
                   "px-5 py-2 rounded-full text-sm font-semibold border transition-all duration-200 cursor-pointer",
                   activeFilter === cat
-                    ? "bg-[#2E7D32] text-white border-[#2E7D32] shadow-sm"
-                    : "bg-white text-[#26352B] border-[#DCE8DE] hover:border-[#2E7D32] hover:bg-[#F1F8F2]"
+                    ? "bg-[#14532D] text-white border-[#14532D] shadow-sm"
+                    : "bg-white text-[#374151] border-gray-200 hover:border-[#14532D]/50 hover:bg-emerald-50/50"
                 )}
               >
                 {cat}
@@ -230,34 +240,48 @@ export function NewsEventsSection() {
               className="group rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer bg-white flex flex-col"
             >
               {/* Large Image */}
-              <div className="relative h-[280px] sm:h-[340px] overflow-hidden bg-slate-100">
+              <div className="relative h-[280px] sm:h-[360px] overflow-hidden bg-slate-900">
                 <img
-                  src={featured.image}
+                  src={getArticleImage(featured.image)}
                   alt={featured.title}
+                  onError={(e) => {
+                    (e.currentTarget as HTMLImageElement).src = DEFAULT_FALLBACK_IMAGE;
+                  }}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent pointer-events-none" />
                 {/* Featured label badge */}
                 <div className="absolute top-4 left-4">
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/90 backdrop-blur-sm text-xs font-bold text-[#14532D] shadow-sm border border-white/80">
-                    <Newspaper className="w-3.5 h-3.5" />
+                  <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white/95 backdrop-blur-md text-xs font-bold text-[#14532D] shadow-sm border border-white/80">
+                    <Newspaper className="w-3.5 h-3.5 text-[#2E7D32]" />
                     Featured Story
                   </span>
                 </div>
               </div>
 
               {/* Content */}
-              <div className="p-6 sm:p-7 flex flex-col flex-1">
-                <h3 className="font-serif font-bold text-[#14532D] text-2xl sm:text-3xl leading-tight mb-3 group-hover:text-[#166534] transition-colors">
-                  {featured.title}
-                </h3>
-                <p className="text-[#374151] text-sm leading-relaxed mb-5 line-clamp-3 flex-1">
-                  {featured.excerpt}
-                </p>
-                <div className="flex items-center justify-between">
+              <div className="p-6 sm:p-8 flex flex-col flex-1">
+                <div className="flex items-center gap-3 mb-3">
+                  <span className={cn(
+                    "inline-block text-[11px] font-bold px-3 py-1 rounded-full",
+                    CATEGORY_BADGE[featured.category]?.color || "text-[#15803D] bg-[#F0FDF4] border border-[#BBF7D0]"
+                  )}>
+                    {CATEGORY_BADGE[featured.category]?.label || featured.category}
+                  </span>
                   <span className="inline-flex items-center gap-1.5 text-xs text-[#6B7280] font-medium">
                     <Calendar className="w-3.5 h-3.5 text-[#166534]" />
                     {featured.date}
+                  </span>
+                </div>
+                <h3 className="font-serif font-bold text-[#14532D] text-2xl sm:text-3xl leading-tight mb-3 group-hover:text-[#166534] transition-colors">
+                  {featured.title}
+                </h3>
+                <p className="text-[#374151] text-sm leading-relaxed mb-6 line-clamp-3 flex-1">
+                  {featured.excerpt}
+                </p>
+                <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+                  <span className="text-xs text-[#6B7280] font-medium">
+                    Bishop Ambrose College Campus Press
                   </span>
                   <button
                     onClick={(e) => { e.stopPropagation(); goEvents(); }}
@@ -280,13 +304,16 @@ export function NewsEventsSection() {
                   viewport={{ once: true, margin: "-60px" }}
                   transition={{ duration: 0.5, delay: shouldReduceMotion ? 0 : idx * 0.1, ease: "easeOut" }}
                   onClick={goEvents}
-                  className="group flex items-center gap-4 p-4 rounded-2xl border border-gray-100 bg-white shadow-sm hover:shadow-md hover:border-[#C8E6C9] transition-all duration-300 cursor-pointer"
+                  className="group flex items-center gap-4 p-4 sm:p-5 rounded-2xl border border-gray-100 bg-white shadow-xs hover:shadow-md hover:border-[#C8E6C9] transition-all duration-300 cursor-pointer flex-1"
                 >
                   {/* Thumbnail */}
-                  <div className="relative w-24 h-20 sm:w-28 sm:h-24 rounded-xl overflow-hidden shrink-0 bg-slate-100">
+                  <div className="relative w-28 h-24 sm:w-32 sm:h-26 rounded-xl overflow-hidden shrink-0 bg-slate-900">
                     <img
-                      src={article.image}
+                      src={getArticleImage(article.image)}
                       alt={article.title}
+                      onError={(e) => {
+                        (e.currentTarget as HTMLImageElement).src = DEFAULT_FALLBACK_IMAGE;
+                      }}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     />
                   </div>
@@ -295,12 +322,12 @@ export function NewsEventsSection() {
                   <div className="flex-1 min-w-0">
                     {/* Category badge */}
                     <span className={cn(
-                      "inline-block text-[10px] font-bold px-2.5 py-0.5 rounded-full mb-2",
+                      "inline-block text-[10px] font-bold px-2.5 py-0.5 rounded-full mb-1.5",
                       CATEGORY_BADGE[article.category]?.color || "text-[#15803D] bg-[#F0FDF4] border border-[#BBF7D0]"
                     )}>
                       {CATEGORY_BADGE[article.category]?.label || article.category}
                     </span>
-                    <h4 className="font-serif font-bold text-[#14532D] text-sm leading-snug mb-2 line-clamp-2 group-hover:text-[#166534] transition-colors">
+                    <h4 className="font-serif font-bold text-[#14532D] text-sm sm:text-base leading-snug mb-2 line-clamp-2 group-hover:text-[#166534] transition-colors">
                       {article.title}
                     </h4>
                     <div className="flex items-center justify-between">
@@ -331,7 +358,7 @@ export function NewsEventsSection() {
                 viewport={{ once: true, margin: "-60px" }}
                 transition={{ duration: 0.5, delay: shouldReduceMotion ? 0 : idx * 0.1, ease: "easeOut" }}
                 onClick={goEvents}
-                className="group rounded-2xl border border-gray-100 bg-white shadow-sm hover:shadow-md hover:border-[#C8E6C9] transition-all duration-300 cursor-pointer flex flex-col p-5"
+                className="group rounded-2xl border border-gray-100 bg-white shadow-xs hover:shadow-md hover:border-[#C8E6C9] transition-all duration-300 cursor-pointer flex flex-col p-5"
               >
                 {/* Top row: category tag + date */}
                 <div className="flex items-center justify-between mb-3">
@@ -369,7 +396,7 @@ export function NewsEventsSection() {
                       {(article as any).eventDate}
                     </span>
                   ) : (
-                    <span />
+                    <span className="text-[11px] text-[#9CA3AF]">Bishop Ambrose College</span>
                   )}
 
                   <span className="inline-flex items-center gap-1 text-xs font-bold text-[#374151] group-hover:text-[#15803D] group-hover:gap-1.5 transition-all">

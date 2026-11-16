@@ -22,24 +22,24 @@ export function About() {
   const aboutPage = data?.aboutPage || {
     hero: {
       enabled: true,
-      badgeText: "ABOUT BAC",
-      heading: "A globally connected university shaping tomorrow's leaders",
-      description: "Founded in 1984, BAC Global University blends the rigor of a research institution with the warmth of a close-knit campus community — preparing 20,000+ students to lead with excellence, empathy, and impact."
+      badgeText: "ABOUT BISHOP AMBROSE COLLEGE",
+      heading: "Rooted in Faith, Growing in Excellence",
+      description: "Founded in 1994 by the Catholic Diocese of Coimbatore, Bishop Ambrose College has spent over three decades delivering transformative, values-based education to empower future generations."
     },
     legacy: {
       enabled: true,
-      accentLabel: "OUR STORY & FOUNDATION",
-      heading: "A Legacy of Innovation and Excellence",
+      accentLabel: "OUR HERITAGE & DIOCESAN FOUNDATION",
+      heading: "Three Decades of Ethical Leadership and Learning",
       paragraphs: [
-        "What began as a small engineering college in 1984 has grown into one of Asia's most respected research universities. BAC was founded on a simple conviction: that an education rooted in critical inquiry, hands-on research, and global exposure could transform not just individual lives but entire communities. Four decades later, that conviction has produced 85,000+ alumni across 80 countries, three campuses, and a research portfolio that ranks among the world's best.",
-        "Today, BAC is recognised by QS, THE, and the world's leading accreditation bodies. We are a member of the Association of Pacific Rim Universities, and our partnerships span Stanford, MIT, Oxford, Cambridge, NUS, and ETH Zurich — giving every BAC student the opportunity to learn from and contribute to the global academic community.",
-        "Through state-of-the-art research facilities, world-class faculty, and industry-connected programs, BAC empowers students to solve real-world problems and shape the future with intellectual curiosity and ethical leadership."
+        "Established in 1994 under the visionary leadership of the Catholic Diocese of Coimbatore, Bishop Ambrose College was founded on a steadfast commitment: that higher education grounded in moral values, intellectual inquiry, and inclusive accessibility can transform lives and elevate communities.",
+        "Over thirty years of dedicated service, the college has evolved into a premier autonomous institution affiliated with Bharathiar University. Today, our campus nurtures thousands of young men and women across cutting-edge programs in Computer Science, Commerce, Management, Life Sciences, and the Humanities.",
+        "With state-of-the-art laboratories, a vibrant sports infrastructure, active NSS/NCC units, and a dedicated career guidance cell, Bishop Ambrose College provides students with the competencies and ethical compass required to thrive in a rapidly changing world."
       ],
       image: {
         url: "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&w=1200&q=80",
-        altText: "BAC University Knowledge City Campus",
-        caption: "200 acres of learning & discovery",
-        badge: "Knowledge City Campus"
+        altText: "Bishop Ambrose College Campus",
+        caption: "A vibrant learning community rooted in values",
+        badge: "Bishop Ambrose Campus"
       }
     },
     additionalSections: []
@@ -47,21 +47,21 @@ export function About() {
 
   const hero = aboutPage.hero || {
     enabled: true,
-    badgeText: "ABOUT BAC",
-    heading: "A globally connected university shaping tomorrow's leaders",
-    description: "Founded in 1984, BAC Global University blends the rigor of a research institution with the warmth of a close-knit campus community — preparing 20,000+ students to lead with excellence, empathy, and impact."
+    badgeText: "ABOUT BISHOP AMBROSE COLLEGE",
+    heading: "Rooted in Faith, Growing in Excellence",
+    description: "Founded in 1994 by the Catholic Diocese of Coimbatore, Bishop Ambrose College has spent over three decades delivering transformative, values-based education to empower future generations."
   };
 
   const legacy = aboutPage.legacy || {
     enabled: true,
-    accentLabel: "OUR STORY & FOUNDATION",
-    heading: "A Legacy of Innovation and Excellence",
+    accentLabel: "OUR HERITAGE & DIOCESAN FOUNDATION",
+    heading: "Three Decades of Ethical Leadership and Learning",
     paragraphs: [],
     image: {
       url: "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&w=1200&q=80",
-      altText: "BAC University Knowledge City Campus",
-      caption: "200 acres of learning & discovery",
-      badge: "Knowledge City Campus"
+      altText: "Bishop Ambrose College Campus",
+      caption: "A vibrant learning community rooted in values",
+      badge: "Bishop Ambrose Campus"
     }
   };
 
@@ -69,25 +69,15 @@ export function About() {
     return null;
   }
 
-  // Format title with gold gradient highlight
-  const rawHeading = hero.heading || "A globally connected university shaping tomorrow's leaders";
+  // Format title with clean highlight
+  const rawHeading = hero.heading || "Rooted in Faith, Growing in Excellence";
   const renderTitle = () => {
-    if (rawHeading.includes("tomorrow's leaders")) {
-      const parts = rawHeading.split("tomorrow's leaders");
+    if (rawHeading.includes("Excellence")) {
+      const parts = rawHeading.split("Excellence");
       return (
         <>
           {parts[0]}
-          <span className="text-gold-gradient">tomorrow&apos;s leaders</span>
-          {parts[1]}
-        </>
-      );
-    }
-    if (rawHeading.includes("leaders")) {
-      const parts = rawHeading.split("leaders");
-      return (
-        <>
-          {parts[0]}
-          <span className="text-gold-gradient">leaders</span>
+          <span className="text-[#2E7D32]">Excellence</span>
           {parts[1]}
         </>
       );
@@ -96,274 +86,218 @@ export function About() {
   };
 
   return (
-    <section id="about" className="relative py-12 sm:py-20 lg:py-28 bg-mesh overflow-hidden">
-      <div className="absolute top-20 -right-32 w-80 h-80 blob bg-gold/15" />
-      <div className="container mx-auto px-4 sm:px-6 relative">
+    <section id="about" className="relative py-14 sm:py-20 lg:py-24 bg-[#F5F7F1] border-b border-[#E2E8F0]/80 overflow-hidden">
+      <div className="container mx-auto px-4 sm:px-6 relative z-10">
         {hero.enabled && (
-          <SectionHeading
-            eyebrow={hero.badgeText || "About BAC"}
-            title={renderTitle()}
-            description={hero.description}
-          />
+          <Reveal>
+            <div className="text-center max-w-3xl mx-auto mb-12 sm:mb-16">
+              <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-[#C8E6C9] bg-white text-[#14532D] text-xs font-bold uppercase tracking-widest mb-4 shadow-2xs">
+                <Compass className="w-3.5 h-3.5 text-[#2E7D32]" />
+                {hero.badgeText || "About Bishop Ambrose College"}
+              </span>
+              <h2 className="font-serif font-bold text-[#14532D] text-3xl sm:text-4xl lg:text-5xl leading-tight tracking-tight mb-4">
+                {renderTitle()}
+              </h2>
+              <p className="text-[#374151] text-base sm:text-lg leading-relaxed">
+                {hero.description}
+              </p>
+            </div>
+          </Reveal>
         )}
 
-        <div className="grid lg:grid-cols-2 gap-12 mt-16 items-start">
-          {/* Left: story + vision + mission */}
-          <div className="space-y-8">
-            {/* Legacy Story Card */}
+        <div className="grid lg:grid-cols-12 gap-10 lg:gap-12 items-start">
+          {/* Left: Heritage story + Vision & Mission + Values (7 cols) */}
+          <div className="lg:col-span-7 space-y-6">
+            
+            {/* Heritage Narrative Block */}
             {legacy.enabled && (
               <motion.div
-                initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 25 }}
+                initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-60px" }}
                 transition={{ duration: 0.6, ease: "easeOut" }}
-                className="bg-white/95 backdrop-blur-md border border-emerald-200/80 rounded-2xl p-6 sm:p-7 shadow-sm"
+                className="bg-white rounded-3xl p-6 sm:p-8 border border-[#E2E8F0] shadow-sm"
               >
-                <div className="divider-gold mb-4" />
                 {legacy.accentLabel && (
-                  <div className="text-xs uppercase font-bold tracking-wider text-[#166534] mb-1.5">
+                  <div className="text-xs uppercase font-bold tracking-wider text-[#166534] mb-2 flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-[#166534]" />
                     {legacy.accentLabel}
                   </div>
                 )}
-                <h3 className="font-serif text-2xl sm:text-3xl font-bold text-[#14532D] mb-3">
+                <h3 className="font-serif text-2xl sm:text-3xl font-bold text-[#14532D] mb-4 leading-snug">
                   {legacy.heading}
                 </h3>
-                <div className="space-y-4">
+                <div className="space-y-4 text-[#374151] leading-relaxed text-sm sm:text-base font-normal">
                   {legacy.paragraphs && legacy.paragraphs.length > 0 ? (
                     legacy.paragraphs.map((para, i) => (
-                      <p key={i} className="text-[#374151] leading-relaxed font-normal text-base">
+                      <p key={i}>
                         {para}
                       </p>
                     ))
                   ) : (
-                    <p className="text-[#374151] leading-relaxed font-normal text-base">
-                      BAC was founded on a simple conviction: that an education rooted in critical inquiry, hands-on research, and global exposure could transform not just individual lives but entire communities.
-                    </p>
+                    <>
+                      <p>
+                        Established in 1994 by the Catholic Diocese of Coimbatore, Bishop Ambrose College was founded on a simple conviction: that higher education grounded in moral values, intellectual rigor, and inclusive access can transform individual lives and uplift whole communities.
+                      </p>
+                      <p>
+                        Over three decades, the college has earned autonomous distinction under Bharathiar University, fostering generations of ethical professionals, civil servants, entrepreneurs, and scholars who serve society with character.
+                      </p>
+                    </>
                   )}
                 </div>
               </motion.div>
             )}
 
-            {/* Dynamic Additional Sections (e.g. Principal's Message, Vision & Mission, etc.) */}
-            {aboutPage.additionalSections &&
-              aboutPage.additionalSections.filter((s) => s.enabled).map((sec, idx) => (
-                <motion.div
-                  key={sec.id}
-                  initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 25 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: "-60px" }}
-                  transition={{ duration: 0.6, delay: shouldReduceMotion ? 0 : idx * 0.1, ease: "easeOut" }}
-                  whileHover={{ y: shouldReduceMotion ? 0 : -4, transition: { duration: 0.25, ease: "easeOut" } }}
-                  className="bg-white/95 backdrop-blur-md rounded-2xl p-6 border-l-4 border-l-[#14532D] border border-emerald-200/70 shadow-sm transition-all"
-                >
-                  <div className="flex flex-col sm:flex-row items-start gap-4">
-                    {sec.image && (
-                      <img
-                        src={sec.image}
-                        alt={sec.author || sec.title}
-                        className="w-16 h-16 rounded-full object-cover ring-2 ring-emerald-400/50 shrink-0"
-                      />
-                    )}
-                    <div>
-                      {sec.subtitle && (
-                        <div className="text-xs uppercase font-bold tracking-wider text-[#166534] mb-1">
-                          {sec.subtitle}
-                        </div>
-                      )}
-                      <h4 className="font-serif text-base font-bold text-[#14532D] mb-2">
-                        {sec.title}
-                      </h4>
-                      <blockquote className="text-sm font-serif italic text-[#1F2937] mb-2 leading-relaxed">
-                        &ldquo;{sec.content}&rdquo;
-                      </blockquote>
-                      {sec.author && (
-                        <div className="text-xs font-bold text-[#14532D]">{sec.author}</div>
-                      )}
-                      {sec.role && (
-                        <div className="text-[11px] text-[#374151] font-medium">{sec.role}</div>
-                      )}
-                    </div>
+            {/* Vision & Mission: Clean Vertical Green Accent Blocks (No generic boxy cards) */}
+            <div className="grid sm:grid-cols-2 gap-4">
+              <motion.div
+                initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 15 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-50px" }}
+                transition={{ duration: 0.5, delay: 0.1, ease: "easeOut" }}
+                className="bg-white rounded-2xl p-5 border border-[#E2E8F0] border-l-4 border-l-[#14532D] shadow-2xs hover:shadow-xs transition-shadow"
+              >
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="w-7 h-7 rounded-lg bg-[#F5F7F1] text-[#14532D] flex items-center justify-center font-bold">
+                    <Eye className="w-4 h-4" />
                   </div>
-                </motion.div>
-              ))}
+                  <h4 className="font-serif text-base font-bold text-[#14532D]">College Vision</h4>
+                </div>
+                <p className="text-xs sm:text-sm text-[#374151] leading-relaxed">
+                  To be an acclaimed center of higher education radiating academic rigor, Christian humanist values, moral integrity, and social transformation.
+                </p>
+              </motion.div>
 
-            {/* Static Vision & Mission (shown if not replaced by custom sections) */}
-            {(!aboutPage.additionalSections || aboutPage.additionalSections.length === 0) && (
-              <div className="grid sm:grid-cols-2 gap-4">
-                <motion.div
-                  initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 25 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: "-60px" }}
-                  transition={{ duration: 0.6, delay: 0.1, ease: "easeOut" }}
-                  whileHover={{ y: shouldReduceMotion ? 0 : -4, transition: { duration: 0.25, ease: "easeOut" } }}
-                  className="group rounded-2xl p-5 bg-white/95 backdrop-blur-md border border-emerald-200/70 hover:border-[#166534] hover:shadow-md transition-all duration-300 shadow-xs cursor-default"
-                >
-                  <div className="w-10 h-10 rounded-lg bg-emerald-50 group-hover:bg-[#14532D] group-hover:text-white text-[#14532D] flex items-center justify-center mb-3 transition-colors font-bold">
-                    <Eye className="w-5 h-5" />
+              <motion.div
+                initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 15 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-50px" }}
+                transition={{ duration: 0.5, delay: 0.2, ease: "easeOut" }}
+                className="bg-white rounded-2xl p-5 border border-[#E2E8F0] border-l-4 border-l-[#2E7D32] shadow-2xs hover:shadow-xs transition-shadow"
+              >
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="w-7 h-7 rounded-lg bg-[#F5F7F1] text-[#2E7D32] flex items-center justify-center font-bold">
+                    <Target className="w-4 h-4" />
                   </div>
-                  <h4 className="font-serif text-lg font-bold text-[#14532D] mb-2 transition-colors">College Vision</h4>
-                  <p className="text-sm text-[#374151] leading-relaxed transition-colors font-normal">
-                    To be a globally recognized educational benchmark for research excellence, student growth, and societal impact.
-                  </p>
-                </motion.div>
-                <motion.div
-                  initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 25 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: "-60px" }}
-                  transition={{ duration: 0.6, delay: 0.2, ease: "easeOut" }}
-                  whileHover={{ y: shouldReduceMotion ? 0 : -4, transition: { duration: 0.25, ease: "easeOut" } }}
-                  className="group rounded-2xl p-5 bg-white/95 backdrop-blur-md border border-emerald-200/70 hover:border-[#166534] hover:shadow-md transition-all duration-300 shadow-xs cursor-default"
-                >
-                  <div className="w-10 h-10 rounded-lg bg-emerald-50 group-hover:bg-[#14532D] group-hover:text-white text-[#14532D] flex items-center justify-center mb-3 transition-colors font-bold">
-                    <Target className="w-5 h-5" />
-                  </div>
-                  <h4 className="font-serif text-lg font-bold text-[#14532D] mb-2 transition-colors">College Mission</h4>
-                  <p className="text-sm text-[#374151] leading-relaxed transition-colors font-normal">
-                    To deliver transformative education, advance interdisciplinary research, and nurture ethical leaders prepared for future challenges.
-                  </p>
-                </motion.div>
-              </div>
-            )}
+                  <h4 className="font-serif text-base font-bold text-[#14532D]">College Mission</h4>
+                </div>
+                <p className="text-xs sm:text-sm text-[#374151] leading-relaxed">
+                  To provide quality, affordable, and holistic education empowering youth with critical thinking, ethical leadership, and market-ready competencies.
+                </p>
+              </motion.div>
+            </div>
 
-            {/* Core values cards with staggered entrance */}
-            <div>
-              <h4 className="font-serif text-lg font-bold text-[#14532D] mb-4 flex items-center gap-2">
-                <Heart className="w-4 h-4 text-[#166534]" />
-                Core Values
+            {/* Core Values Strip */}
+            <div className="bg-white rounded-2xl p-5 border border-[#E2E8F0] shadow-2xs">
+              <h4 className="font-serif text-sm font-bold text-[#14532D] mb-3 flex items-center gap-2">
+                <Heart className="w-4 h-4 text-[#2E7D32]" />
+                Institutional Core Values
               </h4>
-              <div className="grid sm:grid-cols-2 gap-3">
-                {coreValues.map((v, idx) => (
-                  <motion.div
-                    key={v.title}
-                    initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true, margin: "-60px" }}
-                    transition={{ duration: 0.5, delay: shouldReduceMotion ? 0 : 0.1 + idx * 0.08, ease: "easeOut" }}
-                    whileHover={{ y: shouldReduceMotion ? 0 : -3, transition: { duration: 0.25, ease: "easeOut" } }}
-                    className="group flex items-start gap-3 p-3.5 rounded-xl bg-white/95 border border-emerald-200/70 hover:border-[#166534] transition-all duration-300 shadow-xs cursor-default"
-                  >
-                    <div className="w-8 h-8 rounded-lg bg-emerald-50 group-hover:bg-[#14532D] group-hover:text-white text-[#14532D] flex items-center justify-center shrink-0 transition-colors font-bold">
-                      <DepartmentIcon name={v.icon} className="w-4 h-4" />
-                    </div>
-                    <div>
-                      <div className="text-sm font-bold text-[#1F2937] transition-colors">{v.title}</div>
-                      <div className="text-xs text-[#374151] transition-colors font-normal">{v.description}</div>
-                    </div>
-                  </motion.div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                {coreValues.map((v) => (
+                  <div key={v.title} className="p-2.5 rounded-xl bg-[#FAFBF9] border border-gray-100">
+                    <div className="text-xs font-bold text-[#26352B] mb-0.5">{v.title}</div>
+                    <div className="text-[11px] text-[#68766B] leading-tight">{v.description}</div>
+                  </div>
                 ))}
               </div>
             </div>
+
           </div>
 
-          {/* Right: image + awards + stats */}
-          <div className="space-y-6 lg:sticky lg:top-28">
-            {/* Campus Image with subtle zoom-in on hover and accessible card overlay */}
+          {/* Right: High-Res Campus Image + Verified Heritage Badge + Accreditations (5 cols) */}
+          <div className="lg:col-span-5 space-y-6 lg:sticky lg:top-24">
+            
+            {/* Campus Photography with Heritage Overlay */}
             {legacy.image?.url && (
               <motion.div
-                initial={{ opacity: 0, scale: shouldReduceMotion ? 1 : 0.96, y: shouldReduceMotion ? 0 : 20 }}
+                initial={{ opacity: 0, scale: shouldReduceMotion ? 1 : 0.97, y: shouldReduceMotion ? 0 : 20 }}
                 whileInView={{ opacity: 1, scale: 1, y: 0 }}
                 viewport={{ once: true, margin: "-60px" }}
-                transition={{ duration: 0.7, ease: "easeOut" }}
-                className="group relative rounded-2xl overflow-hidden shadow-premium aspect-[4/3] bg-slate-900 border border-emerald-200/60"
+                transition={{ duration: 0.6, ease: "easeOut" }}
+                className="group relative rounded-3xl overflow-hidden shadow-md aspect-[4/3] bg-slate-900 border border-[#E2E8F0]"
               >
                 <img
                   src={legacy.image.url}
-                  alt={legacy.image.altText || "BAC University campus"}
+                  alt={legacy.image.altText || "Bishop Ambrose College Campus"}
+                  onError={(e) => {
+                    (e.currentTarget as HTMLImageElement).src = "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&w=1200&q=80";
+                  }}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent pointer-events-none" />
-                <div className="absolute bottom-4 left-4 right-4 card-dark-overlay p-3.5 sm:p-4 rounded-xl border border-white/20 text-white shadow-lg">
-                  {legacy.image.badge && (
-                    <div className="text-xs uppercase tracking-widest text-emerald-300 font-bold mb-1">
-                      {legacy.image.badge}
-                    </div>
-                  )}
-                  {legacy.image.caption && (
-                    <div className="font-serif text-base sm:text-lg font-bold text-white text-shadow-on-dark">
-                      {legacy.image.caption}
-                    </div>
-                  )}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none" />
+                
+                {/* Floating Heritage Badge */}
+                <div className="absolute top-4 left-4">
+                  <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white/95 backdrop-blur-md text-xs font-bold text-[#14532D] shadow-sm">
+                    Est. 1994 · Autonomous · NAAC Accredited
+                  </span>
                 </div>
-                {/* Floating quote */}
-                <div className="absolute top-3 right-3 sm:-top-3 sm:-right-3 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-emerald-600 flex items-center justify-center shadow-md">
-                  <Quote className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+
+                <div className="absolute bottom-4 left-4 right-4 p-4 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 text-white shadow-lg">
+                  <div className="text-xs uppercase tracking-widest text-[#A3C95A] font-bold mb-1">
+                    Bishop Ambrose College Campus
+                  </div>
+                  <div className="font-serif text-base sm:text-lg font-bold text-white text-shadow-on-dark">
+                    A peaceful, values-centered academic sanctuary in Coimbatore
+                  </div>
                 </div>
               </motion.div>
             )}
 
-            {/* Stats Cards - sequential entrance */}
+            {/* Quick Facts Grid */}
             <div className="grid grid-cols-2 gap-3">
-              {aboutStats.map((stat, idx) => (
-                <motion.div
+              {aboutStats.map((stat) => (
+                <div
                   key={stat.label}
-                  initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: "-50px" }}
-                  transition={{ duration: 0.5, delay: shouldReduceMotion ? 0 : 0.2 + idx * 0.08, ease: "easeOut" }}
-                  whileHover={{ y: shouldReduceMotion ? 0 : -4, transition: { duration: 0.25, ease: "easeOut" } }}
+                  className="bg-white rounded-2xl border border-[#E2E8F0] p-4 text-center shadow-2xs"
                 >
-                  <div className="bg-white/95 backdrop-blur-md rounded-2xl border border-emerald-200/70 p-5 text-center shadow-xs hover:shadow-md transition-shadow">
-                    <div className="font-serif text-2xl sm:text-3xl font-bold text-[#166534] mb-1 tracking-tight">
-                      <AnimatedCounter value={stat.value} suffix={stat.suffix} />
-                    </div>
-                    <div className="text-xs text-[#1F2937] font-bold">{stat.label}</div>
+                  <div className="font-serif text-2xl sm:text-3xl font-bold text-[#14532D] mb-0.5 tracking-tight">
+                    <AnimatedCounter value={stat.value} suffix={stat.suffix} />
                   </div>
-                </motion.div>
+                  <div className="text-xs text-[#26352B] font-bold">{stat.label}</div>
+                </div>
               ))}
             </div>
 
-            {/* Awards Card */}
-            <motion.div
-              initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-50px" }}
-              transition={{ duration: 0.6, delay: shouldReduceMotion ? 0 : 0.35, ease: "easeOut" }}
-              className="bg-white/95 backdrop-blur-md rounded-2xl p-5 border border-emerald-200/70 shadow-xs"
-            >
-              <div className="flex items-center justify-between mb-4">
-                <h4 className="font-serif text-lg font-bold text-[#14532D]">Awards & Accreditations</h4>
-                <span className="text-xs text-[#374151] font-bold">2024-25</span>
+            {/* Accreditations Strip */}
+            <div className="bg-white rounded-2xl p-5 border border-[#E2E8F0] shadow-2xs">
+              <div className="flex items-center justify-between mb-3">
+                <h4 className="font-serif text-sm font-bold text-[#14532D]">Institutional Accreditations</h4>
+                <span className="text-[11px] font-bold text-[#2E7D32] bg-[#F0FDF4] px-2 py-0.5 rounded-md border border-[#BBF7D0]">
+                  Recognized
+                </span>
               </div>
-              <div className="space-y-2.5">
-                {aboutAwards.map((award) => (
-                  <div key={award.name} className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-md bg-emerald-50 flex items-center justify-center text-[#166534] shrink-0 font-bold">
-                      <DepartmentIcon name={award.icon} className="w-4 h-4" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-sm font-bold text-[#1F2937] truncate">{award.name}</div>
-                      <div className="text-xs text-[#374151] font-medium">{award.rank}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </motion.div>
-          </div>
-        </div>
-
-        {/* Highlight cards */}
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5 mt-16">
-          {aboutHighlights.map((h, idx) => (
-            <Reveal key={h.title} delay={idx * 0.08}>
-              <div className="bg-white/95 backdrop-blur-md rounded-2xl p-6 border border-emerald-200/70 h-full group shadow-xs hover:shadow-md transition-shadow">
-                <div className="w-12 h-12 rounded-xl bg-emerald-50 text-[#14532D] flex items-center justify-center mb-4 transition-colors font-bold">
-                  <DepartmentIcon name={h.icon} className="w-6 h-6" />
+              <div className="space-y-2 text-xs text-[#374151]">
+                <div className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#14532D]" />
+                  <span>Affiliated with <strong>Bharathiar University</strong>, Coimbatore</span>
                 </div>
-                <h4 className="font-serif text-lg font-bold text-[#14532D] mb-2">{h.title}</h4>
-                <p className="text-sm text-[#374151] leading-relaxed font-normal">{h.description}</p>
+                <div className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#14532D]" />
+                  <span>Conferred <strong>Autonomous Status</strong> by UGC</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#14532D]" />
+                  <span>Accredited by <strong>NAAC</strong> with high institutional merit</span>
+                </div>
               </div>
-            </Reveal>
-          ))}
+            </div>
+
+            {/* CTA */}
+            <div className="text-center pt-2">
+              <button
+                onClick={goAdmissions}
+                className="w-full inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-full bg-[#14532D] hover:bg-[#0f3e22] text-white text-xs sm:text-sm font-bold shadow-sm transition-all duration-200 hover:-translate-y-0.5 cursor-pointer"
+              >
+                Discover the BAC Advantage &amp; Admissions
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            </div>
+
+          </div>
         </div>
 
-        {/* CTA */}
-        <Reveal>
-          <div className="mt-12 text-center">
-            <PremiumButton variant="navy" size="lg" onClick={goAdmissions} icon={<ArrowRight className="w-4 h-4" />} className="bg-[#14532D] text-white font-bold">
-              Discover the BAC Advantage
-            </PremiumButton>
-          </div>
-        </Reveal>
       </div>
     </section>
   );

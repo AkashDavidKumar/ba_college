@@ -41,6 +41,7 @@ import {
   FileCheck,
   BarChart2,
   Library,
+  MapPin,
   Sparkles,
   ExternalLink,
   type LucideIcon,
@@ -50,7 +51,7 @@ import { useNav } from "./nav-context";
 import { Logo, PremiumButton, staggerContainer, staggerItem } from "./primitives";
 
 // ── Dropdown Item Interface ───────────────────────────────────────────────────
-interface SubmenuCard {
+interface SubItem {
   label: string;
   description: string;
   icon: LucideIcon;
@@ -58,19 +59,21 @@ interface SubmenuCard {
   action: () => void;
 }
 
-interface NavItemConfig {
+interface NavSection {
   label: string;
   id: string;
   action?: () => void;
-  // Introduction panel properties for Mega Dropdown
-  panelTitle?: string;
-  panelBadge?: string;
-  panelDescription?: string;
-  panelLearnMore?: {
-    label: string;
+  align?: "left" | "right" | "center";
+  width?: string;
+  columns?: 1 | 2;
+  highlight?: {
+    badge?: string;
+    title: string;
+    description: string;
+    ctaText: string;
     action: () => void;
   };
-  children?: SubmenuCard[];
+  children?: SubItem[];
 }
 
 export function Header() {
@@ -97,12 +100,12 @@ export function Header() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [expandedMobileItem, setExpandedMobileItem] = useState<string | null>(null);
-  const [activeMegaMenu, setActiveMegaMenu] = useState<string | null>(null);
+  const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const [searchOpen, setSearchOpen] = useState(false);
   const { scrollYProgress } = useScroll();
 
-  const navContainerRef = useRef<HTMLDivElement>(null);
-  const closeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const navRef = useRef<HTMLDivElement>(null);
+  const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Scroll detection for navbar elevation
   useEffect(() => {
@@ -112,7 +115,24 @@ export function Header() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  // Lock background scroll when mobile navigation drawer is active
+  // Dynamically compute and expose real header height to CSS variable --header-height
+  useEffect(() => {
+    const updateHeaderHeight = () => {
+      const headerContainer = document.getElementById("site-header-container");
+      if (headerContainer) {
+        const height = headerContainer.offsetHeight;
+        if (height > 0) {
+          document.documentElement.style.setProperty("--header-height", `${height}px`);
+        }
+      }
+    };
+
+    updateHeaderHeight();
+    window.addEventListener("resize", updateHeaderHeight);
+    return () => window.removeEventListener("resize", updateHeaderHeight);
+  }, []);
+
+  // Lock background scroll when mobile drawer is open
   useEffect(() => {
     if (mobileOpen) {
       document.body.style.overflow = "hidden";
@@ -124,11 +144,11 @@ export function Header() {
     };
   }, [mobileOpen]);
 
-  // Click outside listener to close active mega dropdown
+  // Click outside listener to gracefully close active dropdown
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
-      if (navContainerRef.current && !navContainerRef.current.contains(e.target as Node)) {
-        setActiveMegaMenu(null);
+      if (navRef.current && !navRef.current.contains(e.target as Node)) {
+        setActiveDropdown(null);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
@@ -141,28 +161,28 @@ export function Header() {
       if (e.key === "Escape") {
         setMobileOpen(false);
         setSearchOpen(false);
-        setActiveMegaMenu(null);
+        setActiveDropdown(null);
       }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  // Graceful hover enter/leave handling with debounce
-  const handleNavMouseEnter = (label: string) => {
-    if (closeTimeoutRef.current) clearTimeout(closeTimeoutRef.current);
-    setActiveMegaMenu(label);
+  // Hover handlers with debounce to prevent flicker
+  const handleMouseEnter = (label: string) => {
+    if (closeTimerRef.current) clearTimeout(closeTimerRef.current);
+    setActiveDropdown(label);
   };
 
-  const handleNavMouseLeave = () => {
-    if (closeTimeoutRef.current) clearTimeout(closeTimeoutRef.current);
-    closeTimeoutRef.current = setTimeout(() => {
-      setActiveMegaMenu(null);
-    }, 180);
+  const handleMouseLeave = () => {
+    if (closeTimerRef.current) clearTimeout(closeTimerRef.current);
+    closeTimerRef.current = setTimeout(() => {
+      setActiveDropdown(null);
+    }, 140);
   };
 
-  // ── Navigation Configuration (Preserving All 12 Routes & Submenu Cards) ─────
-  const navItems: NavItemConfig[] = [
+  // ── Nav Sections Definition with Rich Grouping & Preserved Routes ───────────
+  const navSections: NavSection[] = [
     {
       label: "Home",
       id: "home",
@@ -171,76 +191,48 @@ export function Header() {
     {
       label: "About Us",
       id: "about",
-      panelBadge: "Institutional Heritage",
-      panelTitle: "About Bishop Ambrose College",
-      panelDescription:
-        "Founded in 1994 by the Diocese of Coimbatore, committed to academic excellence, value-based education, and transformative leadership.",
-      panelLearnMore: {
-        label: "Discover Our 30-Year Heritage",
-        action: () => goAbout("overview"),
-      },
+      align: "left",
+      width: "w-[560px]",
+      columns: 2,
       children: [
         { label: "History of BAC", description: "Diocesan establishment and 30-year legacy", icon: BookOpen, action: () => goAbout("history") },
-        { label: "Secretary's Message", description: "Institutional vision from Rev. Fr. Secretary", icon: MessageSquare, action: () => goAbout("secretary") },
-        { label: "Principal's Message", description: "Academic stewardship & student mentorship", icon: GraduationCap, action: () => goAbout("principal") },
-        { label: "Governance", description: "Apex statutory councils and governing body", icon: Shield, action: () => goAbout("governance") },
-        { label: "Organogram", description: "Administrative chart and institutional hierarchy", icon: GitBranch, action: () => goAbout("organogram") },
-        { label: "Strategic Plan", description: "Long-term institutional development roadmap", icon: Target, action: () => goAbout("strategic") },
-        { label: "Code of Conduct", description: "Ethical values, integrity & campus rules", icon: FileCheck, action: () => goAbout("conduct") },
+        { label: "Secretary's Message", description: "Vision and guidance from the Secretary", icon: MessageSquare, action: () => goAbout("secretary") },
+        { label: "Principal's Message", description: "Academic stewardship & student development", icon: GraduationCap, action: () => goAbout("principal") },
+        { label: "Governance", description: "Apex statutory councils and leadership", icon: Shield, action: () => goAbout("governance") },
+        { label: "Organogram", description: "Administrative chart and hierarchy", icon: GitBranch, action: () => goAbout("organogram") },
+        { label: "Strategic Plan", description: "Institutional benchmarks & vision", icon: Target, action: () => goAbout("strategic") },
+        { label: "Code of Conduct", description: "Ethical values, integrity & rules", icon: FileCheck, action: () => goAbout("conduct") },
         { label: "Annual Reports", description: "Year-wise certified institutional audits", icon: BarChart2, action: () => goAbout("annual-report") },
       ],
     },
     {
       label: "Academic",
       id: "academic",
-      panelBadge: "Autonomous · CBCS System",
-      panelTitle: "Academic Excellence & Programmes",
-      panelDescription:
-        "Comprehensive career-focused undergraduate and postgraduate programmes under Choice Based Credit System, affiliated with Bharathiar University.",
-      panelLearnMore: {
-        label: "Explore All Programmes",
-        action: () => goAcademic("courses"),
-      },
+      align: "left",
+      width: "w-[620px]",
+      columns: 2,
       children: [
         { label: "Courses Offered", description: "All undergraduate & postgraduate programmes", icon: BookOpen, action: () => goAcademic("courses") },
-        { label: "Academic Departments", description: "Specialized centres of disciplinary excellence", icon: Building2, action: () => goAcademic("departments") },
-        { label: "Autonomous Status", description: "Conferred autonomous system & CBCS regulations", icon: Shield, badge: "UGC", action: () => goAutonomous() },
-        { label: "Examination Cell", description: "CIA schedules, evaluations & CoE results", icon: FileCheck, badge: "COE", action: () => goExamination() },
-        { label: "Curriculum Dev. Cell", description: "Industry-aligned syllabus & Board of Studies", icon: FileText, action: () => goAcademic("curriculum") },
-        { label: "Programme Outcomes", description: "Core PO1–PO8 graduate attributes & competencies", icon: Target, action: () => goAcademic("outcomes") },
+        { label: "Academic Departments", description: "Specialized centres of excellence", icon: Building2, action: () => goAcademic("departments") },
+        { label: "Autonomous Status", description: "Conferred autonomous system & CBCS", icon: Shield, badge: "UGC", action: () => goAutonomous() },
+        { label: "Examination Cell", description: "CIA schedules, evaluations & results", icon: FileCheck, badge: "COE", action: () => goExamination() },
+        { label: "Curriculum Dev. Cell", description: "Outcome-based syllabus & Board of Studies", icon: FileText, action: () => goAcademic("curriculum") },
+        { label: "Programme Outcomes", description: "Core PO1–PO8 graduate attributes", icon: Target, action: () => goAcademic("outcomes") },
         { label: "ICT Facilities", description: "Advanced computing labs & smart classrooms", icon: Monitor, action: () => goAcademic("ict") },
-        { label: "Academic Calendar", description: "Annual instructional days, events & schedules", icon: Calendar, action: () => goAcademic("calendar") },
-      ],
-    },
-    {
-      label: "Student Activities",
-      id: "student-activities",
-      panelBadge: "Campus Life & Thriving",
-      panelTitle: "Student Activities & Co-Curriculars",
-      panelDescription:
-        "Fostering holistic growth through elected student governance, performing fine arts, athletic championships, and community outreach.",
-      panelLearnMore: {
-        label: "View All Student Clubs",
-        action: () => goStudentActivities("council"),
-      },
-      children: [
-        { label: "Student Council", description: "Elected student leadership & representation", icon: Users, action: () => goStudentActivities("council") },
-        { label: "Fine Arts & Culture", description: "Annual fest, dance, music & theatre society", icon: Palette, action: () => goStudentActivities("fine-arts") },
-        { label: "Sports & Athletics", description: "Inter-collegiate tournaments & championships", icon: Trophy, action: () => goStudentActivities("sports") },
-        { label: "Department Associations", description: "Disciplinary symposiums & student workshops", icon: Building2, action: () => goStudentActivities("associations") },
-        { label: "Extension Activities", description: "NSS, NCC & community outreach initiatives", icon: Heart, action: () => goStudentActivities("extension") },
-        { label: "Placements & Training", description: "Corporate recruitment bootcamps & campus drives", icon: Briefcase, action: goPlacements },
+        { label: "Academic Calendar", description: "Annual instructional days & milestones", icon: Calendar, action: () => goAcademic("calendar") },
       ],
     },
     {
       label: "Admission",
       id: "admissions",
-      panelBadge: "Admissions 2026–27",
-      panelTitle: "Join Bishop Ambrose College",
-      panelDescription:
-        "Begin your academic journey in our lush green campus. Merit scholarships, transparent fee structures, and dedicated career guidance available.",
-      panelLearnMore: {
-        label: "Apply Online for 2026–27",
+      align: "center",
+      width: "w-[480px]",
+      columns: 1,
+      highlight: {
+        badge: "Admissions 2026–27",
+        title: "Enroll in Bishop Ambrose College",
+        description: "Merit-based admissions open across Computer Science, Commerce, Management, Life Sciences and Arts.",
+        ctaText: "Apply Online Now",
         action: goAdmissions,
       },
       children: [
@@ -252,101 +244,58 @@ export function Header() {
       ],
     },
     {
-      label: "IQAC",
+      label: "Student Activities",
+      id: "student-activities",
+      align: "center",
+      width: "w-[540px]",
+      columns: 2,
+      children: [
+        { label: "Student Council", description: "Elected student leadership & representation", icon: Users, action: () => goStudentActivities("council") },
+        { label: "Fine Arts & Culture", description: "Annual fest, dance, music & theatre", icon: Palette, action: () => goStudentActivities("fine-arts") },
+        { label: "Sports & Athletics", description: "Inter-collegiate tournaments & championships", icon: Trophy, action: () => goStudentActivities("sports") },
+        { label: "Department Associations", description: "Co-curricular symposiums & guest lectures", icon: Building2, action: () => goStudentActivities("associations") },
+        { label: "Extension Activities", description: "NSS, NCC & community outreach initiatives", icon: Heart, action: () => goStudentActivities("extension") },
+        { label: "Placements & Careers", description: "Corporate recruitment bootcamps & drives", icon: Briefcase, action: goPlacements },
+      ],
+    },
+    {
+      label: "IQAC & NIRF",
       id: "iqac",
-      panelBadge: "Quality Assurance & Standards",
-      panelTitle: "Internal Quality Assurance Cell",
-      panelDescription:
-        "Catalyzing continuous quality enhancement, academic benchmarks, stakeholder feedback, and NAAC/NIRF accreditation compliance.",
-      panelLearnMore: {
-        label: "Explore IQAC Initiatives",
-        action: () => goIqac("about"),
-      },
+      align: "center",
+      width: "w-[560px]",
+      columns: 2,
       children: [
         { label: "About IQAC Cell", description: "Internal Quality Assurance Cell stewardship", icon: Shield, action: () => goIqac("about") },
-        { label: "IQAC Members", description: "Composition of the IQAC steering committee", icon: Users, action: () => goIqac("members") },
+        { label: "IQAC Members", description: "Composition of the IQAC committee", icon: Users, action: () => goIqac("members") },
         { label: "NIRF Rankings", description: "National Institutional Ranking Framework data", icon: Award, badge: "NIRF", action: goNirf },
         { label: "AQAR Reports", description: "Annual Quality Assurance Reports", icon: FileText, action: () => goIqac("aqar") },
-        { label: "Quality Initiatives", description: "Continuous academic & pedagogical improvements", icon: Lightbulb, action: () => goIqac("initiatives") },
-        { label: "Institutional Best Practices", description: "Excellence in ethics, ecology & student support", icon: Star, action: () => goIqac("best-practices") },
+        { label: "Quality Initiatives", description: "Continuous benchmark improvements", icon: Lightbulb, action: () => goIqac("initiatives") },
+        { label: "Institutional Best Practices", description: "Excellence in ethics & student support", icon: Star, action: () => goIqac("best-practices") },
         { label: "Self Study Report (SSR)", description: "Certified NAAC accreditation documents", icon: BookOpen, action: () => goIqac("ssr") },
       ],
     },
     {
-      label: "Examination",
-      id: "examination",
-      panelBadge: "Evaluation & Assessment",
-      panelTitle: "Office of the Controller of Examinations",
-      panelDescription:
-        "Ensuring integrity, confidentiality, and transparency in continuous internal assessments, semester end examinations, and evaluation.",
-      panelLearnMore: {
-        label: "View Examination Guidelines",
-        action: () => goExamination(),
-      },
-      children: [
-        { label: "Examination Schedule", description: "Semester examination dates, timetable & circulars", icon: Calendar, action: () => goExamination("schedule") },
-        { label: "CIA Assessments", description: "Continuous Internal Assessment regulations & marks", icon: FileCheck, action: () => goExamination("cia") },
-        { label: "Autonomous Framework", description: "CBCS credit distribution and passing minimums", icon: Shield, action: () => goAutonomous() },
-        { label: "Results & Verification", description: "Publication of semester results & transcript issue", icon: Award, action: () => goExamination("results") },
-        { label: "Revaluation Procedures", description: "Guidelines for answer script revaluation & scrutiny", icon: FileText, action: () => goExamination("revaluation") },
-      ],
-    },
-    {
-      label: "Autonomous",
-      id: "autonomous",
-      panelBadge: "Academic Autonomy",
-      panelTitle: "UGC Conferred Autonomous Status",
-      panelDescription:
-        "Conferred autonomous status by the UGC and Bharathiar University, empowering syllabus innovation, modern pedagogy, and CBCS flexibility.",
-      panelLearnMore: {
-        label: "About Autonomous Status",
-        action: () => goAutonomous(),
-      },
-      children: [
-        { label: "Autonomous Regulations", description: "CBCS credit system, grading and curriculum rules", icon: Shield, action: () => goAutonomous("regulations") },
-        { label: "Board of Studies", description: "Departmental academic boards for syllabus revision", icon: Building2, action: () => goAutonomous("bos") },
-        { label: "Academic Council", description: "Apex academic regulatory body of the college", icon: Users, action: () => goAutonomous("council") },
-        { label: "Governing Body", description: "Institutional stewardship and strategic policies", icon: GitBranch, action: () => goAutonomous("governing") },
-      ],
-    },
-    {
-      label: "Library",
+      label: "Campus & Library",
       id: "library",
-      panelBadge: "Learning Commons",
-      panelTitle: "Central Library & Digital Hub",
-      panelDescription:
-        "State-of-the-art knowledge hub housing 10,000+ e-books, subscriptions to INFLIBNET N-LIST & DELNET, peer-reviewed journals, and digital terminals.",
-      panelLearnMore: {
-        label: "Visit Central Library",
-        action: () => goLibrary(),
-      },
+      align: "right",
+      width: "w-[440px]",
+      columns: 1,
       children: [
-        { label: "Central Library", description: "Collection of print volumes, references & journals", icon: Library, action: () => goLibrary() },
-        { label: "E-Resources & INFLIBNET", description: "Access to N-LIST, DELNET & e-theses portals", icon: Monitor, action: () => goLibrary("digital") },
-        { label: "Campus Facilities", description: "Sports grounds, laboratories & seminar halls", icon: Building2, action: goFacilities },
-        { label: "Photo & Video Gallery", description: "Visual memories of campus life and events", icon: Palette, action: goGallery },
+        { label: "Central Library", description: "10,000+ e-books, INFLIBNET N-LIST & print journals", icon: Library, action: () => goLibrary() },
+        { label: "Campus Facilities", description: "Sports pavilion, eco-grounds & cafeteria", icon: Building2, action: goFacilities },
+        { label: "Campus Photo Gallery", description: "Life at Bishop Ambrose College in photos", icon: Palette, action: goGallery },
       ],
-    },
-    {
-      label: "NIRF",
-      id: "nirf",
-      action: goNirf,
     },
     {
       label: "BAC Alumni",
       id: "alumni",
-      panelBadge: "Global Alumni Network",
-      panelTitle: "BAC Alumni Association",
-      panelDescription:
-        "A worldwide community of over 10,000+ graduates leading across diverse corporate, public, academic, and entrepreneurial sectors.",
-      panelLearnMore: {
-        label: "Join Alumni Network",
-        action: () => goAlumni("registration"),
-      },
+      align: "right",
+      width: "w-[400px]",
+      columns: 1,
       children: [
-        { label: "Alumni Events", description: "Reunions, guest lectures & annual homecoming", icon: Calendar, action: () => goAlumni("events") },
-        { label: "Alumni Registration", description: "Register as an active BAC graduate", icon: UserCheck, action: () => goAlumni("registration") },
-        { label: "Alumni Association", description: "Chapter leadership & scholarship mentorship", icon: Heart, action: () => goAlumni("association") },
+        { label: "Alumni Events", description: "Reunions, guest lectures & homecoming", icon: Calendar, action: () => goAlumni("events") },
+        { label: "Alumni Registration", description: "Join our global graduate network", icon: UserCheck, action: () => goAlumni("registration") },
+        { label: "Alumni Association", description: "Chapter leadership & mentorship programs", icon: Heart, action: () => goAlumni("association") },
       ],
     },
     {
@@ -356,27 +305,23 @@ export function Header() {
     },
   ];
 
-  const isCurrentActive = (item: NavItemConfig) => {
+  // Active item checking logic matching routes
+  const isItemActive = (section: NavSection) => {
     const t = view.type;
-    if (item.id === "home") return t === "home";
-    if (item.id === "about") return t === "about";
-    if (item.id === "academic") return t === "academic" || t === "department";
-    if (item.id === "student-activities") return t === "student-activities" || t === "placements";
-    if (item.id === "admissions") return t === "admissions";
-    if (item.id === "iqac") return t === "iqac";
-    if (item.id === "examination") return t === "examination";
-    if (item.id === "autonomous") return t === "autonomous";
-    if (item.id === "library") return t === "library" || t === "facilities" || t === "gallery";
-    if (item.id === "nirf") return t === "nirf";
-    if (item.id === "alumni") return t === "alumni";
-    if (item.id === "contact") return t === "contact";
+    if (section.id === "home") return t === "home";
+    if (section.id === "about") return t === "about";
+    if (section.id === "academic") return t === "academic" || t === "department" || t === "autonomous" || t === "examination";
+    if (section.id === "admissions") return t === "admissions";
+    if (section.id === "student-activities") return t === "student-activities" || t === "placements";
+    if (section.id === "iqac") return t === "iqac" || t === "nirf";
+    if (section.id === "library") return t === "library" || t === "facilities" || t === "gallery";
+    if (section.id === "alumni") return t === "alumni";
+    if (section.id === "contact") return t === "contact";
     return false;
   };
 
-  const activeSectionData = navItems.find((item) => item.label === activeMegaMenu && item.children);
-
   return (
-    <div id="site-header-container" ref={navContainerRef} className="w-full relative z-50">
+    <div id="site-header-container" className="w-full relative z-50">
       {/* ── 1. Top Utility Contact Bar ──────────────────────────────────── */}
       <div
         id="top-utility-bar"
@@ -438,6 +383,7 @@ export function Header() {
       {/* ── 2. Main Sticky Navigation Header ─────────────────────────────── */}
       <header
         id="main-header"
+        ref={navRef}
         className={cn(
           "sticky top-0 z-50 transition-all duration-200 bg-white border-b border-[#E2E8F0]",
           scrolled ? "shadow-md bg-white/98 backdrop-blur-md" : "shadow-xs"
@@ -449,7 +395,7 @@ export function Header() {
           style={{ scaleX: scrollYProgress }}
         />
 
-        <div className="w-full max-w-[1920px] mx-auto px-4 sm:px-6 xl:px-6 2xl:px-10">
+        <div className="w-full max-w-[1920px] mx-auto px-4 sm:px-6 xl:px-8 2xl:px-12">
           <div
             className={cn(
               "flex items-center justify-between transition-all duration-200",
@@ -457,74 +403,163 @@ export function Header() {
             )}
           >
             {/* College Logo with Distinct Spacing from Navigation */}
-            <div className="flex items-center shrink-0 mr-4 lg:mr-6 xl:mr-8 2xl:mr-10">
+            <div className="flex items-center shrink-0 mr-6 lg:mr-8 xl:mr-10 2xl:mr-12">
               <Logo variant="dark" onClick={goHome} />
             </div>
 
-            {/* Desktop Navigation Links (All 12 Items Retained & Single-Line at xl:) */}
+            {/* Desktop Navigation Links (Single-Line, Logical, Cleanly Spaced) */}
             <nav
               role="navigation"
               aria-label="Main Navigation"
-              className="hidden xl:flex items-center gap-0.5 2xl:gap-1 shrink min-w-0"
-              onMouseLeave={handleNavMouseLeave}
+              className="hidden xl:flex items-center gap-1 xl:gap-1.5 2xl:gap-2.5 shrink min-w-0"
             >
-              {navItems.map((item) => {
-                const hasChildren = Boolean(item.children && item.children.length > 0);
-                const isActive = isCurrentActive(item);
-                const isOpen = activeMegaMenu === item.label;
+              {navSections.map((section) => {
+                const hasChildren = Boolean(section.children && section.children.length > 0);
+                const isCurrentActive = isItemActive(section);
+                const isCurrentOpen = activeDropdown === section.label;
 
                 return (
                   <div
-                    key={item.label}
+                    key={section.label}
                     className="relative"
-                    onMouseEnter={() => hasChildren && handleNavMouseEnter(item.label)}
+                    onMouseEnter={() => hasChildren && handleMouseEnter(section.label)}
+                    onMouseLeave={() => hasChildren && handleMouseLeave()}
                   >
                     <button
                       type="button"
                       aria-haspopup={hasChildren ? "true" : undefined}
-                      aria-expanded={hasChildren ? isOpen : undefined}
+                      aria-expanded={hasChildren ? isCurrentOpen : undefined}
                       onClick={() => {
                         if (hasChildren) {
-                          setActiveMegaMenu(isOpen ? null : item.label);
-                        } else if (item.action) {
-                          item.action();
-                          setActiveMegaMenu(null);
+                          setActiveDropdown(isCurrentOpen ? null : section.label);
+                        } else if (section.action) {
+                          section.action();
+                          setActiveDropdown(null);
                         }
                       }}
                       className={cn(
-                        "relative px-2 py-1.5 2xl:px-2.5 2xl:py-2 text-[12.5px] 2xl:text-[13.5px] font-semibold transition-all rounded-lg whitespace-nowrap shrink-0 flex items-center gap-0.5 2xl:gap-1 cursor-pointer select-none",
-                        isActive
+                        "relative px-2.5 py-1.5 xl:px-3 xl:py-2 text-[13px] xl:text-[13.5px] 2xl:text-[14px] font-medium tracking-normal transition-all rounded-lg whitespace-nowrap shrink-0 flex items-center gap-1 cursor-pointer select-none",
+                        isCurrentActive
                           ? "text-[#14532D] font-bold bg-[#14532D]/8"
                           : "text-[#26352B] hover:text-[#14532D] hover:bg-[#14532D]/5",
-                        isOpen && "text-[#14532D] bg-[#14532D]/6"
+                        isCurrentOpen && "text-[#14532D] bg-[#14532D]/6"
                       )}
                     >
-                      <span>{item.label}</span>
+                      <span>{section.label}</span>
                       {hasChildren && (
                         <ChevronDown
                           className={cn(
-                            "w-3 h-3 2xl:w-3.5 2xl:h-3.5 text-slate-400 transition-transform duration-200 shrink-0 opacity-70 ml-0.5",
-                            isOpen && "rotate-180 text-[#14532D]"
+                            "w-3.5 h-3.5 text-slate-400 transition-transform duration-200 shrink-0",
+                            isCurrentOpen && "rotate-180 text-[#14532D]"
                           )}
                         />
                       )}
 
                       {/* Active Indicator Bar */}
-                      {isActive && (
+                      {isCurrentActive && (
                         <motion.span
                           layoutId="nav-active"
-                          className="absolute bottom-0 left-2 right-2 h-0.5 bg-[#14532D] rounded-full z-10"
+                          className="absolute bottom-0 left-2.5 right-2.5 h-0.5 bg-[#14532D] rounded-full z-10"
                           transition={{ type: "spring", stiffness: 350, damping: 30 }}
                         />
                       )}
                     </button>
+
+                    {/* Desktop Floating Dropdown Menu */}
+                    <AnimatePresence>
+                      {hasChildren && isCurrentOpen && (
+                        <motion.div
+                          initial={{ opacity: 0, y: 8, scale: 0.98 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          exit={{ opacity: 0, y: 6, scale: 0.98 }}
+                          transition={{ duration: 0.16, ease: "easeOut" }}
+                          className={cn(
+                            "absolute top-full mt-1.5 z-50 bg-white rounded-2xl shadow-xl shadow-slate-900/10 border border-[#E2E8F0] overflow-hidden p-4",
+                            section.width || "w-[500px]",
+                            section.align === "left" && "left-0",
+                            section.align === "center" && "left-1/2 -translate-x-1/2",
+                            section.align === "right" && "right-0"
+                          )}
+                        >
+                          {/* Optional Top Highlight Banner (e.g. for Admissions) */}
+                          {section.highlight && (
+                            <div className="mb-3 p-3.5 rounded-xl bg-gradient-to-r from-emerald-50 via-green-50 to-emerald-50/50 border border-emerald-100 flex items-center justify-between gap-3">
+                              <div className="min-w-0">
+                                {section.highlight.badge && (
+                                  <span className="text-[10px] font-bold text-[#14532D] uppercase tracking-wider bg-white px-2 py-0.5 rounded-full border border-emerald-200">
+                                    {section.highlight.badge}
+                                  </span>
+                                )}
+                                <h4 className="font-serif font-bold text-xs text-navy mt-1">
+                                  {section.highlight.title}
+                                </h4>
+                                <p className="text-[11px] text-slate-600 line-clamp-1 mt-0.5">
+                                  {section.highlight.description}
+                                </p>
+                              </div>
+                              <button
+                                onClick={() => {
+                                  section.highlight?.action();
+                                  setActiveDropdown(null);
+                                }}
+                                className="shrink-0 inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-[#14532D] text-white text-xs font-semibold hover:bg-[#0f3d21] transition-colors cursor-pointer shadow-xs"
+                              >
+                                <span>{section.highlight.ctaText}</span>
+                                <ArrowRight className="w-3 h-3" />
+                              </button>
+                            </div>
+                          )}
+
+                          {/* Items Grid */}
+                          <div
+                            className={cn(
+                              "grid gap-1.5",
+                              section.columns === 2 ? "grid-cols-2" : "grid-cols-1"
+                            )}
+                          >
+                            {section.children?.map((child, idx) => {
+                              const Icon = child.icon;
+                              return (
+                                <button
+                                  key={idx}
+                                  onClick={() => {
+                                    child.action();
+                                    setActiveDropdown(null);
+                                  }}
+                                  className="group text-left p-2.5 rounded-xl hover:bg-emerald-50/70 hover:text-[#14532D] transition-all flex items-start gap-2.5 cursor-pointer"
+                                >
+                                  <div className="w-8 h-8 rounded-lg bg-slate-100 group-hover:bg-[#14532D] group-hover:text-white text-navy flex items-center justify-center shrink-0 transition-colors mt-0.5">
+                                    <Icon className="w-4 h-4" />
+                                  </div>
+                                  <div className="min-w-0 flex-1">
+                                    <div className="flex items-center gap-1.5">
+                                      <span className="text-xs font-semibold text-navy group-hover:text-[#14532D] transition-colors leading-tight">
+                                        {child.label}
+                                      </span>
+                                      {child.badge && (
+                                        <span className="text-[9px] font-bold text-white bg-[#14532D] px-1.5 py-0.2 rounded-full">
+                                          {child.badge}
+                                        </span>
+                                      )}
+                                    </div>
+                                    <p className="text-[11px] text-slate-500 line-clamp-1 mt-0.5 leading-snug">
+                                      {child.description}
+                                    </p>
+                                  </div>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
                   </div>
                 );
               })}
             </nav>
 
             {/* Right Action Icons & Primary Apply Now CTA */}
-            <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0 ml-auto xl:ml-0">
+            <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0 ml-auto xl:ml-6 2xl:ml-8">
               <button
                 aria-label="Search"
                 onClick={() => setSearchOpen((v) => !v)}
@@ -566,115 +601,6 @@ export function Header() {
           </div>
         </div>
 
-        {/* ── 3. Premium Mega Dropdown Overlay (Recreating Design Reference) ─── */}
-        <AnimatePresence>
-          {activeSectionData && (
-            <motion.div
-              initial={{ opacity: 0, y: -6 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -6 }}
-              transition={{ duration: 0.18, ease: "easeOut" }}
-              onMouseEnter={() => handleNavMouseEnter(activeSectionData.label)}
-              onMouseLeave={handleNavMouseLeave}
-              className="absolute left-0 right-0 top-full z-50 pointer-events-auto"
-            >
-              <div className="w-full max-w-[1440px] mx-auto px-4 sm:px-6 pt-2 pb-6">
-                <div className="bg-white rounded-3xl shadow-2xl shadow-slate-900/15 border border-[#E2E8F0] overflow-hidden grid grid-cols-12">
-                  {/* Left Section – Dark-to-Medium Green Introduction Panel */}
-                  <div className="col-span-12 lg:col-span-4 bg-gradient-to-br from-[#0B2916] via-[#14532D] to-[#166534] p-7 sm:p-9 text-white flex flex-col justify-between relative overflow-hidden">
-                    <div className="absolute top-0 right-0 w-64 h-64 blob bg-white/5 pointer-events-none" />
-                    <div className="absolute -bottom-10 -left-10 w-48 h-48 blob bg-gold/10 pointer-events-none" />
-
-                    <div className="relative z-10 space-y-4">
-                      {/* Small Category Label / Badge */}
-                      <span className="inline-flex items-center gap-1.5 text-[11px] font-bold tracking-widest uppercase px-3 py-1 rounded-full bg-white/10 text-gold-light border border-white/15">
-                        <Sparkles className="w-3 h-3 text-gold" />
-                        {activeSectionData.panelBadge || "Bishop Ambrose College"}
-                      </span>
-
-                      {/* Section Title */}
-                      <h3 className="font-serif font-bold text-2xl sm:text-3xl text-white leading-tight">
-                        {activeSectionData.panelTitle || activeSectionData.label}
-                      </h3>
-
-                      {/* Short Description */}
-                      <p className="text-white/85 text-xs sm:text-sm leading-relaxed">
-                        {activeSectionData.panelDescription}
-                      </p>
-                    </div>
-
-                    {/* Learn More link when an existing destination is available */}
-                    {activeSectionData.panelLearnMore && (
-                      <div className="relative z-10 pt-6 mt-6 border-t border-white/15">
-                        <button
-                          onClick={() => {
-                            activeSectionData.panelLearnMore?.action();
-                            setActiveMegaMenu(null);
-                          }}
-                          className="inline-flex items-center gap-2 text-xs font-bold text-gold-light hover:text-white transition-colors group/lm cursor-pointer"
-                        >
-                          <span>{activeSectionData.panelLearnMore.label}</span>
-                          <ArrowRight className="w-3.5 h-3.5 group-hover/lm:translate-x-1 transition-transform" />
-                        </button>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Right Section – Submenu 3-Column Grid */}
-                  <div className="col-span-12 lg:col-span-8 p-6 sm:p-8 bg-[#FBFDFB]">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
-                      {activeSectionData.children?.map((child, idx) => {
-                        const Icon = child.icon;
-                        return (
-                          <button
-                            key={idx}
-                            onClick={() => {
-                              child.action();
-                              setActiveMegaMenu(null);
-                            }}
-                            className="group/card text-left p-4 rounded-2xl bg-white border border-slate-200/80 hover:border-[#14532D]/40 hover:shadow-md hover:bg-emerald-50/40 transition-all duration-200 flex flex-col justify-between h-full cursor-pointer"
-                          >
-                            <div>
-                              {/* Small Green Icon inside light green container + Badge */}
-                              <div className="flex items-center justify-between mb-3">
-                                <div className="w-9 h-9 rounded-xl bg-emerald-50 text-[#14532D] group-hover/card:bg-[#14532D] group-hover/card:text-white flex items-center justify-center transition-colors">
-                                  <Icon className="w-4.5 h-4.5" />
-                                </div>
-                                {child.badge && (
-                                  <span className="text-[10px] font-bold text-[#14532D] bg-emerald-100/70 px-2 py-0.5 rounded-full">
-                                    {child.badge}
-                                  </span>
-                                )}
-                              </div>
-
-                              {/* Clearly visible Submenu Title */}
-                              <h4 className="font-semibold text-xs sm:text-sm text-navy group-hover/card:text-[#14532D] transition-colors leading-snug mb-1">
-                                {child.label}
-                              </h4>
-
-                              {/* Short Description beneath title */}
-                              <p className="text-[11px] text-slate-500 leading-snug line-clamp-2">
-                                {child.description}
-                              </p>
-                            </div>
-
-                            {/* Right-Arrow Indicator */}
-                            <div className="pt-3 mt-2 border-t border-slate-100 flex items-center justify-end">
-                              <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-400 group-hover/card:text-[#14532D] transition-colors">
-                                <ArrowRight className="w-3.5 h-3.5 group-hover/card:translate-x-1 transition-transform" />
-                              </span>
-                            </div>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
         {/* ── Search Bar Dropdown ──────────────────────────────────────── */}
         <AnimatePresence>
           {searchOpen && (
@@ -700,7 +626,7 @@ export function Header() {
         </AnimatePresence>
       </header>
 
-      {/* ── 4. Responsive Mobile Navigation Drawer (< xl) ────────────────── */}
+      {/* ── 3. Responsive Mobile Navigation Drawer (< xl) ────────────────── */}
       <AnimatePresence>
         {mobileOpen && (
           <>
@@ -738,30 +664,30 @@ export function Header() {
                   animate="show"
                   className="flex flex-col gap-1"
                 >
-                  {navItems.map((item) => {
-                    const hasChildren = Boolean(item.children && item.children.length > 0);
-                    const isExpanded = expandedMobileItem === item.label;
-                    const isActive = isCurrentActive(item);
+                  {navSections.map((section) => {
+                    const hasChildren = Boolean(section.children && section.children.length > 0);
+                    const isExpanded = expandedMobileItem === section.label;
+                    const isCurrentActive = isItemActive(section);
 
                     return (
                       <motion.div
                         variants={staggerItem}
-                        key={item.label}
+                        key={section.label}
                         className="border-b border-slate-100 last:border-0"
                       >
                         <button
                           onClick={() => {
                             if (hasChildren) {
-                              setExpandedMobileItem(isExpanded ? null : item.label);
+                              setExpandedMobileItem(isExpanded ? null : section.label);
                             } else {
                               setMobileOpen(false);
-                              if (item.action) item.action();
+                              if (section.action) section.action();
                             }
                           }}
                           className="w-full flex items-center justify-between py-3 px-2 font-semibold text-navy text-sm sm:text-base min-h-[44px] hover:bg-slate-50 rounded-xl transition-colors cursor-pointer"
                         >
-                          <span className={isActive ? "text-[#14532D] font-bold" : ""}>
-                            {item.label}
+                          <span className={isCurrentActive ? "text-[#14532D] font-bold" : ""}>
+                            {section.label}
                           </span>
                           {hasChildren && (
                             <ChevronDown
@@ -783,7 +709,7 @@ export function Header() {
                               transition={{ duration: 0.2 }}
                               className="overflow-hidden pb-2 pl-2 flex flex-col gap-1"
                             >
-                              {item.children?.map((child, idx) => {
+                              {section.children?.map((child, idx) => {
                                 const Icon = child.icon;
                                 return (
                                   <button

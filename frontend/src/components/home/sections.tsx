@@ -1,7 +1,30 @@
 "use client";
 
 import { motion, useReducedMotion } from "framer-motion";
-import { ArrowRight, FlaskConical, TrendingUp, Briefcase, Users, Music, HeartHandshake, Home, Lightbulb, Trophy, Building2, Monitor, Cpu, BookOpen, Bus, Utensils, Wifi, LucideIcon } from "lucide-react";
+import {
+  ArrowRight,
+  FlaskConical,
+  TrendingUp,
+  Briefcase,
+  Users,
+  Music,
+  HeartHandshake,
+  Home,
+  Lightbulb,
+  Trophy,
+  Building2,
+  Monitor,
+  Cpu,
+  BookOpen,
+  Bus,
+  Utensils,
+  Wifi,
+  CheckCircle2,
+  GraduationCap,
+  Award,
+  Sparkles,
+  LucideIcon,
+} from "lucide-react";
 import {
   researchAreas,
   researchStats,
@@ -95,107 +118,173 @@ export function ResearchInnovation() {
 
 /* ============== Placements ============== */
 export function Placements() {
-  const { goAdmissions } = useNav();
-  return (
-    <section id="placements" className="relative py-12 sm:py-20 lg:py-28 bg-background overflow-hidden">
-      <div className="absolute -top-20 left-1/2 -translate-x-1/2 w-[600px] h-64 blob bg-gold/10" />
-      <div className="container mx-auto px-4 sm:px-6 relative">
-        <SectionHeading
-          eyebrow="Placements & Career Success"
-          title={
-            <>
-              Where BAC graduates <span className="text-gold-gradient">land</span>
-            </>
-          }
-          description="A dedicated career studio, 1,200+ recruiters, and a 95% placement rate. Our graduates join the world's most respected companies — and start the next generation of category-defining startups."
-        />
+  const { goPlacements, goAdmissions } = useNav();
+  const shouldReduceMotion = useReducedMotion();
 
-        <div className="grid lg:grid-cols-3 gap-8 mt-14">
-          {/* Stats dashboard */}
-          <Reveal>
-            <div className="space-y-4">
+  const careerPillars = [
+    {
+      title: "Technical & Coding Bootcamps",
+      description: "Hands-on data structures, full-stack web, cloud, and AI development tracks aligned with tech industry standards.",
+      icon: Cpu,
+    },
+    {
+      title: "Aptitude & Analytical Mastery",
+      description: "Rigorous quantitative, logical reasoning, and verbal aptitude training from first semester to final placement drives.",
+      icon: TrendingUp,
+    },
+    {
+      title: "Mock HR & Technical Panels",
+      description: "Simulated interview environments conducted by visiting industry managers and distinguished college alumni.",
+      icon: Users,
+    },
+    {
+      title: "Paid Industry Internships",
+      description: "Pre-placement internship opportunities leading to fast-track career conversions with leading multinational firms.",
+      icon: Briefcase,
+    },
+  ];
+
+  return (
+    <section id="placements" className="relative py-14 sm:py-20 lg:py-24 bg-white overflow-hidden">
+      <div className="container mx-auto px-4 sm:px-6 relative z-10">
+        
+        {/* Section Header */}
+        <Reveal>
+          <div className="text-center max-w-3xl mx-auto mb-12 sm:mb-16">
+            <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-[#C8E6C9] bg-white text-[#14532D] text-xs font-bold uppercase tracking-widest mb-4 shadow-2xs">
+              <Trophy className="w-3.5 h-3.5 text-[#2E7D32]" />
+              Career Placements & Corporate Success
+            </span>
+            <h2 className="font-serif font-bold text-[#14532D] text-3xl sm:text-4xl lg:text-5xl leading-tight tracking-tight mb-4">
+              Where Ambition Meets Corporate Opportunity
+            </h2>
+            <p className="text-[#374151] text-base sm:text-lg leading-relaxed">
+              With a consistent 95% placement record and 300+ recruiting partners, our dedicated Career Guidance Cell nurtures students for industry leadership.
+            </p>
+          </div>
+        </Reveal>
+
+        {/* ── 1. Elegant Horizontal Placement Stats Strip ── */}
+        <Reveal delay={0.1}>
+          <div className="bg-[#FAFBF9] rounded-3xl border border-[#E2E8F0] shadow-xs mb-14 overflow-hidden">
+            <div className="grid grid-cols-2 md:grid-cols-4 divide-y md:divide-y-0 md:divide-x divide-gray-200/70">
               {placementStats.map((stat) => (
-                <div key={stat.label} className="bg-white/95 backdrop-blur-md rounded-2xl border border-emerald-200/70 p-6 flex items-center justify-between shadow-xs hover:shadow-md transition-shadow">
-                  <div>
-                    <div className="text-xs uppercase tracking-widest text-[#1F2937] font-bold mb-1">
-                      {stat.label}
-                    </div>
-                    <div className="font-serif text-3xl font-bold text-[#166534] tracking-tight">
-                      {stat.prefix}
-                      <AnimatedCounter value={stat.value} />
-                      {stat.suffix}
-                    </div>
+                <div key={stat.label} className="p-6 sm:p-8 flex flex-col items-center text-center">
+                  <div className="font-serif text-3xl sm:text-4xl lg:text-5xl font-bold text-[#14532D] tracking-tight mb-1.5">
+                    {stat.prefix && <span className="text-2xl sm:text-3xl text-[#2E7D32] mr-0.5">{stat.prefix}</span>}
+                    <AnimatedCounter value={stat.value} />
+                    {stat.suffix && <span>{stat.suffix}</span>}
                   </div>
-                  <div className="w-12 h-12 rounded-full bg-emerald-50 flex items-center justify-center text-[#166534]">
-                    <TrendingUp className="w-6 h-6" />
+                  <div className="text-xs sm:text-sm font-bold text-[#26352B] tracking-wide mb-1">
+                    {stat.label}
                   </div>
+                  <span className="text-[11px] text-[#68766B] font-medium">
+                    {stat.label.includes("Rate") ? "Verified institutional average" : stat.label.includes("Highest") ? "International top offer" : stat.label.includes("Average") ? "Campus-wide median CTC" : "Conversion from internships"}
+                  </span>
                 </div>
               ))}
             </div>
-          </Reveal>
+          </div>
+        </Reveal>
 
-          {/* Highlight */}
-          <Reveal delay={0.1}>
-            <div className="rounded-2xl bg-navy-gradient text-white p-8 h-full flex flex-col justify-between relative overflow-hidden shadow-lg">
-              <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-gold/20 blur-3xl" />
-              <div className="relative">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 text-emerald-200 text-xs font-bold uppercase tracking-wider mb-4 border border-white/20">
-                  <Trophy className="w-3 h-3" />
-                  Top Recruiters
-                </div>
-                <h3 className="font-serif text-2xl sm:text-3xl font-bold mb-3 text-white text-shadow-on-dark">
-                  1,200+ recruiters from 30+ countries
-                </h3>
-                <p className="text-white/90 text-sm sm:text-base leading-relaxed mb-6 font-normal">
-                  From global technology majors to investment banks, consulting firms, and research labs — BAC graduates are recruited by the world&apos;s most respected organisations.
-                </p>
+        {/* ── 2. Editorial 2-Column Spread: Career Studio + Recruiter Portfolio ── */}
+        <div className="grid lg:grid-cols-12 gap-8 items-stretch mb-14">
+          
+          {/* Left Column: 4 Career Development Pillars (7 cols) */}
+          <div className="lg:col-span-7 flex flex-col justify-between">
+            <div>
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-xs font-bold uppercase tracking-wider text-[#166534]">Career Studio Pillars</span>
               </div>
-              <PremiumButton variant="gold" size="md" className="relative bg-white text-[#14532D] hover:bg-white/95 font-bold" icon={<ArrowRight className="w-4 h-4" />} onClick={goAdmissions}>
-                View Placement Report
-              </PremiumButton>
+              <h3 className="font-serif text-2xl sm:text-3xl font-bold text-[#14532D] mb-4">
+                Structured Training for Modern Industry Careers
+              </h3>
+              <p className="text-[#374151] text-sm sm:text-base leading-relaxed mb-6 font-normal">
+                Our Training and Placement Cell operates year-round, equipping students with rigorous technical acumen, soft-skills finesse, and continuous placement preparation.
+              </p>
             </div>
-          </Reveal>
 
-          {/* Industry partners */}
-          <Reveal delay={0.2}>
-            <div className="bg-white/95 backdrop-blur-md rounded-2xl border border-emerald-200/70 p-6 h-full shadow-xs">
-              <div className="flex items-center gap-2 mb-5">
-                <Building2 className="w-5 h-5 text-[#166534]" />
-                <h3 className="font-serif text-lg font-bold text-[#14532D]">Industry Partners</h3>
+            <div className="grid sm:grid-cols-2 gap-4">
+              {careerPillars.map((pillar, idx) => {
+                const Icon = pillar.icon;
+                return (
+                  <motion.div
+                    key={pillar.title}
+                    initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 15 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, margin: "-40px" }}
+                    transition={{ duration: 0.4, delay: shouldReduceMotion ? 0 : idx * 0.08, ease: "easeOut" }}
+                    className="p-5 rounded-2xl bg-[#FAFBF9] border border-[#E2E8F0] hover:border-[#14532D]/40 transition-colors"
+                  >
+                    <div className="w-9 h-9 rounded-xl bg-white border border-[#C8E6C9] flex items-center justify-center text-[#14532D] mb-3 shadow-2xs">
+                      <Icon className="w-4 h-4" />
+                    </div>
+                    <h4 className="font-serif font-bold text-[#14532D] text-sm mb-1.5">{pillar.title}</h4>
+                    <p className="text-xs text-[#374151] leading-relaxed font-normal">{pillar.description}</p>
+                  </motion.div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Right Column: Verified Corporate Recruiters (5 cols) */}
+          <div className="lg:col-span-5 bg-[#FAFBF9] rounded-3xl border border-[#E2E8F0] p-6 sm:p-7 flex flex-col justify-between">
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h4 className="font-serif text-lg font-bold text-[#14532D]">Premier Recruiter Network</h4>
+                  <p className="text-xs text-[#68766B]">Multinational & top regional employers</p>
+                </div>
+                <span className="text-xs font-bold text-[#14532D] bg-white px-2.5 py-1 rounded-full border border-gray-200 shadow-2xs">
+                  300+ Recruiters
+                </span>
               </div>
-              <div className="grid grid-cols-2 xs:grid-cols-3 gap-2.5 sm:gap-3">
+
+              {/* Recruiter Logos Grid */}
+              <div className="grid grid-cols-3 gap-2.5 mb-6">
                 {recruiters.slice(0, 12).map((recruiter) => (
                   <div
                     key={recruiter}
-                    className="aspect-square rounded-xl border border-emerald-100 bg-white flex items-center justify-center text-center p-2 hover:border-[#166534]/50 hover:bg-emerald-50/50 transition-colors group shadow-2xs"
+                    className="h-14 rounded-xl border border-gray-200/80 bg-white flex items-center justify-center text-center px-2 hover:border-[#14532D] hover:shadow-xs transition-all group"
                   >
-                    <span className="font-serif font-bold text-[#14532D] text-[11px] xs:text-xs sm:text-sm group-hover:text-[#166534] transition-colors">
+                    <span className="font-serif font-bold text-[#26352B] text-xs group-hover:text-[#14532D] transition-colors">
                       {recruiter}
                     </span>
                   </div>
                 ))}
               </div>
-              <div className="mt-4 text-center text-xs text-[#374151] font-medium">
-                +{recruiters.length - 12} more global recruiters
-              </div>
             </div>
-          </Reveal>
+
+            <div className="pt-4 border-t border-gray-200/80 flex flex-col sm:flex-row items-center justify-between gap-3">
+              <span className="text-xs text-[#374151] font-medium text-center sm:text-left">
+                +280 more corporate & IT partners
+              </span>
+              <button
+                onClick={goPlacements}
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#14532D] hover:bg-[#0f3e22] text-white text-xs font-bold shadow-xs transition-all duration-200 hover:-translate-y-0.5 cursor-pointer w-full sm:w-auto justify-center"
+              >
+                View Placement Report
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </div>
+
         </div>
 
-        {/* Marquee of recruiters */}
+        {/* ── 3. Marquee of Recruiters ── */}
         <Reveal>
-          <div className="mt-12 overflow-hidden">
+          <div className="overflow-hidden">
             <div className="text-center mb-4">
-              <p className="text-xs uppercase tracking-widest text-[#1F2937] font-bold">
-                A few of the companies that hire BAC graduates
+              <p className="text-xs uppercase tracking-widest text-[#26352B] font-bold">
+                Trusted by Leading Global Enterprises
               </p>
             </div>
             <div className="relative overflow-hidden mask-gradient">
-              <div className="flex gap-4 animate-marquee whitespace-nowrap">
+              <div className="flex gap-3.5 animate-marquee whitespace-nowrap py-1">
                 {[...recruiters, ...recruiters].map((recruiter, idx) => (
                   <div
                     key={idx}
-                    className="shrink-0 px-6 py-3 rounded-full border border-emerald-200/80 bg-white font-serif font-bold text-[#14532D] text-sm shadow-xs"
+                    className="shrink-0 px-5 py-2 rounded-full border border-gray-200 bg-white font-serif font-bold text-[#14532D] text-xs shadow-2xs"
                   >
                     {recruiter}
                   </div>
@@ -204,6 +293,7 @@ export function Placements() {
             </div>
           </div>
         </Reveal>
+
       </div>
     </section>
   );
@@ -213,55 +303,64 @@ export function Placements() {
 export function StudentLife() {
   const { goEvents } = useNav();
   return (
-    <section id="student-life" className="relative py-12 sm:py-20 lg:py-28 bg-cream overflow-hidden">
-      <div className="absolute top-32 right-0 w-96 h-96 blob bg-gold/15" />
-      <div className="container mx-auto px-4 sm:px-6 relative">
-        <SectionHeading
-          eyebrow="Student Life"
-          title={
-            <>
-              More than a campus. <span className="text-gold-gradient">A community.</span>
-            </>
-          }
-          description="150+ student clubs, 32 sports teams, year-round cultural festivals, a 24/7 makerspace, and wellness support that puts student thriving at the centre of everything we do."
-        />
+    <section id="student-life" className="relative py-14 sm:py-20 lg:py-24 bg-[#F5F7F1] border-y border-[#E2E8F0]/80 overflow-hidden">
+      <div className="container mx-auto px-4 sm:px-6 relative z-10">
+        
+        {/* Section Header */}
+        <Reveal>
+          <div className="text-center max-w-3xl mx-auto mb-12 sm:mb-16">
+            <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-[#C8E6C9] bg-white text-[#14532D] text-xs font-bold uppercase tracking-widest mb-4 shadow-2xs">
+              <Sparkles className="w-3.5 h-3.5 text-[#2E7D32]" />
+              Campus Experience & Student Life
+            </span>
+            <h2 className="font-serif font-bold text-[#14532D] text-3xl sm:text-4xl lg:text-5xl leading-tight tracking-tight mb-4">
+              More Than an Education. A Thriving Community.
+            </h2>
+            <p className="text-[#374151] text-base sm:text-lg leading-relaxed">
+              Active student clubs, championship sports teams, cultural galas, and social service initiatives that make life at Bishop Ambrose unforgettable.
+            </p>
+          </div>
+        </Reveal>
 
-        <div className="grid lg:grid-cols-3 gap-6 mt-14">
+        <div className="grid lg:grid-cols-3 gap-6">
           {/* Big image card with Accessible Semi-Transparent Dark Card Overlay */}
           <Reveal>
-            <div className="lg:col-span-1 relative rounded-2xl overflow-hidden shadow-premium h-80 lg:h-full min-h-[320px] group">
+            <div className="lg:col-span-1 relative rounded-3xl overflow-hidden shadow-md h-80 lg:h-full min-h-[340px] group bg-slate-900 border border-[#E2E8F0]">
               <img
                 src="https://images.unsplash.com/photo-1523580494863-6f3031224c94?auto=format&fit=crop&w=1200&q=80"
                 alt="Student campus life"
+                onError={(e) => {
+                  (e.currentTarget as HTMLImageElement).src = "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&w=1200&q=80";
+                }}
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-              <div className="absolute bottom-4 left-4 right-4 sm:bottom-5 sm:left-5 sm:right-5 card-dark-overlay p-4 sm:p-5 rounded-xl border border-white/20 text-white shadow-xl">
-                <div className="text-xs uppercase tracking-widest text-emerald-300 font-bold mb-1">
-                  The BAC Experience
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent pointer-events-none" />
+              <div className="absolute bottom-5 left-5 right-5 p-5 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 text-white shadow-lg">
+                <div className="text-xs uppercase tracking-widest text-[#A3C95A] font-bold mb-1.5">
+                  The Ambrose Experience
                 </div>
                 <h3 className="font-serif text-xl sm:text-2xl font-bold mb-2 leading-tight text-white text-shadow-on-dark">
-                  Friendships and ideas that last a lifetime
+                  Friendships &amp; Values That Endure
                 </h3>
                 <p className="text-xs sm:text-sm text-white/90 leading-relaxed font-normal">
-                  From hackathons to film festivals, every week at BAC brings a new opportunity to learn, lead, and belong.
+                  From inter-collegiate fests to social outreach in Coimbatore rural communities, every semester provides enriching leadership opportunities.
                 </p>
               </div>
             </div>
           </Reveal>
 
           {/* Grid of features */}
-          <div className="lg:col-span-2 grid sm:grid-cols-2 gap-5">
+          <div className="lg:col-span-2 grid sm:grid-cols-2 gap-4">
             {studentLife.map((item, idx) => (
               <Reveal key={item.title} delay={idx * 0.05}>
-                <div className="group rounded-2xl p-6 bg-white border border-emerald-200/70 hover:border-[#14532D] hover:shadow-md transition-all duration-300 shadow-xs h-full cursor-pointer">
+                <div className="group rounded-2xl p-6 bg-white border border-[#E2E8F0] hover:border-[#14532D]/40 hover:shadow-md transition-all duration-300 shadow-xs h-full cursor-default">
                   <div className="flex items-start gap-4">
-                    <div className="w-11 h-11 rounded-xl bg-emerald-50 text-[#14532D] flex items-center justify-center transition-colors shrink-0 font-bold">
+                    <div className="w-11 h-11 rounded-xl bg-[#F5F7F1] border border-[#C8E6C9] text-[#14532D] flex items-center justify-center transition-colors shrink-0 font-bold group-hover:bg-[#14532D] group-hover:text-white">
                       <DepartmentIcon name={item.icon} className="w-5 h-5" />
                     </div>
                     <div>
-                      <h4 className="font-serif text-base font-bold text-[#14532D] mb-1 transition-colors">{item.title}</h4>
-                      <p className="text-sm text-[#374151] leading-relaxed transition-colors font-normal">{item.description}</p>
+                      <h4 className="font-serif text-base font-bold text-[#14532D] mb-1.5 transition-colors">{item.title}</h4>
+                      <p className="text-xs text-[#374151] leading-relaxed transition-colors font-normal">{item.description}</p>
                     </div>
                   </div>
                 </div>
@@ -272,9 +371,13 @@ export function StudentLife() {
 
         <Reveal>
           <div className="mt-12 text-center">
-            <PremiumButton variant="navy" size="lg" icon={<ArrowRight className="w-4 h-4" />} onClick={goEvents} className="bg-[#14532D] text-white font-bold">
-              Explore Campus Events
-            </PremiumButton>
+            <button
+              onClick={goEvents}
+              className="inline-flex items-center gap-2.5 px-7 py-3.5 rounded-full bg-[#14532D] hover:bg-[#0f3e22] text-white text-sm font-bold shadow-sm transition-all duration-200 hover:-translate-y-0.5 cursor-pointer"
+            >
+              Explore Campus Events &amp; Activities
+              <ArrowRight className="w-4 h-4" />
+            </button>
           </div>
         </Reveal>
       </div>
@@ -286,68 +389,78 @@ export function StudentLife() {
 const testimonials = [
   {
     name: "Arjun Mehta",
-    title: "Staff Software Engineer, Google",
+    title: "Lead Software Architect, Global Tech",
     image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=400&q=80",
     quote:
-      "BAC gave me the rigor of a top research lab and the pragmatism of a Silicon Valley startup. I shipped my first production system as a sophomore.",
+      "Bishop Ambrose College provided the perfect balance of technical rigor, ethical foundation, and career opportunities. The guidance of the faculty shaped my trajectory in enterprise computing.",
     year: "Class of 2019",
   },
   {
     name: "Sara Williams",
-    title: "Research Scientist, Anthropic",
+    title: "Senior Research Associate, Life Sciences",
     image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=400&q=80",
     quote:
-      "The faculty mentorship and access to compute resources at BAC rival what I have seen at Stanford and CMU. The network effect is real.",
+      "The hands-on lab access and dedicated mentorship from professors at BAC gave me the edge during university campus interviews and postgraduate entrance examinations.",
     year: "Class of 2020",
   },
   {
     name: "Maya Singh",
-    title: "VP, Investment Banking, Goldman Sachs",
+    title: "Assistant Vice President, Banking & Finance",
     image: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=400&q=80",
     quote:
-      "The case-method rigor and global network at BAC accelerated my career by at least five years. I still lean on my BAC cohort every single day.",
-    year: "Class of 2017",
+      "The analytical discipline and communication skills developed through departmental associations at BAC built the foundation for my international corporate banking career.",
+    year: "Class of 2018",
   },
 ];
 
 export function SuccessStories() {
   return (
-    <section className="relative py-12 sm:py-20 lg:py-28 bg-background overflow-hidden">
+    <section className="relative py-14 sm:py-20 lg:py-24 bg-white overflow-hidden">
       <div className="container mx-auto px-4 sm:px-6">
-        <SectionHeading
-          eyebrow="Student Success Stories"
-          title={
-            <>
-              BAC graduates <span className="text-gold-gradient">shape the future</span>
-            </>
-          }
-          description="From Silicon Valley engineers to Wall Street leaders and venture-backed founders — BAC alumni are building the next generation of impactful organisations."
-        />
+        
+        {/* Section Header */}
+        <Reveal>
+          <div className="text-center max-w-3xl mx-auto mb-12 sm:mb-16">
+            <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-[#C8E6C9] bg-white text-[#14532D] text-xs font-bold uppercase tracking-widest mb-4 shadow-2xs">
+              <Award className="w-3.5 h-3.5 text-[#2E7D32]" />
+              Alumni Voices &amp; Success
+            </span>
+            <h2 className="font-serif font-bold text-[#14532D] text-3xl sm:text-4xl lg:text-5xl leading-tight tracking-tight mb-4">
+              Graduates Shaping the Future
+            </h2>
+            <p className="text-[#374151] text-base sm:text-lg leading-relaxed">
+              From corporate executives to researchers and community leaders, our alumni carry forward the Bishop Ambrose spirit of excellence.
+            </p>
+          </div>
+        </Reveal>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-10 sm:mt-14">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {testimonials.map((t, idx) => (
             <Reveal key={t.name} delay={idx * 0.1}>
-              <div className="bg-white/95 backdrop-blur-md rounded-2xl border border-emerald-200/70 p-6 sm:p-7 h-full flex flex-col group shadow-xs hover:shadow-md transition-shadow">
+              <div className="bg-[#FAFBF9] rounded-3xl border border-[#E2E8F0] p-6 sm:p-7 h-full flex flex-col group shadow-2xs hover:shadow-md transition-shadow">
                 <div className="flex items-center gap-1 mb-4">
                   {[...Array(5)].map((_, i) => (
-                    <svg key={i} className="w-4 h-4 text-emerald-600 fill-current" viewBox="0 0 20 20">
+                    <svg key={i} className="w-4 h-4 text-[#2E7D32] fill-current" viewBox="0 0 20 20">
                       <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.953a1 1 0 00.95.69h4.162c.969 0 1.371 1.24.588 1.81l-3.367 2.446a1 1 0 00-.364 1.118l1.286 3.953c.3.921-.755 1.688-1.539 1.118l-3.366-2.446a1 1 0 00-1.176 0l-3.366 2.446c-.784.57-1.838-.197-1.539-1.118l1.286-3.953a1 1 0 00-.364-1.118L2.075 9.38c-.784-.57-.38-1.81.588-1.81h4.162a1 1 0 00.951-.69l1.286-3.953z" />
                     </svg>
                   ))}
                 </div>
-                <p className="text-[#1F2937] font-serif text-base leading-relaxed mb-6 flex-1 italic font-medium">
+                <p className="text-[#26352B] font-serif text-base leading-relaxed mb-6 flex-1 italic font-medium">
                   &ldquo;{t.quote}&rdquo;
                 </p>
-                <div className="flex items-center gap-3 pt-4 border-t border-emerald-100">
+                <div className="flex items-center gap-3 pt-4 border-t border-gray-200/80">
                   <img
                     src={t.image}
                     alt={t.name}
-                    className="w-12 h-12 rounded-full object-cover ring-2 ring-emerald-400/60 shrink-0"
+                    onError={(e) => {
+                      (e.currentTarget as HTMLImageElement).src = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80";
+                    }}
+                    className="w-12 h-12 rounded-full object-cover ring-2 ring-[#2E7D32]/40 shrink-0"
                   />
                   <div className="min-w-0">
                     <div className="font-bold text-[#14532D] text-sm truncate">{t.name}</div>
                     <div className="text-xs text-[#374151] font-medium line-clamp-1">{t.title}</div>
-                    <div className="text-[11px] text-[#166534] font-bold uppercase tracking-wider mt-0.5">
+                    <div className="text-[11px] text-[#2E7D32] font-bold uppercase tracking-wider mt-0.5">
                       {t.year}
                     </div>
                   </div>
@@ -365,41 +478,40 @@ export function SuccessStories() {
 export function HomeCta() {
   const { goAdmissions } = useNav();
   return (
-    <section className="relative py-14 sm:py-20 lg:py-28 bg-navy-gradient text-white overflow-hidden">
-      <div className="absolute inset-0 pattern-grid opacity-15 mix-blend-overlay" />
-      <div className="absolute -top-32 left-1/2 -translate-x-1/2 w-96 h-96 blob bg-gold/30" />
-      <div className="container mx-auto px-4 sm:px-6 relative">
+    <section className="relative py-16 sm:py-20 lg:py-24 bg-gradient-to-br from-[#14532D] via-[#0E3E21] to-[#082815] text-white overflow-hidden">
+      <div className="container mx-auto px-4 sm:px-6 relative z-10">
         <div className="max-w-3xl mx-auto text-center">
           <motion.div
-            initial={{ opacity: 0, y: 30 }}
+            initial={{ opacity: 0, y: 25 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
           >
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/15 text-emerald-200 text-xs font-bold uppercase tracking-widest mb-6 border border-white/20">
-              <FlaskConical className="w-3.5 h-3.5" />
-              Admissions Open 2026
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 text-[#A3C95A] text-xs font-bold uppercase tracking-widest mb-6 border border-white/15">
+              <GraduationCap className="w-3.5 h-3.5" />
+              Admissions Open 2026–27
             </div>
-            <h2 className="font-serif font-bold text-3xl sm:text-4xl md:text-5xl lg:text-6xl leading-[1.12] mb-6 text-white text-shadow-on-dark">
-              Your future starts at <span className="text-emerald-300">BAC</span>
+            <h2 className="font-serif font-bold text-3xl sm:text-4xl md:text-5xl lg:text-6xl leading-[1.15] mb-6 text-white text-shadow-on-dark">
+              Your Journey of Excellence Begins at <span className="text-[#A3C95A]">Bishop Ambrose</span>
             </h2>
-            <p className="text-white/95 text-sm sm:text-base lg:text-lg leading-relaxed mb-8 sm:mb-10 max-w-2xl mx-auto font-normal text-shadow-subtle">
-              Join 20,000+ students from 80 countries who chose BAC to launch their careers,
-              their startups, and their research journeys. Applications for the 2026 intake are now open.
+            <p className="text-white/90 text-sm sm:text-base lg:text-lg leading-relaxed mb-8 max-w-2xl mx-auto font-normal">
+              Take the first step toward high-impact undergraduate and postgraduate programs. Join a prestigious institution where academic rigor meets values, ethics, and community leadership.
             </p>
             <div className="flex flex-col sm:flex-row flex-wrap gap-3 justify-center">
-              <PremiumButton variant="gold" size="lg" onClick={goAdmissions} icon={<ArrowRight className="w-4 h-4" />} className="bg-white text-[#14532D] hover:bg-white/95 font-bold">
-                Apply Now
-              </PremiumButton>
-              <PremiumButton
-                variant="outline-light"
-                size="lg"
+              <button
                 onClick={goAdmissions}
-                icon={<Briefcase className="w-4 h-4" />}
-                className="border-white/40 text-white hover:bg-white/15 font-bold"
+                className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-full bg-white hover:bg-gray-100 text-[#14532D] text-sm font-bold shadow-md transition-all duration-200 hover:-translate-y-0.5 cursor-pointer"
               >
-                Download Brochure
-              </PremiumButton>
+                Apply for Admission 2026
+                <ArrowRight className="w-4 h-4" />
+              </button>
+              <button
+                onClick={goAdmissions}
+                className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-full border border-white/30 text-white hover:bg-white/10 text-sm font-bold transition-all duration-200 cursor-pointer"
+              >
+                <Briefcase className="w-4 h-4" />
+                Download College Prospectus
+              </button>
             </div>
           </motion.div>
         </div>
@@ -408,7 +520,7 @@ export function HomeCta() {
   );
 }
 
-/* ============== Why Choose Us Statistics ============== */
+/* ============== Why Choose Us Statistics (Academic Excellence) ============== */
 export function WhyChooseUs() {
   const shouldReduceMotion = useReducedMotion();
   const { data } = useSiteData();
@@ -419,9 +531,9 @@ export function WhyChooseUs() {
     return null;
   }
 
-  const eyebrow = statsConfig?.badgeText || "Why Choose Our College";
-  const heading = statsConfig?.heading || "Building Academic Excellence & Global Trust";
-  const description = statsConfig?.description ?? "Empowering thousands of students through world-class faculty, cutting-edge facilities, and exceptional career outcomes.";
+  const eyebrow = statsConfig?.badgeText || "Academic Excellence & Distinction";
+  const heading = statsConfig?.heading || "Building Academic Excellence & Enduring Trust";
+  const description = statsConfig?.description ?? "Empowering students through rigorous diocesan heritage, distinguished faculty mentorship, modern labs, and verified career success.";
 
   // Use dynamic stats if available, sorted by order and filtered by visible
   const statsList = (statsConfig?.statistics && statsConfig.statistics.length > 0)
@@ -438,64 +550,106 @@ export function WhyChooseUs() {
         visible: true,
       }));
 
-  const count = statsList.length;
-  const gridColsClass =
-    count === 1
-      ? "grid-cols-1 max-w-sm mx-auto"
-      : count === 2
-      ? "grid-cols-1 sm:grid-cols-2 max-w-xl mx-auto"
-      : count === 3
-      ? "grid-cols-1 sm:grid-cols-3 max-w-3xl mx-auto"
-      : count === 4
-      ? "grid-cols-2 md:grid-cols-4"
-      : count === 5
-      ? "grid-cols-2 sm:grid-cols-3 md:grid-cols-5"
-      : "grid-cols-2 sm:grid-cols-3 lg:grid-cols-6";
-
   return (
-    <section className="relative py-12 sm:py-20 lg:py-28 bg-cream border-y border-border overflow-hidden">
-      <div className="container mx-auto px-4 sm:px-6">
-        <SectionHeading
-          eyebrow={eyebrow}
-          title={
-            heading.includes("Academic Excellence") ? (
-              <>
-                {heading.split("Academic Excellence")[0]}
-                <span className="text-gold-gradient">Academic Excellence</span>
-                {heading.split("Academic Excellence")[1]}
-              </>
-            ) : (
-              heading
-            )
-          }
-          description={description}
-        />
-        <div className={`grid ${gridColsClass} gap-4 mt-12`}>
-          {statsList.map((stat, idx) => (
-            <motion.div
-              key={stat.id || stat.label}
-              initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 25 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-60px" }}
-              transition={{ duration: 0.6, delay: shouldReduceMotion ? 0 : idx * 0.09, ease: "easeOut" }}
-              whileHover={{ y: shouldReduceMotion ? 0 : -5, transition: { duration: 0.25, ease: "easeOut" } }}
-              className="bg-white rounded-2xl p-6 text-center border border-[#DCE8DE] hover:border-[#2E7D32] hover:shadow-lg transition-all cursor-default group shadow-xs"
-            >
-              <div className="font-serif text-3xl sm:text-4xl font-bold text-[#2E7D32] mb-1.5 transition-colors tracking-tight">
-                {stat.prefix && <span className="mr-0.5">{stat.prefix}</span>}
-                <AnimatedCounter value={Number(stat.value) || 0} suffix={stat.suffix || ""} />
+    <section className="relative py-14 sm:py-20 lg:py-24 bg-[#F5F7F1] border-b border-[#E2E8F0]/80 overflow-hidden">
+      <div className="container mx-auto px-4 sm:px-6 relative z-10">
+        
+        {/* Editorial Section Header */}
+        <Reveal>
+          <div className="text-center max-w-3xl mx-auto mb-12 sm:mb-16">
+            <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-[#C8E6C9] bg-white text-[#14532D] text-xs font-bold uppercase tracking-widest mb-4 shadow-2xs">
+              <Sparkles className="w-3.5 h-3.5 text-[#2E7D32]" />
+              {eyebrow}
+            </span>
+            <h2 className="font-serif font-bold text-[#14532D] text-3xl sm:text-4xl lg:text-5xl leading-tight tracking-tight mb-4">
+              {heading.includes("Academic Excellence") ? (
+                <>
+                  {heading.split("Academic Excellence")[0]}
+                  <span className="text-[#2E7D32]">Academic Excellence</span>
+                  {heading.split("Academic Excellence")[1]}
+                </>
+              ) : (
+                heading
+              )}
+            </h2>
+            <p className="text-[#374151] text-base sm:text-lg leading-relaxed">
+              {description}
+            </p>
+          </div>
+        </Reveal>
+
+        {/* Continuous Editorial Metric Strip with Thin Subtle Dividers */}
+        <Reveal delay={0.1}>
+          <div className="bg-white rounded-3xl border border-[#E2E8F0] shadow-sm overflow-hidden">
+            <div className="grid grid-cols-2 md:grid-cols-5 divide-y md:divide-y-0 md:divide-x divide-gray-100">
+              {statsList.map((stat, idx) => (
+                <div
+                  key={stat.id || stat.label}
+                  className="p-6 sm:p-8 flex flex-col items-center text-center group hover:bg-[#F9FAF8] transition-colors"
+                >
+                  <div className="font-serif text-4xl sm:text-5xl lg:text-6xl font-bold text-[#14532D] tracking-tight mb-2 group-hover:scale-105 transition-transform duration-300">
+                    {stat.prefix && <span className="mr-0.5 text-3xl sm:text-4xl text-[#2E7D32]">{stat.prefix}</span>}
+                    <AnimatedCounter value={Number(stat.value) || 0} suffix={stat.suffix || ""} />
+                  </div>
+                  <div className="text-xs sm:text-sm font-bold text-[#26352B] tracking-wide mb-1">
+                    {stat.label}
+                  </div>
+                  <span className="text-[11px] text-[#68766B] font-medium leading-snug">
+                    {stat.label.includes("Excellence") || stat.label.includes("Years")
+                      ? "Educational legacy since 1994"
+                      : stat.label.includes("Students")
+                      ? "Enrolled & active alumni network"
+                      : stat.label.includes("Faculty")
+                      ? "Dedicated research mentors"
+                      : stat.label.includes("Placement")
+                      ? "Verified career success rate"
+                      : "Peer-reviewed academic contributions"}
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            {/* Narrative Context Footer Bar */}
+            <div className="bg-[#FAFBF9] px-6 py-4 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
+              <div className="flex items-center gap-2 text-xs text-[#26352B]">
+                <GraduationCap className="w-4 h-4 text-[#14532D] shrink-0" />
+                <span className="font-medium">
+                  Affiliated with Bharathiar University · Approved by UGC · Managed by the Catholic Diocese of Coimbatore
+                </span>
               </div>
-              <div className="text-[#26352B] text-xs sm:text-sm font-semibold tracking-wide">{stat.label}</div>
-            </motion.div>
-          ))}
-        </div>
+              <div className="text-xs font-bold text-[#14532D] shrink-0">
+                Autonomous Status · NAAC Accredited
+              </div>
+            </div>
+          </div>
+        </Reveal>
+
       </div>
     </section>
   );
 }
 
 /* ============== Campus Facilities ============== */
-const campusFacilities = [
+const featuredFacilities = [
+  {
+    title: "Digital Library & Research Learning Centre",
+    subtitle: "Knowledge Gateway",
+    description: "An expansive resource center with over 500,000 physical volumes, 24/7 subscriptions to international journals (INFLIBNET N-LIST, IEEE, Springer), quiet individual research pods, and collaborative group study suites.",
+    image: "https://images.unsplash.com/photo-1521587760476-6c12a4b040da?auto=format&fit=crop&w=1200&q=80",
+    features: ["500k+ Books & Journals", "Air-Conditioned Pods", "Digital Archives", "Automated RFID"],
+    icon: BookOpen,
+  },
+  {
+    title: "High-Performance Computing & AI Laboratories",
+    subtitle: "Innovation Infrastructure",
+    description: "State-of-the-art computer science and engineering laboratories equipped with workstation clusters, GPU accelerators, dedicated cloud access, and modern development software suites.",
+    image: "https://images.unsplash.com/photo-1531403009284-440f080d1e12?auto=format&fit=crop&w=1200&q=80",
+    features: ["GPU Compute Workstations", "Gigabit LAN Backbone", "AI & Robotics Kits", "Linux / Windows Dual Boot"],
+    icon: Cpu,
+  },
+];
+
+const supportingFacilities = [
   {
     title: "Smart Classrooms",
     description: "Equipped with interactive smartboards, high-speed audio-visual systems, and hybrid lecture capture.",
@@ -503,44 +657,32 @@ const campusFacilities = [
     icon: Monitor,
   },
   {
-    title: "Computer Labs",
-    description: "High-performance computing clusters with latest GPUs, workstation labs, and AI development servers.",
-    image: "https://images.unsplash.com/photo-1531403009284-440f080d1e12?auto=format&fit=crop&w=600&q=80",
-    icon: Cpu,
-  },
-  {
-    title: "Digital Library",
-    description: "Over 500,000 physical volumes, 24/7 digital journal access, private study pods, and research archives.",
-    image: "https://images.unsplash.com/photo-1521587760476-6c12a4b040da?auto=format&fit=crop&w=600&q=80",
-    icon: BookOpen,
-  },
-  {
-    title: "Sports Facilities",
-    description: "Olympic-size swimming pool, indoor sports complex, football stadium, tennis courts, and fitness centers.",
+    title: "Sports & Athletics Arena",
+    description: "Multi-purpose sports pavilion, football grounds, basketball courts, badminton arena, and fitness gyms.",
     image: "https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&w=600&q=80",
     icon: Trophy,
   },
   {
-    title: "Transportation",
-    description: "Comprehensive fleet of AC buses connecting the campus to all major city hubs with real-time GPS tracking.",
+    title: "College Transportation Fleet",
+    description: "Comprehensive fleet of buses connecting campus to all major Coimbatore hubs with real-time GPS tracking.",
     image: "https://images.unsplash.com/photo-1570125909232-eb263c188f7e?auto=format&fit=crop&w=600&q=80",
     icon: Bus,
   },
   {
-    title: "Cafeteria & Dining",
-    description: "Multi-cuisine food courts offering hygienic, nutritious, and diverse meals with strict quality standards.",
+    title: "Hygienic Dining & Cafeteria",
+    description: "Spacious food courts offering hygienic, nutritious, and balanced meals adhering to certified food safety standards.",
     image: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=600&q=80",
     icon: Utensils,
   },
   {
-    title: "Wi-Fi Campus",
-    description: "10 Gbps high-speed Wi-Fi network spanning across academic blocks, hostels, and outdoor lawns.",
+    title: "High-Speed 10 Gbps Campus Wi-Fi",
+    description: "Seamless wireless network coverage spanning across academic blocks, departments, labs, and student lawns.",
     image: "https://images.unsplash.com/photo-1544197150-b99a580bb7a8?auto=format&fit=crop&w=600&q=80",
     icon: Wifi,
   },
   {
-    title: "Seminar Halls",
-    description: "Acoustically designed auditoriums and seminar halls with 1,500+ seating capacity for international conferences.",
+    title: "Auditoriums & Seminar Halls",
+    description: "Acoustically engineered air-conditioned halls with 1,500+ seating for international conferences and events.",
     image: "https://images.unsplash.com/photo-1475721027785-f74eccf877e2?auto=format&fit=crop&w=600&q=80",
     icon: Building2,
   },
@@ -549,57 +691,129 @@ const campusFacilities = [
 export function CampusFacilities() {
   const shouldReduceMotion = useReducedMotion();
   return (
-    <section id="facilities" className="relative py-12 sm:py-20 lg:py-28 bg-background overflow-hidden">
-      <div className="container mx-auto px-4 sm:px-6">
-        <SectionHeading
-          eyebrow="World-Class Infrastructure"
-          title={
-            <>
-              Campus <span className="text-gold-gradient">Facilities</span>
-            </>
-          }
-          description="Designed to support comprehensive student development, cutting-edge learning, research, and recreation."
-        />
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 mt-14">
-          {campusFacilities.map((fac, idx) => {
+    <section id="facilities" className="relative py-14 sm:py-20 lg:py-24 bg-[#F5F7F1] border-t border-[#E2E8F0]/80 overflow-hidden">
+      <div className="container mx-auto px-4 sm:px-6 relative z-10">
+        
+        {/* Section Header */}
+        <Reveal>
+          <div className="text-center max-w-3xl mx-auto mb-12 sm:mb-16">
+            <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-[#C8E6C9] bg-white text-[#14532D] text-xs font-bold uppercase tracking-widest mb-4 shadow-2xs">
+              <Building2 className="w-3.5 h-3.5 text-[#2E7D32]" />
+              Campus Infrastructure & Spaces
+            </span>
+            <h2 className="font-serif font-bold text-[#14532D] text-3xl sm:text-4xl lg:text-5xl leading-tight tracking-tight mb-4">
+              World-Class Learning Environments
+            </h2>
+            <p className="text-[#374151] text-base sm:text-lg leading-relaxed">
+              Designed to support comprehensive academic discovery, holistic personal growth, ethical leadership, and student well-being.
+            </p>
+          </div>
+        </Reveal>
+
+        {/* ── 1. Top Featured Asymmetric Facilities (2 Large Featured Hubs) ── */}
+        <div className="grid lg:grid-cols-2 gap-8 mb-8">
+          {featuredFacilities.map((fac, idx) => {
             const Icon = fac.icon;
             return (
               <motion.div
                 key={fac.title}
-                initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 28 }}
+                initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 25 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-60px" }}
-                transition={{ duration: 0.6, delay: shouldReduceMotion ? 0 : idx * 0.08, ease: "easeOut" }}
-                whileHover={{ y: shouldReduceMotion ? 0 : -5, transition: { duration: 0.25, ease: "easeOut" } }}
-                className="group rounded-2xl overflow-hidden bg-white border border-emerald-200/70 hover:border-[#166534] hover:shadow-xl transition-all duration-300 flex flex-col h-full cursor-pointer shadow-xs"
+                transition={{ duration: 0.6, delay: shouldReduceMotion ? 0 : idx * 0.15, ease: "easeOut" }}
+                className="group rounded-3xl overflow-hidden bg-white border border-[#E2E8F0] shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col"
               >
-                <div className="relative h-44 overflow-hidden bg-slate-900">
+                {/* Visual Area */}
+                <div className="relative h-64 sm:h-72 overflow-hidden bg-slate-900">
                   <img
                     src={fac.image}
                     alt={fac.title}
-                    className="w-full h-full object-cover group-hover:scale-[1.05] transition-transform duration-700"
+                    onError={(e) => {
+                      (e.currentTarget as HTMLImageElement).src = "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&w=1200&q=80";
+                    }}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/10 to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent pointer-events-none" />
                   
-                  {/* Floating Icon with micro-scale entrance */}
-                  <motion.div
-                    initial={{ scale: shouldReduceMotion ? 1 : 0.8, opacity: 0 }}
-                    whileInView={{ scale: 1, opacity: 1 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.4, delay: shouldReduceMotion ? 0 : (idx * 0.08) + 0.25, ease: "easeOut" }}
-                    className="absolute top-3.5 right-3.5 w-10 h-10 rounded-xl bg-white/95 backdrop-blur-md shadow-md flex items-center justify-center text-[#14532D] group-hover:bg-[#14532D] group-hover:text-white transition-colors"
-                  >
-                    <Icon className="w-5 h-5" />
-                  </motion.div>
+                  {/* Category Pill */}
+                  <div className="absolute top-4 left-4">
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/95 backdrop-blur-md text-xs font-bold text-[#14532D] shadow-sm">
+                      <Icon className="w-3.5 h-3.5 text-[#2E7D32]" />
+                      {fac.subtitle}
+                    </span>
+                  </div>
                 </div>
-                <div className="p-5 flex-1 flex flex-col bg-white">
-                  <h4 className="font-serif font-bold text-[#14532D] text-lg mb-2 group-hover:text-[#166534] transition-colors">{fac.title}</h4>
-                  <p className="text-xs text-[#374151] leading-relaxed font-normal">{fac.description}</p>
+
+                {/* Content */}
+                <div className="p-6 sm:p-8 flex-1 flex flex-col justify-between">
+                  <div>
+                    <h3 className="font-serif font-bold text-[#14532D] text-xl sm:text-2xl mb-3 group-hover:text-[#166534] transition-colors leading-snug">
+                      {fac.title}
+                    </h3>
+                    <p className="text-[#374151] text-sm leading-relaxed mb-6 font-normal">
+                      {fac.description}
+                    </p>
+                  </div>
+
+                  {/* Feature Checklist Pills */}
+                  <div className="grid grid-cols-2 gap-2 pt-4 border-t border-gray-100">
+                    {fac.features.map((feat) => (
+                      <div key={feat} className="flex items-center gap-2 text-xs text-[#26352B] font-semibold">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-[#2E7D32] shrink-0" />
+                        <span>{feat}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </motion.div>
             );
           })}
         </div>
+
+        {/* ── 2. Supporting Facilities (Balanced 3-Column Grid) ── */}
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {supportingFacilities.map((fac, idx) => {
+            const Icon = fac.icon;
+            return (
+              <motion.div
+                key={fac.title}
+                initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-50px" }}
+                transition={{ duration: 0.5, delay: shouldReduceMotion ? 0 : idx * 0.08, ease: "easeOut" }}
+                className="group rounded-2xl overflow-hidden bg-white border border-[#E2E8F0] hover:border-[#14532D]/40 shadow-xs hover:shadow-md transition-all duration-300 flex flex-col h-full"
+              >
+                <div className="relative h-44 overflow-hidden bg-slate-900">
+                  <img
+                    src={fac.image}
+                    alt={fac.title}
+                    onError={(e) => {
+                      (e.currentTarget as HTMLImageElement).src = "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&w=800&q=80";
+                    }}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent pointer-events-none" />
+                  
+                  {/* Floating Icon */}
+                  <div className="absolute top-3.5 right-3.5 w-9 h-9 rounded-xl bg-white/95 backdrop-blur-md shadow-xs flex items-center justify-center text-[#14532D] group-hover:bg-[#14532D] group-hover:text-white transition-colors">
+                    <Icon className="w-4 h-4" />
+                  </div>
+                </div>
+                <div className="p-5 flex-1 flex flex-col justify-between">
+                  <div>
+                    <h4 className="font-serif font-bold text-[#14532D] text-base mb-1.5 group-hover:text-[#166534] transition-colors">
+                      {fac.title}
+                    </h4>
+                    <p className="text-xs text-[#374151] leading-relaxed font-normal">
+                      {fac.description}
+                    </p>
+                  </div>
+                </div>
+              </motion.div>
+            );
+          })}
+        </div>
+
       </div>
     </section>
   );
